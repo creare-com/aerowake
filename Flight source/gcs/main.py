@@ -407,6 +407,14 @@ if __name__ == '__main__':
 				else:
 					logger.info('clearfault called when not using reel.')
 
+                        elif user_in == 'clearfaultandenable':
+                                invalid_input = False
+                                if using_reel:
+                                        logger.info('Commanding reel to clear fault and enable.')
+                                        commands_to_reel.put({"cmd":"clearfaultandenable"})
+                                else:   
+                                        logger.info('clearfaultandenable called when not using reel.')
+
 			elif user_in == 'arm':
 				invalid_input = False
 				# UAV knows that 359 means arm

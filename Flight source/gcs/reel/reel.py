@@ -71,6 +71,9 @@ class reel_run (Process):
                     elif cmd['cmd'] == 'clearfault':
                         self._logger.info("reel.py: Clearing fault\n")
                         self._rc.clearFault()
+                    elif cmd['cmd'] == 'clearfaultandenable':
+                        self._logger.info("reel.py: Clearing fault and enabling\n")
+                        self._rc.clearFaultAndEnable()
                     elif cmd['cmd'] == 'exit':
                         self._logger.info("reel.py: Halting reel via exit\n")
                         self._rc.stopMoving()

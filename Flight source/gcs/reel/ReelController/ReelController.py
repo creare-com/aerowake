@@ -268,7 +268,7 @@ class ReelController:
         except RuntimeError as err:
             self._logger.error("Error in _mc.clearFault: " + str(err))
 
-    def enable(self):
+    def clearFaultAndEnable(self):
         try:
             self._mc.clearFaultAndEnable()
         except RuntimeError as err:
