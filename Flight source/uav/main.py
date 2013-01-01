@@ -274,12 +274,12 @@ if __name__ == '__main__':
 
 	# uav_connect_path = '/dev/ttyACM0' # Use for odroid through pixhawk usb cord
 	# uav_connect_path = '/dev/ttyUSB0' # Use for odroid through usb to serial converter
-	# uav_connect_path = '/dev/ttySAC0' # Use for odroid through GPIO pins
-	uav_connect_path = '/dev/pixhawk' # Use after configuring symbolic link through udevadm
+	uav_connect_path = '/dev/ttySAC0' # Use for odroid through GPIO pins
+	# uav_connect_path = '/dev/pixhawk' # Use after configuring symbolic link through udevadm
 	uav_baud = 57600
 
-	# gcs_connect_path = '/dev/ttyUSB0' # Use for telemetry radio through usb port
-	gcs_connect_path = '/dev/radioacl33' # Use after configuring symbolic link through udevadm
+	gcs_connect_path = '/dev/ttyUSB0' # Use for telemetry radio through usb port
+	# gcs_connect_path = '/dev/radioacl33' # Use after configuring symbolic link through udevadm
 	gcs_baud = 57600
 
 	#-----------------------------------------------------------------------------
@@ -325,7 +325,9 @@ if __name__ == '__main__':
 	logger.info('Waiting for GCS')
 	while True:
 		try:
-			gcs = connect(gcs_connect_path, baud = gcs_baud, heartbeat_timeout = 60, rate = 20, wait_ready = True)
+			#gcs = connect(gcs_connect_path, baud = gcs_baud, heartbeat_timeout = 60, rate = 20, wait_ready = True)
+			gcs = connect(gcs_connect_path, baud = gcs_baud, wait_ready=False)
+			gcs.wait_ready(True, timeout=300)
 			break
 		except Exception as e:
 			logger.critical('GCS failed to connect with message: %s' %(e.message))
