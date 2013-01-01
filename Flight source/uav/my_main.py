@@ -32,9 +32,11 @@ from dronekit import connect, VehicleMode, LocationGlobalRelative, LocationGloba
 
 # uav_connect_path = '/dev/ttyACM0' # Use for odroid through pixhawk usb cord
 # uav_connect_path = '/dev/ttyUSB0' # Use for odroid through usb to serial converter
-uav_connect_path = '/dev/ttySAC0' # Use for odroid through GPIO pins
+# uav_connect_path = '/dev/ttySAC0' # Use for odroid through GPIO pins
+uav_connect_path = '/dev/pixhawk' # Use after configuring symbolic link through udevadm
 uav_baud = 57600
-gcs_connect_path = '/dev/ttyUSB0'
+# gcs_connect_path = '/dev/ttyUSB0' # Use for telemetry radio through usb port
+gcs_connect_path = '/dev/radioacl44' # Use after configuring symbolic link through udevadm
 gcs_baud = 57600
 
 # Extract mission information
@@ -128,6 +130,9 @@ class DroneCommanderNode(object):
 		continue_loop = True
 		while continue_loop and not rospy.is_shutdown():
 			param = gcs.parameters['PIVOT_TURN_ANGLE']
+			referenceLocation = gcs.location.global_frame
+			print '1\n', referenceLocation
+						
 
 			'''
 			The variable 'command' is what controls the drone. It is only updated when a valid and non-repeated param value is set. This ensures that the UAV does not continue commanding the same thing over and over. 
@@ -193,6 +198,7 @@ class DroneCommanderNode(object):
 					if not current_wp is None:
 						print 'DEBUG: Tracking waypoint %d' %(current_wp)
 						referenceLocation = gcs.location.global_frame
+						print '2\n', referenceLocation
 						dNorth = wp_N[current_wp]
 						dEast = wp_E[current_wp]
 						dDown = wp_D[current_wp]
@@ -211,7 +217,7 @@ class DroneCommanderNode(object):
 					disarm_vehicle(uav,'UAV')
 				elif command == 357 and uav.armed:
 					print 'DEBUG: Taking off'
-					takeoff(uav,'UAV',10)
+					takeoff(uav,'UAV',1)
 					in_the_air = True
 					current_wp = None
 
