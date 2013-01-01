@@ -383,7 +383,7 @@ if __name__ == '__main__':
 	# Initialize the node
 	rospy.init_node('flight_companion_node')
 	
-	# Create the yaw command node
+	# Create the drone command node
 	node = DroneCommanderNode(uav,gcs,logger_name)
 
 	# Spin
