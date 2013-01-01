@@ -236,7 +236,6 @@ class DroneCommanderNode(object):
 						logger.info('In the air, but not tracking a waypoint')
 
 			print ''
-			gcs.parameters[ack_param] = 300 # Reset acknowledge so that repeated commands are each acknowledged
 			time.sleep(0.5)
 
 		#------------------------------------
