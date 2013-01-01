@@ -87,7 +87,8 @@ class DroneCommanderNode(object):
 			358     UAV will disarm
 			357     UAV will takeoff to a pre-programmed height
 			356     UAV will land according to its landing protocol
-			355		  UAV will rotate to bearing given by parameter RNGFND_TURN_ANGL
+			355	UAV will rotate to bearing given by parameter RNGFND_TURN_ANGL
+			300	Reserved for empty resetting ack_param so that all ack's are received
 			0+      UAV will navigate to the waypoint at the index specified
 							The acceptable waypoint indices are 0 through num_wp - 1
 		'''
@@ -235,7 +236,7 @@ class DroneCommanderNode(object):
 						logger.info('In the air, but not tracking a waypoint')
 
 			print ''
-			gcs.parameters[ack_param] = param # 2nd acknowledge since the first may not have worked
+			gcs.parameters[ack_param] = 300 # Reset acknowledge so that repeated commands are each acknowledged
 			time.sleep(0.5)
 
 		#------------------------------------
