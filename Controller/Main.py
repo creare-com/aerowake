@@ -9,7 +9,7 @@ import numpy as np
 from droneapi.lib import VehicleMode
 from pymavlink import mavutil
 import signal, sys
-from Adafruit_ADS1x15 import ADS1x15
+#from Adafruit_ADS1x15 import ADS1x15
 import imp
 
 var = imp.load_source("var","../../../../home/pi/aerowake-mit/Controller/var.py")

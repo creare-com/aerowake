@@ -9,7 +9,7 @@ import numpy as np
 from droneapi.lib import VehicleMode
 from pymavlink import mavutil
 import time, signal, sys, datetime
-from Adafruit_ADS1x15 import ADS1x15
+#from Adafruit_ADS1x15 import ADS1x15
 ## Import Files
 import var
 

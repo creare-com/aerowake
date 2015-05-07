@@ -1,12 +1,12 @@
 #!/bin/sh
 # Normal operation
 cd /home/pi/aerowake-mit/Controller/
-while :
-do
-    sudo ipython /usr/local/bin/mavproxy.py -- --master=/dev/ttyAMA0,115200 --out=/dev/ttyUSB0,57600 --load-module dronekit_mod --streamrate=-1  --dialect gcs_pixhawk
-    #sudo mavproxy.py --master=/dev/ttyAMA0,115200 --out=/dev/ttyUSB0,57600 --load-module dronekit_mod --streamrate=-1 --cmd "api start /home/pi/aerowake-mit/Controller/Main.py" --dialect gcs_pixhawk
-   sleep 0.1
-done
+#while :
+#do
+    #sudo ipython /usr/local/bin/mavproxy.py -- --master=/dev/ttyAMA0,115200 --out=/dev/ttyUSB0,57600 --load-module dronekit_mod --streamrate=-1  --dialect gcs_pixhawk
+sudo ipython /usr/local/bin/mavproxy.py -- --master=/dev/ttyAMA0,115200 --out=/dev/ttyUSB0,57600 --load-module dronekit_mod --streamrate=-1 --cmd "api start /home/pi/aerowake-mit/Controller/Main.py" --dialect gcs_pixhawk
+   #sleep 0.1
+#done
 # mavproxy.py --master=/dev/ttyAMA0,115200 --out=/dev/ttyUSB0,57600
 # Debugging
 # Tips: 
