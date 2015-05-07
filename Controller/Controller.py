@@ -87,39 +87,15 @@ class Controller:
 ### UAV Operation Functions
 ###############################################################################################
 
-	def armUAV(self):
-		#Usage: Arm the UAV, prepare for takeoff
-				
-		self.uavArmed = True
-		return null
-	
-	def takeOffUAV(self,alt):
-		#Usage: Take the uav off and hover at [0,0] attitude at the specified altitude. 
-		if self.uavArmed and not self.uavFlying and not self.uavFailsafe:
-			self.uavFlying = True
-			self.goalAlt = alt
-			self.goalAttitude = [0,0]
-			#Some machinery to increase the throttle and close the loop around a desired altitude. 
-		return null
 
-	def landUAV(self):
-		#Usage: make the UAV flat and allow it to be reeled in. 
-		return null
-
-	def disarmUAV(self):
-		#Usage: Turn motors off. Set throttle to 0, disarm autopilot. 
-		self.uavFlying = False
-		self.uavArmed = False
-		return null
-	 
 	def runController(self):
 		#make sure everything is updated here. 		
 		
 		#Calculate attitude error
 		eAttitude = np.array(self.goalAttitude) - np.array(self.uavAttitude)
 		
-		#Calculate azmuth angle error
-		eAngle = np.array(self.goalAngle) - np.array(self.uavRelativeAngle)
+		#Calculate azmuth/inclination angle error
+		eAngle = np.array(self.goalAngle) - np.array(self.relativeAngle)
 		#Calculate yaw errors OR command yaw to be aligned with ship
 
 		#make the errors as part of self??
