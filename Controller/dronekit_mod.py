@@ -9,7 +9,7 @@ class GCS(object):
     gcs_conn = None
     def __init__(self, gcs_conn):
         self.gcs_conn = gcs_conn
-        self.gcs_conn.mav.set_callback(self.gcs_callback, self.gcs)
+        self.gcs_conn.mav.set_callback(self.gcs_callback, self.gcs_conn)
 
     def gcs_callback(self, m, gcs):
         if getattr(m, '_timestamp', None) is None:

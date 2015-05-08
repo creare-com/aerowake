@@ -1,0 +1,4 @@
+/*.pyc
+/build/
+/dialects/.*\.py
+/dialects/.*\.xml

@@ -88,6 +88,26 @@ mavlink_msgs_filt = [ # The very short version
     'HEARTBEAT',
 ]
 
+# Custom messages
+set_mission_mode = {
+    "TAKE_OFF": 0,
+    "LAND": 1, 
+    "START_MISSION": 2,
+    "STOP_MISSION": 3,
+    "LOITER": 4,
+    "EMERGENCY_ALL_STOP": 9,
+    "SCHEDULE_SWEEP": -1  # Not part of the set_mission_mode message but nice for gui
+}
+
+mission_status = {
+    0: "TAKING_OFF",
+    1: "LANDING", 
+    2: "FLYING MISSION",
+    3: "STOPPING MISSION",
+    4: "LOITERING", 
+    9: "EMERGENCY STOP",
+}
+
 # Figuire out the number of intputs for all the mavlink messages, and also
 # the function call...
 #%%
@@ -107,13 +127,11 @@ for key in mavlink_msgs:
 
 class GCS(t.HasTraits):
     # ON GCS: Outgoing
-    mission_message = t.Enum(["START_MISSION", 
-                              "STOP_MISSION",
-                              "ABORT_MISSION",
-                              "LAND"
-                              "TAKE OFF"],
+    mission_message = t.Enum(set_mission_mode.keys(),
                               label="Mission Type")
-    mission_parameters = t.Array(value=[0, 1, 2, 3, 4], label="params")
+    sweep_angle = t.Float(label="Angle (degrees)")
+    sweep_alt_max = t.Float(label="Max Altitude (m)")
+    sweep_alt_min = t.Float(label="Min Altitude (m)")
     
     mavlink_message = t.Enum(mavlink_msgs, label="Mavlink Message")    
     mavlink_message_filt = t.Enum(mavlink_msgs_filt, label="Mavlink Message")    
@@ -123,6 +141,7 @@ class GCS(t.HasTraits):
     # Tether
     tether_length = t.Float(t.Undefined, label='Length (m)')
     tether_tension = t.Float(t.Undefined, label='Tension (N)')
+    tether_velocity = t.Float(t.Undefined, label="Velocity")
     
     # ON DRONE: Incoming
     # Mission Status
@@ -137,8 +156,9 @@ class GCS(t.HasTraits):
     gps_distance = t.Float(t.Undefined)
     
     # Probe
-    probe_velocity = t.Array(dtype=float, shape=(3,), label="Probe v (m/s) [x, y, z]")
-    
+    probe_u = t.Float(label="u (m/s)")
+    probe_v = t.Float(label="v (m/s)")
+    probe_w = t.Float(label="w (m/s)")
     
     # ui stuff
     update_mission = t.Button("Update")
@@ -149,7 +169,12 @@ class GCS(t.HasTraits):
         tui.Group(
                   tui.Group(
                             tui.Item(name="mission_message"),
-                            tui.Item(name="mission_parameters"),
+                            tui.Item(name="sweep_angle", 
+                                     visible_when='mission_message=="SCHEDULE_SWEEP"'),
+                            tui.Item(name="sweep_alt_max", 
+                                     visible_when='mission_message=="SCHEDULE_SWEEP"'),
+                            tui.Item(name="sweep_alt_min", 
+                                     visible_when='mission_message=="SCHEDULE_SWEEP"'),
                             tui.Item(name="update_mission"),
                             tui.Item("_"), 
                             tui.Item("filtered"),
@@ -160,7 +185,7 @@ class GCS(t.HasTraits):
                             tui.Item("_"), 
                             tui.Item(name="tether_tension", enabled_when='False'),
                             tui.Item(name="tether_length", enabled_when='False'),
-
+                            tui.Item(name="tether_velocity", enabled_when='False'),
                             orientation="vertical",
                             show_border=True,
                             label="On GCS"
@@ -170,7 +195,9 @@ class GCS(t.HasTraits):
                             tui.Item(name="gps_altitude", enabled_when='False'),
                             tui.Item(name='gps_distance', enabled_when='False'),
                             tui.Item("_"),
-                            tui.Item(name='probe_velocity', enabled_when='False'),
+                            tui.Item(name='probe_u', enabled_when='False'),
+                            tui.Item(name='probe_v', enabled_when='False'),
+                            tui.Item(name='probe_w', enabled_when='False'),
                             orientation='vertical',
                             show_border=True,
                             label="Incoming"
