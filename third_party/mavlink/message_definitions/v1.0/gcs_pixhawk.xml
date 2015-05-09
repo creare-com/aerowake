@@ -225,9 +225,9 @@
                <field type="float" name="network_load_out">Network load outbound in KiB/s </field>
           </message>
           <message id="220" name="TETHER_STATUS">
-               <field type="float" name="tether_length">Tether Length (m)</field>
-               <field type="float" name="tether_tension">Tether tension (N)</field>
-               <field type="float" name="tether_velocity">Tether velocity (negative reduces length, positive increases length)</field>
+               <field type="float" name="length">Tether Length (m)</field>
+               <field type="float" name="tension">Tether tension (N)</field>
+               <field type="float" name="velocity">Tether velocity (negative reduces length, positive increases length)</field>
           </message>
           <message id="225" name="SET_MISSION_MODE">
                <field type="uint8_t" name="mode">mission mode: 0 = Take off, 1 = Land, 2 = Start mission, 3 = Stop mission,  4 = Loiter, 9 = Emergency All Stop</field>
@@ -242,8 +242,9 @@
           </message>
           <message id="230" name="SCHEDULE_SWEEP">
                <field type="float" name="angle">Sweep angle (degrees)</field>
-               <field type="float" name="altitude_max">Sweep Altitude Max (m)</field>
-               <field type="float" name="altitude_min">Sweep Altitude Max (m)</field>
+               <field type="float" name="altitude_start">Sweep Altitude Start (m)</field>
+               <field type="float" name="altitude_end">Sweep Altitude End (m)</field>
+               <field type="float" name="altitude_step">Number of Steps in Altitude Sweep</field>
           </message>
      </messages>
 </mavlink>
