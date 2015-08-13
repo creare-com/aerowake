@@ -1,0 +1,134 @@
+
+
+Raspberry Pi 2 Installation Guide
+=================================
+=================================
+
+Packages to be installed:
+-Dronekit
+-Mavproxy
+-ADS1x15 library
+
+Setup of Raspberry Pi
+=====================
+-Install Basic Raspian via NOOBS (follow any online tutorial -- I am using NOOBS v1.4.1)
+	-While it is installing, select Language = English (US) and Keyboard = (us)
+-Default login is (pi), password is (raspberry)
+-Notes:
+	-To start the Raspberry Pi desktop, type $ startx
+	-From the desktop, there is a wifi utility 
+	- '$ [command]' will be terminal commands in this document
+-Enter Raspberry Pi Config -- This often pops up when you first boot the RaspPi after installing the operating system. 
+	$ sudo raspi-config
+-Select '8. Advanced Options' and change:
+	-A1 Overscan = Disable
+	-A4 SSH = Enable
+	-A7 I2C = Enable
+	-A8 Serial = Disable
+-Select Finish, reboot. 
+-Setup Internet on the Raspberry Pi. (follow any online tutorial)
+	-I used Wifi TP-Link WN722N, however there is a whole list of adapters recommended for the Raspberry Pi.
+	-Ethernet should work fine. 
+-Update the Raspberry Pi Software
+	$ sudo apt-get update 
+	$ sudo apt-get upgrade 
+	$ sudo apt-get install git
+
+
+Installation of Dronekit and Mavproxy
+=====================================
+-Install packages 
+	$ sudo apt-get install screen python-wxgtk2.8 python-matplotlib python-opencv python-pip python-numpy python-dev python-serial python-pyparsing 
+	$ sudo pip install pymavlink
+	$ sudo pip install mavproxy
+	$ sudo pip install droneapi
+	
+-Test Mavproxy to ensure it works. Plug the Pixhawk Telemetry Radio into the Raspberry Pi. Set up the telemetry radios using a normal computer with Mission Planner, and confirm they work. 
+	-Plug the Pixhawks Telemetry radio into the Telem2 port and power the Pixhawk on.   
+	$ mavproxy.py --master=/dev/ttyUSB0 --baudrate 57600
+	-You should see it initialize and say the firmware version**
+	-When mavproxy is running, there are a list of commands that you can enter -- view all by typing help
+	-For this document, Mavproxy commands will be shown as MAV> [command], however MAV will be the flight mode the vehicle is in, such as AUTO or MANUAL or ALTHOLD. 
+-Confirm that Dronekit has successfully been installed	(this is how you manually load DroneKit into Mavproxy)
+	MAV> module load droneapi.module.api
+	-It should say 'DroneAPI Loaded' and 'Loaded module droneapi.module.api'
+-Ctrl-C to exit Mavproxy. 
+-Make DroneKit always load in Mavproxy	(Now it should auto-load DroneKit when you start Mavproxy)
+	$ echo "module load droneapi.module.api" >> ~/.mavinit.scr
+	-Confirm this worked:
+		$ mavproxy.py 
+		-It should say DroneAPI Loaded in the mess of initialization text. 
+		-Ctrl-C to exit mavproxy 
+-Download the Repo from Dronekit into home directory -- will require a Github username
+	$ cd 
+	$ sudo git clone https://github.com/dronekit/dronekit-python
+
+	
+Installation of Adafruit ADS1x15 Library
+========================================
+-Download library from Github
+	$ cd
+	$ git clone https://github.com/adafruit/Adafruit-Raspberry-Pi-Python-Code.git
+
+-Install kernel support for i2c
+	$ sudo apt-get install python-smbus
+	$ sudo apt-get install i2c-tools
+	$ sudo nano /etc/modules 
+	-Add the lines "i2c-bcm2708" and "i2c-dev" below "snd-bcm2835"
+	-Press Ctrl-X then Y then Enter.  
+	$ sudo nano /boot/config.txt
+	-At the very bottom, add "dtparam=i2c1=on" and "dtparam=i2c_arm=on" and "device_tree_param=i2c1=on"(if they do not already exist-- i2c_arm was present for my install)
+	-Press Ctrl-X then Y then Enter. 
+	$ sudo reboot
+	$ sudo i2cdetect -y 1 
+		-this command should show you all the addresses of the connected i2c components. If the ADS1115 is connected, it should show up here. 
+-Move libraries so DroneKit can use them. 
+	-Move Adafruit_ADS1x15.py and Adafruit_I2C.py to /usr/local/lib/python2.7/dist-packages/  
+	-Move to root folder
+	$ sudo cp /home/pi/Adafruit-Raspberry-Pi-Python-Code/Adafruit_I2C/Adafruit_I2C.py /usr/local/lib/python2.7/dist-packages/
+	$ sudo cp /home/pi/Adafruit-Raspberry-Pi-Python-Code/Adafruit_ADS1x15/Adafruit_ADS1x15.py /usr/local/lib/python2.7/dist-packages/
+	
+Installation of Bitbucket Repository
+====================================
+-Install Mercurial for Bitbucket. 		
+	$ sudo apt-get install mercurial
+	$ hg clone https://mklinker129@bitbucket.org/mklinker129/aerowake-mit
+	-This will probably require a Bitbucket account. 
+		
+
+Wiring Instructions
+===================
+-The Raspberry Pi 2 needs 5 volts @ up to 1A. Realistic current draw is ~.5A, but USB devices will draw more, so a large safety margin is good. 
+	-I used 3 7805 5v Linear regulators in parallel (they got hot during operation)
+	-Would recommend a high-power, high quality switching regulator such as this: http://www.amazon.com/Castle-Creations-Bec-Switching-Regulator/dp/B000MXAR12
+	-This should be fed from a 12volt power source (3 cell LiPo) onboard the UAV. This battery hot-swappable, as we dont want to keep shutting down the raspberry pi. 
+
+	
+Testing the Pixhawk and ADS1x15 Together ** CURRENTLY SET UP FOR ADS1015
+========================================
+-Connect the RaspPi's serial port to the Telem1 port on the Pixhawk. 
+-Connect the USB Telemetry radio to the RaspPi, and the Pixhawk's telemetry radio into port Telem2.
+-Launch Mavproxy via the telemetry radio and modify the parameter SERIAL1_BAUD to 115
+	$ mavproxy.py --master=/dev/ttyUSB0 --baudrate 57600
+	MAV> param set SERIAL1_BAUD 115
+	-Ctrl-C out of Mavproxy. 
+-The RaspPi's serial port should be /dev/ttyAMA0. Unplug the Telemetry radio from the RaspPi.
+-Launch Mavproxy via the RaspPi's serial port, and run LoggingTest.py
+	$ mavproxy.py --master=/dev/ttyAMA0 --baudrate 115200
+	MAV>api start /home/pi/aerowake-mit/LoggingTest/LoggingTest.py
+-You should see it count up to 100, display the time,  roll/pitch/yaw, and the analog input A0 voltage. 
+-This will make a text file in the /aerowake-mit/Logging directory, called data.txt 
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
