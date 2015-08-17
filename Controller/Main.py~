@@ -1,3 +1,6 @@
+#Name: Main.py
+#Author: mklinker
+#Usage: Main function
 
 import time
 import datetime
@@ -12,10 +15,12 @@ from Adafruit_ADS1x15 import ADS1x15
 import Setup
 import var
 import LogData
-import Failsafe
+import Controller
+
+
 
 ##############################################################
-# Hardware Setup
+# Setup
 ##############################################################
 
 print "Running Hardware Setup Routine"
@@ -23,16 +28,37 @@ adc0=Setup.InitializeADCHardware()
 #api = local_connect()
 #v=api.get_vehicles()[0]
 
+#initialize Controller
+print "Initialize Controller"
+vehControl = Controller.Controller()
 
 
 ##############################################################
 # Main Loop
 ##############################################################
 
+#event: Takeoff Command Given
+vehControl.goalAttitude = [1,1]
+
+#event: Wait at specified altitude until a command is given
+
+#event: Command packet recieved, execute sweep
+
+#event: land command given 
+
 count=1
 while count<10:
 	Ch00 = adc0.readADCSingleEnded(0,var.adcGain,var.adcSPS)/1000
- 	print "doink %.2f   %.2f" %(count,Ch00)
-	LogData.writeToLogFile('DataPacket')
+ 	outData = "ran %.2f   %.2f" %(count,Ch00)
+	print outData	
+	LogData.writeToLogFile('outData')
 	count+=1
 	time.sleep(.1)
+
+
+
+
+
+
+
+

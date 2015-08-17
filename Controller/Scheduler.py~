@@ -1,18 +1,17 @@
-#Name: Controller.py
+#Name: Scheduler.py
 #Author: mklinker
-#Usage: Flight scheduler and Controller (PID's and such)
+#Usage: Flight scheduler class
 
 import numpy as np
 
-class Controller:
+class Scheduler:
 	
 	def __init__(self):
-		self.description = "flight scheduler and controller to handle high level commands"
+		self.description = "flight scheduler to handle high level commands"
 		self.uavCoord = [0,0] 		#GPS coordinates of UAV [lat,lon]
 		self.uavAlt = 0			#UAV Altitude [m]
 		self.uavMode = 0			#UAV Mode
 		self.uavAttitude = [0,0]		#Current UAV attitude (roll,pitch)[radians]
-
 		self.goalAttitude = [0,0]	#Goal UAV attitude (roll,pitch)[radians]	
 		self.goalAlt = 0 			#Goal UAV Altitude [m]
 	
@@ -35,52 +34,31 @@ class Controller:
 		poseUav=[rUav*np.cos(latUav)*np.cos(lonUav), rUav*np.cos(latUav)*np.sin(lonUav), rUav*np.sin(latUav)]
 		[x,y,z]=poseShip-poseUav
 		#rotate [x,y,z] to be aligned with the heading of the ship. 
-		self.relativePosition=[x,y,z] 
+		self.relativePosition=[x,y,z]		
 		return self.relativePosition
 
-
-
-
-
-
-	def armUAV(self):
+	def armUAV(self)
 		#Usage: Arm the UAV, prepare for takeoff
-		return null
 	
 	def takeOffUAV(self,alt):
 		#Usage: Take the uav off and hover at [0,0] attitude at the specified altitude. 
 		if not self.uavFlying and not self.uavFailsafe:
-			self.uavFlying = True
 			self.goalAlt = alt
 			self.goalAttitude = [0,0]
 			#Some machinery to increase the throttle and close the loop around a desired altitude. 
-		return null
-
-	def landUAV(self):
-		#Usage: make the UAV flat and allow it to be reeled in. 
-		return null
-
-	def disarmUAV(self):
-		#Usage: Turn motors off. Set throttle to 0, disarm autopilot. 
-		return null
-	 
-	def runController(self):
-		#Calculate position errors
-		#Calculate altitude errors
-		#Calculate yaw errors
-		#
 		
-		#hand back [rollPWM, pitchPWM, throttlePWM, yawPWM]		
-		return [0,0,0,0] #[ch1,ch2,ch3,ch4]
+	def landUAV(self)
+		#Usage: make the UAV flat and allow it to be reeled in. 
+
+	def disarmUAV(self)
+		#Usage: Turn motors off. Set throttle to 0, disarm autopilot. 
+		 
 
 
 
-	def saturate(val,lower,upper):
-		if val>upper:
-			val=upper
-		if val<lower:
-			val=lower
-		return val
+		
+
+
 
 
 
