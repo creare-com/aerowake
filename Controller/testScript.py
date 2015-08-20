@@ -5,38 +5,69 @@ point2=[42.355696,-71.092334]
 point3=[42.355805,-71.088758]
 point4=[42.357030,-71.090754]
 
-act1=point4
-act2=point1
+act1=point1
+act2=point2
 
-alt1=0
-alt2=0
-
-
-rShip=637100+alt1	
-rUav=637100+alt2
+R=6371229
 
 dlat=act1[0]-act2[0]
 dlon=act1[1]-act2[1]
 
-R=6371229
-
 a = (np.sin(dlat/2*np.pi/180))**2 + np.cos(act1[0]*np.pi/180) * np.cos(act2[0]*np.pi/180) * (np.sin(dlon/2*np.pi/180))**2
-
-c = 2 * np.arctan2(np.sqrt(a),np.sqrt(1-a))
-d=R * c
+d=R *2 * np.arctan2(np.sqrt(a),np.sqrt(1-a))
 
 print "distance = "+ str(d)
 
 ##############################################################
+###########################################################
 
-theta = np.arctan2(       np.sin(dlon*np.pi/180) * np.cos(act2[0]*np.pi/180) , np.cos(act1[0]*np.pi/180) * np.sin(act2[0]*np.pi/180) - np.sin(act1[0]*np.pi/180) * np.cos(act2[0]*np.pi/180) * np.cos(dlon*np.pi/180))
+shipHeading=(60)*np.pi/180 #0 to 360 deg
 
-print "theta_raw = "+ str(theta)
 
-theta2 = -theta
+dlat=act1[0]-act2[0]
+dlon=act1[1]-act2[1]
 
-if theta2<0:
-	theta2=theta2+2*np.pi
-theta2=theta2*180/np.pi
+arg1= np.sin(dlon*np.pi/180) * np.cos(act2[0]*np.pi/180) 
+arg2= np.cos(act1[0]*np.pi/180) * np.sin(act2[0]*np.pi/180) - np.sin(act1[0]*np.pi/180) * np.cos(act2[0]*np.pi/180) * np.cos(dlon*np.pi/180)		
+gRelAng =  -np.arctan2( arg1, arg2) 
 
-print "bearing = " + str( theta2)
+gRelAng= gRelAng-shipHeading
+
+if gRelAng<0:
+	gRelAng=gRelAng+2*np.pi
+
+
+globalAng=gRelAng*180/np.pi
+
+
+if globalAng<180:
+	localAng = (180 - globalAng) + shipHeading*180/np.pi
+else:
+	localAng = -(360 - globalAng) + shipHeading*180/np.pi
+
+###
+phi=360-90
+m=160-90
+
+theta = 180- (m - phi)
+print str(theta)
+#print "global angle   " + str( globalAng)
+#print "local angle off ships stern  " + str(localAng)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -8,7 +8,7 @@ class Controller:
 	
 	def __init__(self):
 		self.description = "flight scheduler and controller to handle high level commands"
-		self.uavCoord = [0,0] 		#GPS coordinates of UAV [lat,lon]
+		self.uavCoord = [0,0] 		#GPS coordinates of UAV [lat,lon] [degrees]
 		self.uavAlt = 0			#UAV Altitude [m]
 		self.uavMode = 0			#UAV Mode
 		self.uavAttitude = [0,0]		#Current UAV attitude (roll,pitch)[radians]
@@ -17,7 +17,7 @@ class Controller:
 		self.goalAlt = 0 			#Goal UAV Altitude [m]
 	
 		self.shipAlt = [0,0]			#GPS altitude of ship station (tether) [m]
-		self.shipCoord = [0,0]		#GPS position of ship station (tether) [lat,lon]
+		self.shipCoord = [0,0]		#GPS position of ship station (tether) [lat,lon] [degrees]
 		self.shipHeading = 0		#Heading of ship [degrees]
 		self.tetherS = 0 			#Tether length [m]
 
@@ -26,23 +26,47 @@ class Controller:
 		
 		self.relativePosition = [0,0,0] #UAV position relative to ship. (x,y,z) [m]. X is parallel with ship(forward positive), Y perpendicular to ship, Z is alt. 
 
-	def getRelativePosition(self): #Needs to be tested -- heading angle not implemented yet
-		[latShip,lonShip]=[self.shipCoord[0]*np.pi/180, self.shipCoord[1]*np.pi/180] #lat/lon in radians
-		[latUav,lonUav]=[self.uavCoord[0]*np.pi/180, self.uavCoord[1]*np.pi/180]
-		rShip=637100+self.shipAlt		
-		rUav=637100+self.uavAlt
-		poseShip=[rShip*np.cos(latShip)*np.cos(lonShip), rShip*np.cos(latShip)*np.sin(lonShip), rShip*np.sin(latShip)]
-		poseUav=[rUav*np.cos(latUav)*np.cos(lonUav), rUav*np.cos(latUav)*np.sin(lonUav), rUav*np.sin(latUav)]
-		[x,y,z]=poseShip-poseUav
-		#rotate [x,y,z] to be aligned with the heading of the ship. 
-		self.relativePosition=[x,y,z] 
+	def getDistance(self): #Tested separately. Gives the 2D GPS position distance from the ship to UAV
+		act1 = self.uavCoord
+		act2 = self.shipCoord
+
+		R = 6371229
+		dlat = act1[0]-act2[0]
+		dlon = act1[1]-act2[1]
+
+		a = (np.sin(dlat/2*np.pi/180))**2 + np.cos(act1[0]*np.pi/180) * np.cos(act2[0]*np.pi/180) * (np.sin(dlon/2*np.pi/180))**2
+		distance = R *2 * np.arctan2(np.sqrt(a),np.sqrt(1-a))
+		return distance #[meters]
+
+	def getDiagonalDistance(self): #Gives the ideal taut-tether length from the ship to the UAV. 
+		xyDist = getDistance(self)
+		zDist = self.uavAlt-self.shipAlt
+		diagDist = ( xyDist**2 + zDist**2 )**0.5
+		return diagDist #[meters]
+
+	def getGlobalAngle(self): #Tested separately. Gives the heading angle from North from the ship to UAV. 
+		act1 = self.uavCoord
+		act2 = self.shipCoord
+		dlat=act1[0]-act2[0]
+		dlon=act1[1]-act2[1]
+		
+		arg1= np.sin(dlon*np.pi/180) * np.cos(act2[0]*np.pi/180) 
+		arg2= np.cos(act1[0]*np.pi/180) * np.sin(act2[0]*np.pi/180) - np.sin(act1[0]*np.pi/180) * np.cos(act2[0]*np.pi/180) * np.cos(dlon*np.pi/180)		
+		gRelAng =  -np.arctan2( arg1, arg2)
+		if gRelAng<0:
+			gRelAng=gRelAng+2*np.pi
+		gRelAng=gRelAng*180/np.pi
+		return gRelAng #[degrees]
+
+	def getRelativePosition(self):
+		xyDist = getDistance(self)
+		z = self.uavAlt-self.shipAlt
+		shipHeadingAngle = getGlobalAngle(self) ##UPDATE WITH SHIPS HEADING
+		tAngle = (180-shipHeadingAngle)*np.pi/180 # [Radians] #Angle off stern of ship, right (starboard side) is positive
+		x = xyDist*np.cos(tAngle)
+		y = xyDist*np.sin(tAngle)
+		self.relativePosition=[x,y,z]
 		return self.relativePosition
-
-
-
-
-
-
 
 	def armUAV(self):
 		#Usage: Arm the UAV, prepare for takeoff
