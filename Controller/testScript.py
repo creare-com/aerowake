@@ -1,3 +1,27 @@
+
+
+def subList(list1,list2):
+	ln1 = len(list1)
+	ln2 = len(list2)
+	if ln1 == ln2:
+		outList=[0]*ln1
+		for i in range(0,ln1):
+			print i
+			outList[i]=list1[i]-list2[i]
+	else:
+		print "subList function error-- input list sizes different"
+		outList=[0]				
+	return outList
+
+print (subList([5,5,5,5],[1,2,3,1]))
+
+
+
+
+
+
+
+
 import numpy as np
 
 point1=[42.356998,-71.092478]
@@ -16,7 +40,7 @@ dlon=act1[1]-act2[1]
 a = (np.sin(dlat/2*np.pi/180))**2 + np.cos(act1[0]*np.pi/180) * np.cos(act2[0]*np.pi/180) * (np.sin(dlon/2*np.pi/180))**2
 d=R *2 * np.arctan2(np.sqrt(a),np.sqrt(1-a))
 
-print "distance = "+ str(d)
+#print "distance = "+ str(d)
 
 ##############################################################
 ###########################################################
@@ -50,11 +74,11 @@ phi=360-90
 m=160-90
 
 theta = 180- (m - phi)
-print str(theta)
+#print str(theta)
 #print "global angle   " + str( globalAng)
 #print "local angle off ships stern  " + str(localAng)
 
-
+#
 
 
 
