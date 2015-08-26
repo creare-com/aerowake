@@ -8,7 +8,8 @@ class Controller:
 	
 	def __init__(self):
 		self.description = "flight scheduler and controller to handle high level commands"
-		self.uavCoord = [0,0] 		#GPS coordinates of UAV [lat,lon] [degrees]
+		self.uavCoord = [1,1] 		#GPS coordinates of UAV [lat,lon] [degrees]
+		self.uavVel = [0,0,0] 		#UAV velocity [m/s]		
 		self.uavAlt = 0			#UAV Altitude [m]
 		self.uavMode = 0			#UAV Mode
 		self.uavAttitude = [0,0]		#Current UAV attitude (roll,pitch)[radians]
@@ -18,7 +19,7 @@ class Controller:
 		self.goalAlt = 0 			#Goal UAV Altitude [m]
 		self.goalAngle = [0,0]		#Goal UAV Angles (theta, phi) [degrees]
 	
-		self.shipAlt = [0,0]			#GPS altitude of ship station (tether) [m]
+		self.shipAlt = 0			#GPS altitude of ship station (tether) [m]
 		self.shipCoord = [0,0]		#GPS position of ship station (tether) [lat,lon] [degrees]
 		self.shipHeading = 0		#Heading of ship [degrees]
 		self.tetherS = 0 			#Tether length [m]
@@ -88,6 +89,7 @@ class Controller:
 
 	def armUAV(self):
 		#Usage: Arm the UAV, prepare for takeoff
+				
 		self.uavArmed = True
 		return null
 	
@@ -118,9 +120,11 @@ class Controller:
 		
 		#Calculate azmuth angle error
 		eAngle = np.array(self.goalAngle) - np.array(self.uavRelativeAngle)
-		#Calculate yaw errors
-		#
+		#Calculate yaw errors OR command yaw to be aligned with ship
+
+		#make the errors as part of self??
 		
+
 		#hand back [rollPWM, pitchPWM, throttlePWM, yawPWM]		
 		return [0,0,0,0] #[ch1,ch2,ch3,ch4]
 
