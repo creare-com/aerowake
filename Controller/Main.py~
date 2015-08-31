@@ -22,7 +22,7 @@ LogData = imp.load_source("LogData","../../../../../../../../home/pi/aerowake-mi
 ##############################################################
 # Setup
 ##############################################################
-
+print "AeroWake Controller \n \n \n \n \n"
 print "Running Hardware Setup Routine"
 adc0=Setup.InitializeADCHardware()
 api = local_connect()
@@ -36,14 +36,15 @@ vehControl = Controller.Controller()
 # DroneKit Specific Functions
 ##############################################################
 
+
 #Update UAV Controller State
 def updateUAV():
-	print "Controller UAV State Updated"
+	#print "Controller UAV State Updated"
 	vehControl.uavAlt = vehAPI.location.alt
 	vehControl.uavCoord = [vehAPI.location.lat,vehAPI.location.lon]
 	vehControl.uavMode = vehAPI.mode.name
 	vehControl.uavAttitude = [ vehAPI.attitude.roll , vehAPI.attitude.pitch ]
-	vehControl.uavVel = [ vehAPI.velocity.vx, vehAPI.velocity.vy , vehAPI.velocity.vz ]
+	vehControl.uavVel = vehAPI.velocity
 	
 def updateShip():
 	print "Controller Ship State Updated"
@@ -52,7 +53,7 @@ def updateShip():
 	vehControl.ship.Heading = 0
 	vehControl.tetherS = 0
 
-def updateGoal(attitude,alt,angle)
+def updateGoal(attitude,alt,angle):
 	print "Controller Goal State Updated"
 	vehControl.goalAttitude = attitude
 	vehControl.goalAlt = alt
@@ -60,25 +61,59 @@ def updateGoal(attitude,alt,angle)
 
 #Arm Vehicle
 def armUAV():
+	print "\n Arming UAV \n"
+	vehAPI.channel_override = { "3" : 1000}
+	vehAPI.flush()
 	vehAPI.armed = True
 	vehAPI.flush()
 	while not vehAPI.armed and not api.exit:
 		print "Waiting for UAV to arm..."
-		time.sleep(1)
+		time.sleep(.5)
 
 	vehControl.uavArmed = vehAPI.armed
 	updateGoal([0,0],0,[0,0])
-	print "Controller Status: %s" % vehAPI.armed
+	print "Controller Status: Vehicle Armed: %s" % vehAPI.armed
 
 def disarmUAV():
-	print "Disarming UAV"
+	print "\n Disarming UAV \n"
+	updateGoal([0,0],0,[0,0])
+	vehAPI.channel_override = {"3" : 999 }
+	vehAPI.flush()
 	vehAPI.armed = False
 	vehAPI.flush()
-	print "Controller Status: %s" % vehAPI.armed
+	while vehAPI.armed and not api.exit:
+		print "Waiting for UAV to disarm..."	
+		time.sleep(.5)
+
+	print "Controller Status: Vehicle Armed: %s" % vehAPI.armed
 	vehControl.uavFlying = False
 	vehControl.uavArmed = vehAPI.armed
-	updateGoal([0,0],0,[0,0])
 
+def takeOffUAV(alt):
+	#Usage: Take the uav off and hover at [0,0] attitude at the specified altitude. 
+	if vehAPI.armed and not vehControl.uavFlying and not vehControl.uavFailsafe:
+		vehControl.uavFlying = True
+		updateGoal([0,0],alt,[0,45])
+		#Some machinery to increase the throttle and close the loop around a desired altitude. 
+
+def landUAV(landAlt):
+	#Usage: Return the UAV to hovering close to the ship. Following that, the Uav can be reeled in, and the Uav disarm can be triggered 
+	if vehAPI.armed and vehControl.uavFlying and not vehControl.uavFailsafe:
+		updateGoal([0,0],landAlt,[0,45])
+		# At this point, need to reel in the tether, then trigger UAV Disarm
+
+##############################################################
+# Mavlink Callback
+##############################################################
+
+def uav_callback(attitude):
+	#print "UAV Callback" 
+	updateUAV()	
+
+vehAPI.add_attribute_observer('attitude' , uav_callback)
+
+def ship_callback():
+	print "Ship Callback"
 
 ##############################################################
 # Main Loop
@@ -86,28 +121,26 @@ def disarmUAV():
 
 #event: Takeoff Command Given
 
-vehControl.goalAngle = [0,20]
-
-##############################################################
-# Mavlink Callback
-##############################################################
-
 #event: Wait at specified altitude until a command is given
 
 #event: Command packet recieved, execute sweep
 
 #event: land command given 
 
+armUAV()
+
+# Run this for a bit as a test
 count=1
-while count<10:
-	updateUAV()
+while count<50:
 	Ch00 = adc0.readADCSingleEnded(0,var.adcGain,var.adcSPS)/1000
- 	outData = "ran %.2f   %.2f" %(count,Ch00)
-	print outData
-	print "         altitude = " + str(vehAPI.location.alt)	
-	LogData.writeToLogFile('outData')
+ 	outData = "Count: %.2f    ADC: %.2f" %(count,Ch00)
+	#print outData
+	#print "         altitude = " + str(vehAPI.location.alt)	
+	#LogData.writeToLogFile('outData')
 	count+=1
 	time.sleep(.1)
+
+disarmUAV()
 
 
 
