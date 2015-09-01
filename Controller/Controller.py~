@@ -88,12 +88,6 @@ class Controller:
 ###############################################################################################
 
 
-	def disarmUAV(self):
-		#Usage: Turn motors off. Set throttle to 0, disarm autopilot. 
-		self.uavFlying = False
-		self.uavArmed = False
-		return null
-	 
 	def runController(self):
 		#make sure everything is updated here. 		
 		
@@ -101,7 +95,7 @@ class Controller:
 		eAttitude = np.array(self.goalAttitude) - np.array(self.uavAttitude)
 		
 		#Calculate azmuth angle error
-		eAngle = np.array(self.goalAngle) - np.array(self.uavRelativeAngle)
+		eAngle = np.array(self.goalAngle) - np.array(self.relativeAngle)
 		#Calculate yaw errors OR command yaw to be aligned with ship
 
 		#make the errors as part of self??

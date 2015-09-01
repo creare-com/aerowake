@@ -94,8 +94,8 @@ class Controller:
 		#Calculate attitude error
 		eAttitude = np.array(self.goalAttitude) - np.array(self.uavAttitude)
 		
-		#Calculate azmuth angle error
-		eAngle = np.array(self.goalAngle) - np.array(self.uavRelativeAngle)
+		#Calculate azmuth/inclination angle error
+		eAngle = np.array(self.goalAngle) - np.array(self.relativeAngle)
 		#Calculate yaw errors OR command yaw to be aligned with ship
 
 		#make the errors as part of self??
