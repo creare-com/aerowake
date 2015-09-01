@@ -21,7 +21,7 @@ LogData = imp.load_source("LogData","../../../../../../../../home/pi/aerowake-mi
 # Setup
 ##############################################################
 
-AdcEnable=False
+AdcEnable=False #make True if you have the ADS1015 connected via i2c
 
 print "\n \n \n \n \n \n -- AeroWake Controller \n \n \n"
 print " -- Running Hardware Setup Routine"
@@ -141,7 +141,10 @@ while count<50:
 		Ch00 = adc0.readADCSingleEnded(0,var.adcGain,var.adcSPS)/1000
 	else:
 		Ch00=0.00 	
-	outData = " -- Count: %.2f    ADC: %.2f" %(count,Ch00)
+
+	roll = float(vehControl.uavAttitude[0])
+	pitch = float(vehControl.uavAttitude[1])
+	outData = " -- Count: %.2f    ADC: %.2f   Roll: %.2f  Pitch: %.2f" %(count,Ch00,roll,pitch)
 	print outData
 	#print "         altitude = " + str(vehAPI.location.alt)	
 	#LogData.writeToLogFile('outData')
