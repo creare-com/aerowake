@@ -13,6 +13,7 @@ In this milestone, the ground-control-pixhawk-raspberry pi-tether system is inte
 #### 2. Integrate systems
 
 In this task (Due 2015/9/17)
+
 * the raspberry pi can send/receive commands to/from the pixhawk at the maximum rate (10 Hz)
 * the raspberry pi can send/receive commands to/from the ground station
 * the ground station can receive telemetry/GPS information from the pixhawk
@@ -23,6 +24,7 @@ In this task (Due 2015/9/17)
 #### 3. Develop autonomous mission control
 
 In this task (Due 2015/9/24)
+
 * A user can specify a sampling grid with various parameters
    * r, $\theta$, $\phi$, maxes and mins and number of points between max and min
    * loiter time at points
@@ -35,6 +37,7 @@ In this task (Due 2015/9/24)
 #### 4. Manual System Demonstration
 
 In this task (Due 2015/09/24), it will be demonstrated that the copter can fly when manually controlled when
+
 * the copter is untethered and the ground station is stationary
 * the copter is tethered and the ground station is stationary
 * the copter is tethered and the ground station is moving
@@ -42,6 +45,7 @@ In this task (Due 2015/09/24), it will be demonstrated that the copter can fly w
 #### 5. Autonomous System Demonstration
 
 In this task (Due 2015/10/08), it will be demonstrated that the copter can fly a simple grid pattern relative to the ground station when
+
 * the copter is untethered and the ground station is stationary
 * the copter is untethered and the ground station is moving
 * the copter is tethered and the ground station is stationary
@@ -49,6 +53,7 @@ In this task (Due 2015/10/08), it will be demonstrated that the copter can fly a
 
 #### 6. Tether reel integration
 In this task (Due 2015/10/15)
+
 * The reel control can be controlled through the ground station
 * The reel status can be sent to the raspberry pi, and the raspberry pi can ask the ground control station to reel the copter in or out
 * In case of catastrophe, the reel will automatically retract to pull the copter back to landing
@@ -61,6 +66,7 @@ In this milestone, the copter-tether dynamical system is understood from energy-
 
 #### 1. Analytically analyze the tether-copter system to determine limits of the performance envelope
 In this task (Due 2015/11/10)
+
 * Equation for the tether-copter system are developed
 * The maximum tether-copter angles (both $\theta$ and $\phi$ are calculated to show where the tether reduces energy requirements
 
@@ -70,6 +76,7 @@ In this task (Due 2015/11/10)
 
 #### 3. Optimize stability
 In this task (Due 2015/11/10)
+
 * The best tether attachment point is determined
 
 ---
