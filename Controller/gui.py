@@ -14,6 +14,8 @@ from pymavlink.dialects.v10 import ardupilotmega as apm
 import MAVProxy
 import droneapi.module.api
 
+from ..Controller.custom_messages import set_mission_mode, mission_status
+
 mavlink_msgs = [key[15:] for key in apm.__dict__.keys() \
                 if "MAVLINK_MSG_ID_" in key]
 
@@ -82,22 +84,6 @@ mavlink_msgs_filt = [
  'LOCAL_POSITION_NED',
  'AUTOPILOT_VERSION_REQUEST',
 ]
-
-mavlink_msgs_filt = [ # The very short version
-    'SYS_STATUS',
-    'HEARTBEAT',
-]
-
-# Custom messages
-set_mission_mode = {
-    "TAKE_OFF": 0,
-    "LAND": 1, 
-    "START_MISSION": 2,
-    "STOP_MISSION": 3,
-    "LOITER": 4,
-    "EMERGENCY_ALL_STOP": 9,
-    "SCHEDULE_SWEEP": -1  # Not part of the set_mission_mode message but nice for gui
-}
 
 mission_status = {
     0: "TAKING_OFF",
