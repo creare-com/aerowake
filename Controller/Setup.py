@@ -14,10 +14,10 @@ from Adafruit_ADS1x15 import ADS1x15
 import var
 
 def InitializeADCHardware():
-	print "ADC Hardware Initialized"
-	ADS1015 = 0x00  # 12-bit ADC
-	bus = smbus.SMBus(1)
-	adc0 = ADS1x15(ic=ADS1015,address=var.adc0Address)
-	return adc0
+    print "ADC Hardware Initialized"
+    ADS1015 = 0x00  # 12-bit ADC
+    bus = smbus.SMBus(1)
+    adc0 = ADS1x15(ic=ADS1015,address=var.adc0Address)
+    return adc0
 
 
