@@ -14,19 +14,19 @@ In this milestone, the ground-control-pixhawk-raspberry pi-tether system is inte
 
 In this task (Due 2015/9/17)
 
-* ~the raspberry pi can send/receive commands to/from the pixhawk at the maximum rate (10 Hz)~
-* ~the raspberry pi can send/receive commands to/from the ground station~
-* ~the ground station can receive telemetry/GPS information from the pixhawk~
+* ~~the raspberry pi can send/receive commands to/from the pixhawk at the maximum rate (10 Hz)~~
+* ~~the raspberry pi can send/receive commands to/from the ground station~~
+* ~~the ground station can receive telemetry/GPS information from the pixhawk~~
 * the ground station can send GPS information and mission commands to the raspberry pi, and receive data packages from from the raspberry pi
-* ~the pixhawk can receive commands from the raspberry pi and send gps/telemetry information to the raspberry pi~
-* ~the pixhawk can send telemetry/gps information to the ground station~
+* ~~the pixhawk can receive commands from the raspberry pi and send gps/telemetry information to the raspberry pi~~
+* ~~the pixhawk can send telemetry/gps information to the ground station~~
 
 #### 3. Develop autonomous mission control
 
 In this task (Due 2015/9/24)
 
 * A user can specify a sampling grid with various parameters
-   * ~r, $\theta$, $\phi$, maxes and mins and number of points between max and min~
+   * ~~r, $\theta$, $\phi$, maxes and mins and number of points between max and min~~
    * loiter time at points
    * travel speed between points
 * The sampling grid waypoints will be generated
@@ -85,7 +85,7 @@ In this milestone, then Ground control software has an easy-to-use and robust GU
 
 ### Tasks
 #### 1. Integrate outputs received from quadcopter with GUI elements in GCS
-~In this task (Due 2015/09/17) there are new dials to show the outputs from measurements in real time~
+~~In this task (Due 2015/09/17) there are new dials to show the outputs from measurements in real time~~
 
 #### 2. Add custom mission control buttons
 In this task (Due 2015/09/17), new GUI elements are added to control the mission on a high level. This includes specifying the grid, controlling the tether, ~starting and stopping the mission, emergency landing, and emergency stop~
