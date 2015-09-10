@@ -40,29 +40,29 @@ vehControl = Controller.Controller()
 
 
 #Update UAV Controller State
-def updateUAV():
+def update_uav():
 	#print " -- Controller UAV State Updated"
-	vehControl.uavAlt = vehAPI.location.alt
-	vehControl.uavCoord = [vehAPI.location.lat,vehAPI.location.lon]
-	vehControl.uavMode = vehAPI.mode.name
-	vehControl.uavAttitude = [ vehAPI.attitude.roll , vehAPI.attitude.pitch ]
-	vehControl.uavVel = vehAPI.velocity
+	vehControl.uav_alt = vehAPI.location.alt
+	vehControl.uav_coord = [vehAPI.location.lat,vehAPI.location.lon]
+	vehControl.uav_mode = vehAPI.mode.name
+	vehControl.uav_attitude = [ vehAPI.attitude.roll , vehAPI.attitude.pitch ]
+	vehControl.uav_vel = vehAPI.velocity
 	
-def updateShip():
+def update_ship():
 	print " -- Controller Ship State Updated"
-	vehControl.shipAlt = 0
-	vehControl.shipCoord = [0,0]
-	vehControl.ship.Heading = 0
-	vehControl.tetherS = 0
+	vehControl.ship_alt = 0
+	vehControl.ship_coord = [0,0]
+	vehControl.ship_heading = 0
+	vehControl.ship_tether_length = 0
 
-def updateGoal(attitude,alt,angle):
+def update_goal(attitude,alt,angle):
 	print " -- Controller Goal State Updated"
-	vehControl.goalAttitude = attitude
-	vehControl.goalAlt = alt
-	vehControl.goalAngle = angle	
+	vehControl.goal_attitude = attitude
+	vehControl.goal_alt = alt
+	vehControl.goal_angle = angle	
 
 #Arm Vehicle
-def armUAV():
+def arm_UAV():
 	print "\n  -- Arming UAV \n"
 	vehAPI.channel_override = { "3" : 1000}
 	vehAPI.flush()
@@ -72,13 +72,13 @@ def armUAV():
 		print " -- Waiting for UAV to arm..."
 		time.sleep(.5)
 
-	vehControl.uavArmed = vehAPI.armed
-	updateGoal([0,0],0,[0,0])
+	vehControl.uav_armed = vehAPI.armed
+	update_goal([0,0],0,[0,0])
 	print " -- Controller Status: Vehicle Armed: %s" % vehAPI.armed
 
-def disarmUAV():
+def disarm_UAV():
 	print "\n  -- Disarming UAV \n"
-	updateGoal([0,0],0,[0,0])
+	update_goal([0,0],0,[0,0])
 	vehAPI.channel_override = {"3" : 999 }
 	vehAPI.flush()
 	vehAPI.armed = False
@@ -88,35 +88,49 @@ def disarmUAV():
 		time.sleep(.5)
 
 	print " -- Controller Status: Vehicle Armed: %s" % vehAPI.armed
-	vehControl.uavFlying = False
-	vehControl.uavArmed = vehAPI.armed
+	vehControl.uav_flying = False
+	vehControl.uav_armed = vehAPI.armed
 
-def takeOffUAV(alt):
+def takeoff_UAV(alt):
 	#Usage: Take the uav off and hover at [0,0] attitude at the specified altitude. 
-	if vehAPI.armed and not vehControl.uavFlying and not vehControl.uavFailsafe:
-		vehControl.uavFlying = True
-		updateGoal([0,0],alt,[0,45])
+	if vehAPI.armed and not vehControl.uav_flying and not vehControl.uav_failsafe:
+		vehControl.uav_flying = True
+		update_goal([0,0],alt,[0,45])
 		#Some machinery to increase the throttle and close the loop around a desired altitude. 
 
-def landUAV(landAlt):
+def land_UAV(landAlt):
 	#Usage: Return the UAV to hovering close to the ship. Following that, the Uav can be reeled in, and the Uav disarm can be triggered 
-	if vehAPI.armed and vehControl.uavFlying and not vehControl.uavFailsafe:
-		updateGoal([0,0],landAlt,[0,45])
+	if vehAPI.armed and vehControl.uav_flying and not vehControl.uav_failsafe:
+		update_goal([0,0],landAlt,[0,45])
 		# At this point, need to reel in the tether, then trigger UAV Disarm
 
+def human_rc_control():
+	#usage: Call this to give control back to the humans RC Controller
+	vehControl.rc_write_priv = False
+	vehAPI.channel_override = { "1":0, "2":0, "3":0, "4":0, "5":0, "6":0, "7":0, "8":0}
+	vehAPI.flush()
+	
+def controller_rc_control():
+	#usage: Reset flag to give the controller write-privileges to the RC Override. 
+	vehControl.rc_write_priv = True
+	
 ##############################################################
 # Mavlink Callback
 ##############################################################
 
 #Setup Attitude Callback
 def uav_callback(attitude):
+	#usage: This will update the UAV state in the controller whenever it receives a new packet from the telemetry link over ttyAMA0
 	#print "UAV Callback" 
-	updateUAV()	
-	vehControl.runController()	
+	update_uav()	
+	vehControl.run_controller()	
 
 vehAPI.add_attribute_observer('attitude' , uav_callback)
 
 def ship_callback():
+	#usage: This will update the ship state and the goal state when it recieves a new packet from the GCS. 
+	update_ship()
+	update_goal()
 	print " -- Ship Callback"
 
 
@@ -132,7 +146,7 @@ def ship_callback():
 
 #event: land command given
 
-armUAV()
+arm_UAV()
 
 # Run this for a bit as a test
 count=1
@@ -152,7 +166,7 @@ while count<50:
 	time.sleep(.1)
 
 
-disarmUAV()
+disarm_UAV()
 
 
 

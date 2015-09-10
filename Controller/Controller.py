@@ -8,37 +8,38 @@ class Controller:
 	
 	def __init__(self):
 		self.description = "flight scheduler and controller to handle high level commands"
-		self.uavCoord = [1,1] 		#GPS coordinates of UAV [lat,lon] [degrees]
-		self.uavVel = [0,0,0] 		#UAV velocity [m/s]		
-		self.uavAlt = 0			#UAV Altitude [m]
-		self.uavMode = 0			#UAV Mode
-		self.uavAttitude = [0,0]		#Current UAV attitude (roll,pitch)[radians]
+		self.uav_coord = [1,1] 		#GPS coordinates of UAV [lat,lon] [degrees]
+		self.uav_vel = [0,0,0] 		#UAV velocity [m/s]		
+		self.uav_alt = 0			#UAV Altitude [m]
+		self.uav_mode = 0			#UAV Mode
+		self.uav_attitude = [0,0]		#Current UAV attitude (roll,pitch)[radians]
 
 	#todo: make one function that updates all of these fields
-		self.goalAttitude = [0,0]	#Goal UAV attitude (roll,pitch)[radians]	
-		self.goalAlt = 0 			#Goal UAV Altitude [m]
-		self.goalAngle = [0,0]		#Goal UAV Angles (theta, phi) [degrees]
+		self.goal_attitude = [0,0]	#Goal UAV attitude (roll,pitch)[radians]	
+		self.goal_alt = 0 			#Goal UAV Altitude [m]
+		self.goal_angle = [0,0]		#Goal UAV Angles (theta, phi) [degrees]
 	
-		self.shipAlt = 0			#GPS altitude of ship station (tether) [m]
-		self.shipCoord = [0,0]		#GPS position of ship station (tether) [lat,lon] [degrees]
-		self.shipHeading = 0		#Heading of ship [degrees]
-		self.tetherS = 0 			#Tether length [m]
+		self.ship_alt = 0			#GPS altitude of ship station (tether) [m]
+		self.ship_coord = [0,0]		#GPS position of ship station (tether) [lat,lon] [degrees]
+		self.ship_heading = 0		#Heading of ship [degrees]
+		self.ship_tether_length = 0 			#Tether length [m]
 
-		self.uavFlying = False		#Flag for if the UAV is flying or not
-		self.uavFailsafe = False	#Flag for if the UAV is in failsafe or not
-		self.uavArmed = False         #Flag for if the UAV is armed or not. 
-
+		self.uav_flying = False		#Flag for if the UAV is flying or not
+		self.uav_failsafe = False	#Flag for if the UAV is in failsafe or not
+		self.uav_armed = False      #Flag for if the UAV is armed or not. 
+		self.uav_write_priv = False #Flag for whether the controller can write to RC Override or not. 
+		
 	#todo: make one function that updates all of these fields
-		self.relativePosition = [0,0,0] #UAV position relative to ship. (x,y,z) [m]. X is parallel with ship(forward positive), Y perpendicular to ship, Z is alt. 
-		self.relativeAngle = [0,0] #UAV angles off stern of ship. (theta,phi) [degrees] theta=horizontal, phi=vertical
+		self.relative_position = [0,0,0] #UAV position relative to ship. (x,y,z) [m]. X is parallel with ship(forward positive), Y perpendicular to ship, Z is alt. 
+		self.relative_angle = [0,0] #UAV angles off stern of ship. (theta,phi) [degrees] theta=horizontal, phi=vertical
 
 ###############################################################################################
 ### Geometric Functions
 ###############################################################################################
 
-	def getDistance(self): #Tested separately. Gives the 2D GPS position distance from the ship to UAV
-		act1 = self.uavCoord
-		act2 = self.shipCoord
+	def get_distance(self): #Tested separately. Gives the 2D GPS position distance from the ship to UAV
+		act1 = self.uav_coord
+		act2 = self.ship_coord
 
 		R = 6371229
 		dlat = act1[0]-act2[0]
@@ -48,54 +49,54 @@ class Controller:
 		distance = R *2 * np.arctan2(np.sqrt(a),np.sqrt(1-a))
 		return distance #[meters]
 
-	def getDiagonalDistance(self): #Gives the ideal taut-tether length from the ship to the UAV. 
-		xyDist = getDistance(self)
-		zDist = self.uavAlt-self.shipAlt
-		diagDist = ( xyDist**2 + zDist**2 )**0.5
-		return diagDist #[meters]
+	def get_diagonal_distance(self): #Gives the ideal taut-tether length from the ship to the UAV. 
+		xy_dist = get_distance(self)
+		z_dist = self.uav_alt-self.ship_alt
+		diag_dist = ( xy_dist**2 + z_dist**2 )**0.5
+		return diag_dist #[meters]
 
-	def getGlobalAngle(self): #Tested separately. Gives the heading angle from North from the ship to UAV. 
-		act1 = self.uavCoord
-		act2 = self.shipCoord
+	def get_global_angle(self): #Tested separately. Gives the heading angle from North from the ship to UAV. 
+		act1 = self.uav_coord
+		act2 = self.ship_coord
 		dlat=act1[0]-act2[0]
 		dlon=act1[1]-act2[1]
 		arg1= np.sin(dlon*np.pi/180) * np.cos(act2[0]*np.pi/180) 
 		arg2= np.cos(act1[0]*np.pi/180) * np.sin(act2[0]*np.pi/180) - np.sin(act1[0]*np.pi/180) * np.cos(act2[0]*np.pi/180) * np.cos(dlon*np.pi/180)		
-		gRelAng =  -np.arctan2( arg1, arg2)
-		if gRelAng<0:
-			gRelAng=gRelAng+2*np.pi
-		gRelAng=gRelAng*180/np.pi
-		return gRelAng #[degrees]
+		g_rel_ang =  -np.arctan2( arg1, arg2)
+		if g_rel_ang<0:
+			g_rel_ang=g_rel_ang+2*np.pi
+		g_rel_ang=g_rel_ang*180/np.pi
+		return g_rel_ang #[degrees]
 
-	def getRelativeAngle(self): #Angle between stern of ship and the uav. 
-		gAng = getGlobalAngle(self) #degrees
-		theta = wrap360(180 - (gAng - self.shipHeading))
-		phi = np.arctan( (self.uavAlt-self.shipAlt) / getDistance(self) ) *180/np.pi
-		self.relativeAngle = [theta, phi]
-		return self.relativeAngle 
+	def get_relative_angle(self): #Angle between stern of ship and the uav. 
+		g_ang = get_global_angle(self) #degrees
+		theta = wrap360(180 - (g_ang - self.ship_heading))
+		phi = np.arctan( (self.uav_alt-self.ship_alt) / get_distance(self) ) *180/np.pi
+		self.relative_angle = [theta, phi]
+		return self.relative_angle 
 	
-	def getRelativePosition(self):
-		xyDist = getDistance(self)
-		z = self.uavAlt-self.shipAlt
-		theta = getRelativeAngle(self) [0] 
-		x = xyDist*np.cos(theta*np.pi/180)
-		y = xyDist*np.sin(theta*np.pi/180)
-		self.relativePosition=[x,y,z]
-		return self.relativePosition
+	def get_relative_position(self):
+		xy_dist = get_distance(self)
+		z = self.uav_alt-self.ship_alt
+		theta = get_relative_angle(self) [0] 
+		x = xy_dist*np.cos(theta*np.pi/180)
+		y = xy_dist*np.sin(theta*np.pi/180)
+		self.relative_position=[x,y,z]
+		return self.relative_position
 
 ###############################################################################################
 ### UAV Operation Functions
 ###############################################################################################
 
 
-	def runController(self):
+	def run_controller(self):
 		#make sure everything is updated here. 		
 		
 		#Calculate attitude error
-		eAttitude = np.array(self.goalAttitude) - np.array(self.uavAttitude)
+		e_attitude = np.array(self.goal_attitude) - np.array(self.uav_attitude)
 		
 		#Calculate azmuth/inclination angle error
-		eAngle = np.array(self.goalAngle) - np.array(self.relativeAngle)
+		e_angle = np.array(self.goal_angle) - np.array(self.relative_angle)
 		#Calculate yaw errors OR command yaw to be aligned with ship
 
 		#make the errors as part of self??
@@ -134,11 +135,4 @@ class Controller:
 		if val<lower:
 			val=lower
 		return val
-
-
-
-
-
-
-
 
