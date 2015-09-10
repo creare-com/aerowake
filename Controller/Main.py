@@ -157,8 +157,8 @@ while count<50:
     else:
         Ch00=0.00   
 
-    roll = float(vehControl.uavAttitude[0])
-    pitch = float(vehControl.uavAttitude[1])
+    roll = float(vehControl.uav_attitude[0])
+    pitch = float(vehControl.uav_attitude[1])
     outData = " -- Count: %.2f    ADC: %.2f   Roll: %.2f  Pitch: %.2f" %(count,Ch00,roll,pitch)
     print outData
     #print "         altitude = " + str(vehAPI.location.alt)    

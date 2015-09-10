@@ -3,10 +3,11 @@
 #Usage: Flight scheduler and Controller (PID's and such)
 
 import numpy as np
-import var
+import imp
+
+var = imp.load_source("var","../../../../home/pi/aerowake-mit/Controller/var.py")
 
 class Controller:
-    
     def __init__(self):
         self.description = "flight scheduler and controller to handle high level commands"
         self.uav_coord = [1,1]      #GPS coordinates of UAV [lat,lon] [degrees]
@@ -39,14 +40,14 @@ class Controller:
 ### Utility Functions
 ###############################################################################################
 
-    def wrap360(val):
+    def wrap360(self,val):
         if val>360:
             val=val-360
         if val<360:
             val=val+360
         return val
 
-    def saturate(val,lower,upper):
+    def saturate(self,val,lower,upper):
         if val>upper:
             val=upper
         if val<lower:
@@ -59,17 +60,15 @@ class Controller:
     def get_distance(self): #Tested separately. Gives the 2D GPS position distance from the ship to UAV
         act1 = self.uav_coord
         act2 = self.ship_coord
-
         R = 6371229
         dlat = act1[0]-act2[0]
         dlon = act1[1]-act2[1]
-
         a = (np.sin(dlat/2*np.pi/180))**2 + np.cos(act1[0]*np.pi/180) * np.cos(act2[0]*np.pi/180) * (np.sin(dlon/2*np.pi/180))**2
         distance = R *2 * np.arctan2(np.sqrt(a),np.sqrt(1-a))
         return distance #[meters]
 
     def get_diagonal_distance(self): #Gives the ideal taut-tether length from the ship to the UAV. 
-        xy_dist = self.get_distance(self)
+        xy_dist = self.get_distance()
         z_dist = self.uav_alt-self.ship_alt
         diag_dist = ( xy_dist**2 + z_dist**2 )**0.5
         return diag_dist #[meters]
@@ -88,13 +87,13 @@ class Controller:
         return g_rel_ang #[degrees]
 
     def set_relative_angle(self): #Angle between stern of ship and the uav. 
-        g_ang = self.get_global_angle(self) #degrees
+        g_ang = self.get_global_angle()  #degrees
         theta = self.wrap360(180 - (g_ang - self.ship_heading))
-        phi = np.arctan( (self.uav_alt-self.ship_alt) / self.get_distance(self) ) *180/np.pi
+        phi = np.arctan( (self.uav_alt-self.ship_alt) / self.get_distance() ) *180/np.pi
         self.relative_angle = [theta, phi]
     
     def get_relative_position(self):
-        xy_dist = self.get_distance(self)
+        xy_dist = self.get_distance()
         z = self.uav_alt-self.ship_alt
         theta = self.relative_angle[0] 
         x = xy_dist*np.cos(theta*np.pi/180)
@@ -108,9 +107,13 @@ class Controller:
     def angle_2_pwm(self,angle):
         return self.saturate(1500+angle*(2000/np.pi)  ,1000,2000)
         
-    def get_drag_forces():
+    def get_drag_forces(self):
         return [0,0] #  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
+    def get_spherical_velocities(self):
+        th_dot = 0
+        phi_dot = 0
+        return [th_dot,phi_dot]    
 ###############################################################################################
 ### UAV Operation Functions
 ###############################################################################################
@@ -151,11 +154,11 @@ class Controller:
         #Calculate Roll, Pitch, Throttle
         f_total = np.sqrt(ftx**2 + fty**2 + ftz**2)
 
-        pitch_out = self.angle_2_pwm( np.atan(ftz/ftx) )
-        roll_out = self.angle_2_pwm( np.atan(ftz/fty) ) 
+        pitch_out = self.angle_2_pwm( np.arctan(ftz/ftx) )
+        roll_out = self.angle_2_pwm( np.arctan(ftz/fty) ) 
         thr_out = self.force_2_thr_pwm( f_total )
         
-        self.goal_attitude=[np.atan(ftz/fty),np.atan(ftz/ftx)]
+        self.goal_attitude=[np.arctan(ftz/fty),np.arctan(ftz/ftx)]
   
         #Calculate yaw errors OR command yaw to be aligned with ship
         e_heading = self.ship_heading - self.uav_heading 
