@@ -13,19 +13,19 @@ import traits.api as t
 import traitsui.api as tui
 import inspect
 import numpy as np
-from pymavlink.dialects.v10 import ardupilotmega as apm
+from pymavlink.dialects.v10 import gcs_pixhawk as gph
 from pymavlink import mavutil
 
 from custom_messages import set_mission_mode, mission_status
 
-mavlink_msgs = [key[15:] for key in apm.__dict__.keys() \
+mavlink_msgs = [key[15:] for key in gph.__dict__.keys() \
                 if "MAVLINK_MSG_ID_" in key]
-
+mavlink_msgs.sort()
 mavlink_msgs_filt = [
  'SET_HOME_POSITION',
  'HEARTBEAT',
 ]
-
+mavlink_msgs_filt.sort()
 # Figuire out the number of intputs for all the mavlink messages, and also
 # the function call...
 #%%
@@ -33,11 +33,14 @@ mavlink_msgs_attr = {}
 n_max = 0
 for key in mavlink_msgs:
     try: 
-        n = len(inspect.getargspec(getattr(apm.MAVLink, key.lower()
-                                                       + '_send')).args)
+        args = inspect.getargspec(getattr(gph.MAVLink, key.lower()
+                                                       + '_send')).args
     except:
-        n = 0
-    mavlink_msgs_attr[key] = {'name': key.lower() + "_send", 'n': n} 
+        args = []
+    n = len(args)
+    mavlink_msgs_attr[key] = {'name': key.lower() + "_send",
+                              'n': n,
+                              'args': args} 
     if n > n_max:
         n_max = n
    
@@ -87,12 +90,14 @@ class GCS(t.HasTraits):
     mission_message = t.Enum(set_mission_mode.keys(),
                               label="Mission Type")
     sweep_angle = t.Float(label="Angle (degrees)")
-    sweep_alt_max = t.Float(label="Max Altitude (m)")
-    sweep_alt_min = t.Float(label="Min Altitude (m)")
+    sweep_alt_start = t.Float(label="Start Altitude (m)")
+    sweep_alt_end = t.Float(label="End Altitude (m)")
+    sweep_alt_step = t.Float(label="Number of Altitude Steps")
     
     mavlink_message = t.Enum(mavlink_msgs, label="Mavlink Message")    
     mavlink_message_filt = t.Enum(mavlink_msgs_filt, label="Mavlink Message")    
-    mavlink_message_params = t.Array(label="params")
+    mavlink_message_params = t.Str(label="params")
+    mavlink_message_args = t.Str(label="Arguments")
     
     # ON GCS: Incoming
     # Tether
@@ -110,33 +115,33 @@ class GCS(t.HasTraits):
     probe_w = t.Float(label="w (m/s)")
     
     # Vehicle inputs
-    modename = t.Str
-    airspeed = t.Float
-    groundspeed = t.Float
-    armed = t.Bool
+    modename = t.Str()
+    airspeed = t.Float()
+    groundspeed = t.Float()
+    armed = t.Bool()
     location = t.Instance(Location)
     velocity = t.Array(shape=(3, ))
     
     # Location inputs
-    alt = t.Float
-    lat = t.Float
-    lon = t.Float    
+    alt = t.Float(t.Undefined)
+    lat = t.Float(t.Undefined)
+    lon = t.Float(t.Undefined)    
     
     # Attitude inputs
-    pitch = t.Float
-    roll = t.Float
-    yaw = t.Float    
+    pitch = t.Float(t.Undefined)
+    roll = t.Float(t.Undefined)
+    yaw = t.Float(t.Undefined)
     
     # Battery Inputs 
-    current = t.Float()
-    level = t.Float()
-    voltage = t.Float()    
+    current = t.Float(t.Undefined)
+    level = t.Float(t.Undefined)
+    voltage = t.Float(t.Undefined)    
     
     # Vehicle connection
+    dialect = t.Str("gcs_pixhawk")
     uav = t.Any()
     polling = t.Bool()
     uav_msg_thread = t.Instance(threading.Thread)
-    send_mavlink_message = t.Button("Send")
     show_errors = t.Bool(True)
     mav_error = t.Int(0)
     port = t.Str()
@@ -146,7 +151,9 @@ class GCS(t.HasTraits):
     
     # ui stuff
     update_mission = t.Button("Update")
+    send_mavlink_message = t.Button("Send")
     filtered = t.Bool(True)
+    
     
     
     traits_view = tui.View(
@@ -156,15 +163,19 @@ class GCS(t.HasTraits):
                             tui.Item(name="mission_message"),
                             tui.Item(name="sweep_angle", 
                                      visible_when='mission_message=="SCHEDULE_SWEEP"'),
-                            tui.Item(name="sweep_alt_max", 
+                            tui.Item(name="sweep_alt_start", 
                                      visible_when='mission_message=="SCHEDULE_SWEEP"'),
-                            tui.Item(name="sweep_alt_min", 
+                            tui.Item(name="sweep_alt_end", 
                                      visible_when='mission_message=="SCHEDULE_SWEEP"'),
+                            tui.Item(name="sweep_alt_step", 
+                                     visible_when='mission_message=="SCHEDULE_SWEEP"'),                                     
                             tui.Item(name="update_mission"),
                             tui.Item("_"), 
                             tui.Item("filtered"),
                             tui.Item("mavlink_message", visible_when='filtered==False'),
                             tui.Item("mavlink_message_filt", visible_when='filtered'),
+                            tui.Item("mavlink_message_args", enabled_when='False',
+                                     editor=tui.TextEditor(), height=-40 ),
                             tui.Item("mavlink_message_params"),
                             tui.Item("send_mavlink_message"),
                             tui.Item("_"), 
@@ -198,13 +209,33 @@ class GCS(t.HasTraits):
                             show_border=True,
                             label="Incoming"
                             ),
-                  orientation='horizontal')
+                  orientation='horizontal'),
+        resizable=True
     )
     
+    def _update_mission_fired(self):
+        mode = set_mission_mode[self.mission_message]
+        if mode >=0:
+            self.uav.mav.set_mission_mode_send(mode)
+        else:
+            self.uav.mav.schedule_sweep_send(self.sweep_angle, 
+                                             self.sweep_alt_start,
+                                             self.sweep_alt_end,
+                                             self.sweep_alt_step)
+
+    def _mavlink_message_changed(self):
+        self.mavlink_message_args = ', '.join(mavlink_msgs_attr[self.mavlink_message]['args'][1:])
+    
+    def _mavlink_message_filt_changed(self):
+        self.mavlink_message_args = ', '.join(mavlink_msgs_attr[self.mavlink_message_filt]['args'][1:])
+    
     def _send_mavlink_message_fired(self):
-        print "firing"
+        func = mavlink_msgs_attr[self.mavlink_message]['name']
+        args = [float(m) for m in self.mavlink_message_params.split(',')]
+        getattr(self.uav.mav, func)(*args)
         
     def setup_link(self, port, baud=56700):
+        mavutil.set_dialect(self.dialect)
         self.uav = mavutil.mavlink_connection(port, baud)
         self.port = port
         self.baud = baud
@@ -249,7 +280,7 @@ class GCS(t.HasTraits):
                             self.mav_error += 1
                         else:
                             self.parse_msg(msg)
-            print "Polling STopped"
+            print "Polling Stopped"
             self.polling = False
         self.uav_msg_thread = threading.Thread(target=worker)
         self.uav_msg_thread.start()
@@ -314,8 +345,10 @@ class GCS(t.HasTraits):
 #            self.rngfnd_voltage = m.voltage
 #            self.__on_change('rangefinder')
         print "Parsing Message DONE"
-    def __delete__(self):
-        print 'Deleting'
+    def close(self, *args, **kwargs):
+        super(GCS, self).close(self, *args, **kwargs)
+        print 'Closing down connection'
+        self.polling = False
         self.uav.close()
             
             
