@@ -346,7 +346,6 @@ class GCS(t.HasTraits):
 #            self.__on_change('rangefinder')
         print "Parsing Message DONE"
     def close(self, *args, **kwargs):
-        super(GCS, self).close(self, *args, **kwargs)
         print 'Closing down connection'
         self.polling = False
         self.uav.close()
