@@ -1,8 +1,5 @@
 from droneapi.module.api import APIModule
-from custom_messages import set_mission_mode, mission_status
-
-get_mission_mode = {v: k for k, v in set_mission_mode.iteritems()}
-send_mission_status = {v: k for k, v in mission_status.iteritems()}
+from custom_messages import get_mission_mode, send_mission_status
 
 class GCS(object): 
     tether_tension = None
@@ -25,16 +22,17 @@ class GCS(object):
             gcs.post_message(m)
         mtyp = m.get_type()
         if mtyp == "TETHER_STATUS":
-            self.tether_length = m.tether_length
-            self.tether_tension = m.tether_tension
-            self.tether_velocity = m.tether_velocity
+            self.tether_length = m.length
+            self.tether_tension = m.tension
+            self.tether_velocity = m.velocity
         elif mtyp == "SET_MISSION_MODE":
             self.mission_mode_int = m.mode
             self.mission_mode_str = get_mission_mode.get(m.mode, '')
         elif mtyp == "SCHEDULE_SWEEP":
             self.sweep_angle = m.angle
-            self.sweep_alt_max = m.altitude_max
-            self.sweep_alt_min = m.altitude_min
+            self.sweep_alt_start = m.altitude_start
+            self.sweep_alt_end = m.altitude_end
+            self.sweep_alt_step = m.altitude_step
         self.report()
     
     def report(self):
@@ -43,19 +41,12 @@ class GCS(object):
              if '__' not in key:
                  print key, getattr(self, key)
          print "*"*80
-         #print "GCS MESSAGE:", m  # This actually works!
 
 class APIModuleGCSMod(APIModule):
     def __init__(self, mpstate):
         super(APIModuleGCSMod, self).__init__(mpstate)
         self.gcs = GCS(mpstate.mav_outputs[0])
-        # set up callback for gcs messages
-    #    self.gcs.mav.set_callback(self.gcs_callback, self.gcs)
         print "Modified DroneAPI loaded"
-    #def gcs_callback(self, m, gcs):
-    #    if getattr(m, '_timestamp', None) is None:
-    #        gcs.post_message(m)
-    #    # print "GCS MESSAGE:", m  # This actually works!
     def get_connection(self):
         return self.api, self.gcs
 
