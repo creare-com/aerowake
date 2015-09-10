@@ -108,6 +108,7 @@ def human_rc_control():
 	#usage: Call this to give control back to the humans RC Controller
 	vehControl.rc_write_priv = False
 	vehAPI.channel_override = { "1":0, "2":0, "3":0, "4":0, "5":0, "6":0, "7":0, "8":0}
+	vehAPI.flush()
 	
 def controller_rc_control():
 	#usage: Reset flag to give the controller write-privileges to the RC Override. 
