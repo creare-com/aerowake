@@ -156,7 +156,7 @@ class Controller:
 
         pitch_out = self.angle_2_pwm( 0)  #<<<<<<<<<<<<<<<<< Fill in -- look @ matlab script
         roll_out = self.angle_2_pwm( 0 ) 
-        thr_out = self.force_2_thr_pwm( f_total )
+        thr_out = self.force_2_thr_pwm(0)
         
         self.goal_attitude=[1,1] # <<<<<<<<< Fill in
   

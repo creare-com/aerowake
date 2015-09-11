@@ -56,7 +56,7 @@ def update_uav():
     vehControl.uav_attitude = [ vehAPI.attitude.roll , vehAPI.attitude.pitch ]
     vehControl.uav_vel = vehAPI.velocity
     vehControl.uav_heading = vehAPI.attitude.yaw  #check this
-    print vehControl.uav_heading    
+        
 
 def update_ship():
     print " -- Controller Ship State Updated"
@@ -124,6 +124,12 @@ def controller_rc_control():
     #usage: Reset flag to give the controller write-privileges to the RC Override. 
     vehControl.rc_write_priv = True
 
+def control_check():
+    if vehControl.uav_mode != 'STABILIZE':
+        human_rc_control()
+    if vehControl.uav_mode == 'STABILIZE' and not vehControl.rc_write_priv:
+        controller_rc_control()
+
 def write_channels(ch_out):
     if vehControl.rc_write_priv:
         vehAPI.channel_override = {"1":ch_out[0], "2":ch_out[1], "3":ch_out[2], "4":ch_out[3]}
@@ -141,6 +147,7 @@ def uav_callback(attitude):
     #usage: This will update the UAV state in the controller whenever it receives a new packet from the telemetry link over ttyAMA0
     #print "UAV Callback" 
     update_uav()    
+    control_check()
     channel_out = vehControl.run_controller() 
     write_channels(channel_out)
 
@@ -160,7 +167,6 @@ def ship_callback():
 ##############################################################
 human_rc_control()
 
-print vehAPI.channel_readback
 #event: Takeoff Command Given
 
 #event: Wait at specified altitude until a command is given

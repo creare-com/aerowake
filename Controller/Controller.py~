@@ -30,7 +30,7 @@ class Controller:
         self.uav_flying = False     #Flag for if the UAV is flying or not
         self.uav_failsafe = False   #Flag for if the UAV is in failsafe or not
         self.uav_armed = False      #Flag for if the UAV is armed or not. 
-        self.uav_write_priv = False #Flag for whether the controller can write to RC Override or not. 
+        self.rc_write_priv = False #Flag for whether the controller can write to RC Override or not. 
         
     #todo: make one function that updates all of these fields
         self.relative_position = [0,0,0] #UAV position relative to ship. (x,y,z) [m]. X is parallel with ship(forward positive), Y perpendicular to ship, Z is alt. 
@@ -152,7 +152,7 @@ class Controller:
         ftz = fz + fiz
         
         #Calculate Roll, Pitch, Throttle
-        f_total = np.sqrt(ftx**2 + fty**2 + ftz**2)
+        f_total = np.sqrt(ftx**2 + fty**2 + ftz**2)+.01
 
         pitch_out = self.angle_2_pwm( 0)  #<<<<<<<<<<<<<<<<< Fill in -- look @ matlab script
         roll_out = self.angle_2_pwm( 0 ) 
