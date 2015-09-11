@@ -50,19 +50,19 @@ vehControl = Controller.Controller()
 #Update UAV Controller State
 def update_uav():
     #print " -- Controller UAV State Updated"
-    vehControl.uav_alt = vehAPI.location.alt
-    vehControl.uav_coord = [vehAPI.location.lat,vehAPI.location.lon]
+    vehControl.uav_alt = 5 #vehAPI.location.alt
+    vehControl.uav_coord = [42.3578720 ,-71.0979608 ]#[vehAPI.location.lat,vehAPI.location.lon]
     vehControl.uav_mode = vehAPI.mode.name
     vehControl.uav_attitude = [ vehAPI.attitude.roll , vehAPI.attitude.pitch ]
     vehControl.uav_vel = vehAPI.velocity
-    vehControl.uav_heading = vehAPI.attitude.yaw  #check this
+    vehControl.uav_heading = 65 #vehAPI.attitude.yaw  #check this
         
 
 def update_ship():
-    print " -- Controller Ship State Updated"
+    #print " -- Controller Ship State Updated"
     vehControl.ship_alt = 0
-    vehControl.ship_coord = [0,0]
-    vehControl.ship_heading = 0
+    vehControl.ship_coord = [ 42.3579384 , -71.0977609 ]#[0,0]
+    vehControl.ship_heading = 65 #0
     vehControl.ship_tether_length = 0
 
 def update_goal(attitude,alt,angle):
@@ -83,7 +83,7 @@ def arm_UAV():
         time.sleep(.5)
 
     vehControl.uav_armed = vehAPI.armed
-    update_goal([0,0],0,[0,0])
+    update_goal([0,0],0,[0,5])
     print " -- Controller Status: Vehicle Armed: %s" % vehAPI.armed
 
 def disarm_UAV():
@@ -134,9 +134,10 @@ def write_channels(ch_out):
     if vehControl.rc_write_priv:
         vehAPI.channel_override = {"1":ch_out[0], "2":ch_out[1], "3":ch_out[2], "4":ch_out[3]}
         vehAPI.flush()
-        print "---- Controller Wrote to Channels"
+        #print "---- Controller Wrote to Channels"
     else:   
-        print "---- RC Control Active"     
+        print " ---- "        
+        #print "---- RC Control Active"     
 
 ##############################################################
 # Mavlink Callback
@@ -146,7 +147,8 @@ def write_channels(ch_out):
 def uav_callback(attitude):
     #usage: This will update the UAV state in the controller whenever it receives a new packet from the telemetry link over ttyAMA0
     #print "UAV Callback" 
-    update_uav()    
+    update_uav()   
+    update_ship() # WRONG PLACE FOR THIS 
     control_check()
     channel_out = vehControl.run_controller() 
     write_channels(channel_out)
@@ -159,7 +161,7 @@ def ship_callback():
     #usage: This will update the ship state and the goal state when it recieves a new packet from the GCS. 
     update_ship()
     update_goal()
-    print " -- Ship Callback"
+    #print " -- Ship Callback"
 
 
 ##############################################################

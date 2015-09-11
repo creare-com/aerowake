@@ -60,6 +60,8 @@ class Controller:
     def get_distance(self): #Tested separately. Gives the 2D GPS position distance from the ship to UAV
         act1 = self.uav_coord
         act2 = self.ship_coord
+        #act1 =  [42.3578720 ,-71.0979608 ]
+        #act2 = [ 42.3579384 , -71.0977609 ]
         R = 6371229
         dlat = act1[0]-act2[0]
         dlon = act1[1]-act2[1]
@@ -74,8 +76,8 @@ class Controller:
         return diag_dist #[meters]
 
     def get_global_angle(self): #Tested separately. Gives the heading angle from North from the ship to UAV. 
-        act1 = self.uav_coord
-        act2 = self.ship_coord
+        act1 = self.ship_coord
+        act2 = self.uav_coord
         dlat=act1[0]-act2[0]
         dlon=act1[1]-act2[1]
         arg1= np.sin(dlon*np.pi/180) * np.cos(act2[0]*np.pi/180) 
@@ -87,8 +89,8 @@ class Controller:
         return g_rel_ang #[degrees]
 
     def set_relative_angle(self): #Angle between stern of ship and the uav. 
-        g_ang = self.get_global_angle()  #degrees
-        theta = self.wrap360(180 - (g_ang - self.ship_heading))
+        g_ang = self.get_global_angle()  #degrees       
+        theta = (180 - (g_ang - self.ship_heading))
         phi = np.arctan( (self.uav_alt-self.ship_alt) / self.get_distance() ) *180/np.pi
         self.relative_angle = [theta, phi]
     
@@ -127,18 +129,21 @@ class Controller:
         drag_forces = self.get_drag_forces()
         angle_vel = self.get_spherical_velocities()        
         
-        th = self.relative_angle[0] 
-        phi = self.relative_angle[1]
+        th =  self.relative_angle[0]*np.pi/180 
+        phi = self.relative_angle[1]*np.pi/180
 
-        ft= 10 #newtons  #  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< need a way to measure or estimate
+        ft= 5 #newtons  #  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< need a way to measure or estimate
         
         #Calculate force needed to maintain position on tether
         fx = (ft)*np.cos(th)*np.cos(phi) - drag_forces[0]
         fy = (ft)*np.sin(th)*np.cos(phi) - drag_forces[1]
         fz = (ft)*np.sin(phi) + var.m*var.g
         
+        print [th,phi]
+
         #Calculate azmuth/inclination angle error
-        e_angle = np.array(self.goal_angle) - np.array(self.relative_angle)  #[theta, phi]
+        e_angle = np.array(self.goal_angle)*np.pi/180 - np.array([th,phi])  #[theta, phi]
+        print e_angle
         f_in = var.kp_pose*e_angle - var.kd_pose*angle_vel
 
         #Calculate forces to move the UAV given the control inputs.         
@@ -150,13 +155,14 @@ class Controller:
         ftx = fx + fix
         fty = fy + fiy
         ftz = fz + fiz
+           
         
         #Calculate Roll, Pitch, Throttle
-        f_total = np.sqrt(ftx**2 + fty**2 + ftz**2)+.01
+        f_total = np.sqrt(ftx**2 + fty**2 + ftz**2)
 
         pitch_out = self.angle_2_pwm( 0)  #<<<<<<<<<<<<<<<<< Fill in -- look @ matlab script
         roll_out = self.angle_2_pwm( 0 ) 
-        thr_out = self.force_2_thr_pwm( f_total )
+        thr_out = self.force_2_thr_pwm(0)
         
         self.goal_attitude=[1,1] # <<<<<<<<< Fill in
   
