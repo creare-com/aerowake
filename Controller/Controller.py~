@@ -102,10 +102,10 @@ class Controller:
         return self.relative_position
         
     def force_2_thr_pwm(self,force):
-        return self.saturate(1000+force*10,1000,2000)
+        return int(self.saturate(1000+force*10,1000,2000))
         
     def angle_2_pwm(self,angle):
-        return self.saturate(1500+angle*(2000/np.pi)  ,1000,2000)
+        return int( self.saturate(1500+angle*(2000/np.pi)  ,1000,2000))
         
     def get_drag_forces(self):
         return [0,0] #  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -154,17 +154,17 @@ class Controller:
         #Calculate Roll, Pitch, Throttle
         f_total = np.sqrt(ftx**2 + fty**2 + ftz**2)
 
-        pitch_out = self.angle_2_pwm( np.atan(ftz/ftx) )
-        roll_out = self.angle_2_pwm( np.atan(ftz/fty) ) 
+        pitch_out = self.angle_2_pwm( 0)  #<<<<<<<<<<<<<<<<< Fill in -- look @ matlab script
+        roll_out = self.angle_2_pwm( 0 ) 
         thr_out = self.force_2_thr_pwm( f_total )
         
-        self.goal_attitude=[np.atan(ftz/fty),np.atan(ftz/ftx)]
+        self.goal_attitude=[1,1] # <<<<<<<<< Fill in
   
         #Calculate yaw errors OR command yaw to be aligned with ship
         e_heading = self.ship_heading - self.uav_heading 
         yaw_in = var.kp_yaw*e_heading 
         #hand back [rollPWM, pitchPWM, throttlePWM, yawPWM]     
-        return [roll_out,pitch_out,thr_out,0] #[ch1,ch2,ch3,ch4]
+        return [roll_out,pitch_out,thr_out,1500] #[ch1,ch2,ch3,ch4]
 
 
 

@@ -21,14 +21,22 @@ LogData = imp.load_source("LogData","../../../../../../../../home/pi/aerowake-mi
 # Setup
 ##############################################################
 
+time.sleep(1)
+
 AdcEnable=False #make True if you have the ADS1015 connected via i2c
 
 print "\n \n \n \n \n \n -- AeroWake Controller \n \n \n"
 print " -- Running Hardware Setup Routine"
 if AdcEnable:
     adc0=Setup.InitializeADCHardware()
-api = local_connect()
-vehAPI=api.get_vehicles()[0]
+
+## Connection to API
+#api = local_connect()
+#vehAPI=api.get_vehicles()[0]
+
+api,gcs = local_connect()
+vehAPI = api.get_vehicles()[0]
+
 
 #initialize Controller
 print " -- Initialize Controller"
@@ -48,7 +56,8 @@ def update_uav():
     vehControl.uav_attitude = [ vehAPI.attitude.roll , vehAPI.attitude.pitch ]
     vehControl.uav_vel = vehAPI.velocity
     vehControl.uav_heading = vehAPI.attitude.yaw  #check this
-    
+    print vehControl.uav_heading    
+
 def update_ship():
     print " -- Controller Ship State Updated"
     vehControl.ship_alt = 0
@@ -80,7 +89,7 @@ def arm_UAV():
 def disarm_UAV():
     print "\n  -- Disarming UAV \n"
     update_goal([0,0],0,[0,0])
-    vehAPI.channel_override = {"3" : 999 }
+    #vehAPI.channel_override = {"3" : 999 }
     vehAPI.flush()
     vehAPI.armed = False
     vehAPI.flush()
@@ -114,7 +123,15 @@ def human_rc_control():
 def controller_rc_control():
     #usage: Reset flag to give the controller write-privileges to the RC Override. 
     vehControl.rc_write_priv = True
-    
+
+def write_channels(ch_out):
+    if vehControl.rc_write_priv:
+        vehAPI.channel_override = {"1":ch_out[0], "2":ch_out[1], "3":ch_out[2], "4":ch_out[3]}
+        vehAPI.flush()
+        print "---- Controller Wrote to Channels"
+    else:   
+        print "---- RC Control Active"     
+
 ##############################################################
 # Mavlink Callback
 ##############################################################
@@ -124,8 +141,11 @@ def uav_callback(attitude):
     #usage: This will update the UAV state in the controller whenever it receives a new packet from the telemetry link over ttyAMA0
     #print "UAV Callback" 
     update_uav()    
-    vehControl.run_controller() 
+    channel_out = vehControl.run_controller() 
+    write_channels(channel_out)
 
+
+    
 vehAPI.add_attribute_observer('attitude' , uav_callback)
 
 def ship_callback():
@@ -138,7 +158,9 @@ def ship_callback():
 ##############################################################
 # Main Loop
 ##############################################################
+human_rc_control()
 
+print vehAPI.channel_readback
 #event: Takeoff Command Given
 
 #event: Wait at specified altitude until a command is given
@@ -149,6 +171,7 @@ def ship_callback():
 
 arm_UAV()
 
+controller_rc_control()
 # Run this for a bit as a test
 count=1
 while count<50:
@@ -160,13 +183,14 @@ while count<50:
     roll = float(vehControl.uav_attitude[0])
     pitch = float(vehControl.uav_attitude[1])
     outData = " -- Count: %.2f    ADC: %.2f   Roll: %.2f  Pitch: %.2f" %(count,Ch00,roll,pitch)
-    print outData
+    #print outData
     #print "         altitude = " + str(vehAPI.location.alt)    
     #LogData.writeToLogFile('outData')
     count+=1
-    time.sleep(.1)
+    time.sleep(.2)
 
 
+human_rc_control()
 disarm_UAV()
 
 

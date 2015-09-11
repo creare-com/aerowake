@@ -33,7 +33,7 @@ class GCS(object):
             self.sweep_alt_start = m.altitude_start
             self.sweep_alt_end = m.altitude_end
             self.sweep_alt_step = m.altitude_step
-        self.report()
+   #     self.report()
     
     def report(self):
          print "*"*80
