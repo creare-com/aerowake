@@ -120,7 +120,6 @@ class Controller:
 ### UAV Operation Functions
 ###############################################################################################
 
-
     def run_controller(self):
         #make sure everything is updated here.      
         # F_tension, R, relative angles, drag forces, velocities
@@ -143,7 +142,7 @@ class Controller:
         e_angle = np.array(self.goal_angle)*np.pi/180 - np.array([th,phi])  #[theta, phi]
         f_in = var.kp_pose*e_angle - var.kd_pose*angle_vel
 
-        print f_in
+        #print f_in
 
         #Calculate forces to move the UAV given the control inputs.         
         fix = -f_in[0]*np.sin(th) - f_in[1]*np.sin(phi)
@@ -154,8 +153,7 @@ class Controller:
         ftx = fx + fix
         fty = fy + fiy
         ftz = fz + fiz
-           
-        
+         
         #Calculate Roll, Pitch, Throttle
         f_total = np.sqrt(ftx**2 + fty**2 + ftz**2)
 
@@ -169,6 +167,7 @@ class Controller:
         e_heading = self.ship_heading - self.uav_heading 
         yaw_in = var.kp_yaw*e_heading 
         #hand back [rollPWM, pitchPWM, throttlePWM, yawPWM]     
+
         return [roll_out,pitch_out,thr_out,1500] #[ch1,ch2,ch3,ch4]
 
 

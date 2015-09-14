@@ -130,7 +130,7 @@ def control_check():
     if vehControl.uav_mode == 'STABILIZE' and not vehControl.rc_write_priv:
         controller_rc_control()
 
-def write_channels(ch_out):
+def write_channels(ch_out): 
     if vehControl.rc_write_priv:
         vehAPI.channel_override = {"1":ch_out[0], "2":ch_out[1], "3":ch_out[2], "4":ch_out[3]}
         vehAPI.flush()
@@ -146,7 +146,7 @@ def write_channels(ch_out):
 #Setup Attitude Callback
 def uav_callback(attitude):
     #usage: This will update the UAV state in the controller whenever it receives a new packet from the telemetry link over ttyAMA0
-    #print "UAV Callback" 
+    print "UAV Callback" 
     update_uav()   
     update_ship() # WRONG PLACE FOR THIS 
     control_check()
@@ -182,7 +182,7 @@ arm_UAV()
 controller_rc_control()
 # Run this for a bit as a test
 count=1
-while count<50:
+while count<20:
     if AdcEnable:
         Ch00 = adc0.readADCSingleEnded(0,var.adcGain,var.adcSPS)/1000
     else:
@@ -191,11 +191,11 @@ while count<50:
     roll = float(vehControl.uav_attitude[0])
     pitch = float(vehControl.uav_attitude[1])
     outData = " -- Count: %.2f    ADC: %.2f   Roll: %.2f  Pitch: %.2f" %(count,Ch00,roll,pitch)
-    #print outData
+    print outData
     #print "         altitude = " + str(vehAPI.location.alt)    
     #LogData.writeToLogFile('outData')
     count+=1
-    time.sleep(.2)
+    time.sleep(1)
 
 
 human_rc_control()

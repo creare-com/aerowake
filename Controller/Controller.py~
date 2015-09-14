@@ -120,7 +120,6 @@ class Controller:
 ### UAV Operation Functions
 ###############################################################################################
 
-
     def run_controller(self):
         #make sure everything is updated here.      
         # F_tension, R, relative angles, drag forces, velocities
@@ -138,13 +137,12 @@ class Controller:
         fx = (ft)*np.cos(th)*np.cos(phi) - drag_forces[0]
         fy = (ft)*np.sin(th)*np.cos(phi) - drag_forces[1]
         fz = (ft)*np.sin(phi) + var.m*var.g
-        
-        print [th,phi]
 
         #Calculate azmuth/inclination angle error
         e_angle = np.array(self.goal_angle)*np.pi/180 - np.array([th,phi])  #[theta, phi]
-        print e_angle
         f_in = var.kp_pose*e_angle - var.kd_pose*angle_vel
+
+        #print f_in
 
         #Calculate forces to move the UAV given the control inputs.         
         fix = -f_in[0]*np.sin(th) - f_in[1]*np.sin(phi)
@@ -155,8 +153,7 @@ class Controller:
         ftx = fx + fix
         fty = fy + fiy
         ftz = fz + fiz
-           
-        
+         
         #Calculate Roll, Pitch, Throttle
         f_total = np.sqrt(ftx**2 + fty**2 + ftz**2)
 
