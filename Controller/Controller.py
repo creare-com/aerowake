@@ -11,11 +11,11 @@ class Controller:
     def __init__(self):
         self.description = "flight scheduler and controller to handle high level commands"
         self.uav_coord = [1,1]      #GPS coordinates of UAV [lat,lon] [degrees]
-        self.uav_vel = [0,0,0]      #UAV velocity [m/s]     
+        self.uav_vel = [0,0,0]      #UAV velocity [m/s] [x,y,z]    
         self.uav_alt = 0            #UAV Altitude [m]
         self.uav_mode = 0           #UAV Mode
         self.uav_attitude = [0,0]       #Current UAV attitude (roll,pitch)[radians]
-        self.uav_heading = 0
+        self.uav_heading = 0  #UAV heading (0 to 360). [Deg]. 
 
     #todo: make one function that updates all of these fields
         self.goal_attitude = [0,0]  #Goal UAV attitude (roll,pitch)[radians]    
@@ -23,9 +23,11 @@ class Controller:
         self.goal_angle = [0,0]     #Goal UAV Angles (theta, phi) [degrees]
     
         self.ship_alt = 0           #GPS altitude of ship station (tether) [m]
+        self.ship_vel = [0,0,0]   #GPS Velocity of ship station [m/s] [x,y,z] Should be all X. 
         self.ship_coord = [0,0]     #GPS position of ship station (tether) [lat,lon] [degrees]
         self.ship_heading = 0       #Heading of ship [degrees]
         self.ship_tether_length = 0             #Tether length [m]
+
 
         self.uav_flying = False     #Flag for if the UAV is flying or not
         self.uav_failsafe = False   #Flag for if the UAV is in failsafe or not
@@ -112,9 +114,20 @@ class Controller:
     def get_drag_forces(self):
         return [0,0] #  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
-    def get_spherical_velocities(self):
-        th_dot = 0
-        phi_dot = 0
+    def get_spherical_velocities(self):  # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Needs to be tested.  
+        
+        v_uav_rel_global = np.array(self.uav_vel) - np.array(self.uav_vel) #This is north south up, not relative to ship. 
+        vx = v_uav_rel[0] 
+        vy = v_uav_rel[1] 
+        vz = v_uav_rel[2]
+
+        th =  self.relative_angle[0]*np.pi/180 
+        phi = self.relative_angle[1]*np.pi/180
+
+        th_dot = vy*np.cos(th) - vx*np.sin(th) 
+        phi_dot = vz*np.cos(phi) - vx*np.sin(phi)*np.cos(th) - vy*np.sin(phi)*np.sin(th)
+        r_dot = vz*np.sin(phi) + vx*np.cos(phi*np.cos(th) + vy*np.sin(th)*np.cos(phi)
+
         return [th_dot,phi_dot]    
 ###############################################################################################
 ### UAV Operation Functions
@@ -126,7 +139,7 @@ class Controller:
 
         self.set_relative_angle() 
         drag_forces = self.get_drag_forces()
-        angle_vel = self.get_spherical_velocities()        
+        angle_vel = self.get_spherical_velocities()        #Change over to SET SPHEREICAL VELOCITY, then fetch those values here.  <<<<<<<<<<<<<<<<<<<<<<<<
         
         th =  self.relative_angle[0]*np.pi/180 
         phi = self.relative_angle[1]*np.pi/180
@@ -153,7 +166,7 @@ class Controller:
         ftx = fx + fix
         fty = fy + fiy
         ftz = fz + fiz
-         
+          
         #Calculate Roll, Pitch, Throttle
         f_total = np.sqrt(ftx**2 + fty**2 + ftz**2)
 

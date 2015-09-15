@@ -54,15 +54,16 @@ def update_uav():
     vehControl.uav_coord = [42.3578720 ,-71.0979608 ]#[vehAPI.location.lat,vehAPI.location.lon]
     vehControl.uav_mode = vehAPI.mode.name
     vehControl.uav_attitude = [ vehAPI.attitude.roll , vehAPI.attitude.pitch ]
+    print vehControl.uav_attitude
     vehControl.uav_vel = vehAPI.velocity
-    vehControl.uav_heading = 65 #vehAPI.attitude.yaw  #check this
+    vehControl.uav_heading = 65 #vehControl.wrap360(vehAPI.attitude.yaw)  #check this
         
 
 def update_ship():
     #print " -- Controller Ship State Updated"
     vehControl.ship_alt = 0
     vehControl.ship_coord = [ 42.3579384 , -71.0977609 ]#[0,0]
-    vehControl.ship_heading = 65 #0
+    vehControl.ship_heading = 65 #vehControl.wrap360(0) 
     vehControl.ship_tether_length = 0
 
 def update_goal(attitude,alt,angle):
@@ -195,7 +196,7 @@ while count<20:
     #print "         altitude = " + str(vehAPI.location.alt)    
     #LogData.writeToLogFile('outData')
     count+=1
-    time.sleep(1)
+    time.sleep(.5)
 
 
 human_rc_control()
