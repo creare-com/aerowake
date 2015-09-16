@@ -114,13 +114,16 @@ class Controller:
     def get_drag_forces(self):
         return [0,0] #  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
-    def get_spherical_velocities(self):  # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Needs to be tested.  
+    def get_spherical_velocities(self):  # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Needs to be tested.  Not sure about directions. 
         
-        v_uav_rel_global = np.array(self.uav_vel) - np.array(self.uav_vel) #This is north south up, not relative to ship. 
-        vx = v_uav_rel[0] 
-        vy = v_uav_rel[1] 
+        v_uav_rel_global = np.array(self.uav_vel) - np.array(self.ship_vel) #This is north south up, not relative to ship. 
+        vE = v_uav_rel[0] 
+        vN = v_uav_rel[1] 
         vz = v_uav_rel[2]
-
+        
+        vx = -(vN*np.cos(self.ship_heading*np.pi/180) + vE*np.sin(self.ship_heading*np.pi/180)) # <<<<<<<<<<<<<<<<<<<<< Should this be ship or UAV?
+        vy =  -vN*np.sin(self.ship_heading*np.pi/180) + vE*np.cos(self.ship_heading*np.pi/180) 
+        
         th =  self.relative_angle[0]*np.pi/180 
         phi = self.relative_angle[1]*np.pi/180
 
@@ -128,7 +131,7 @@ class Controller:
         phi_dot = vz*np.cos(phi) - vx*np.sin(phi)*np.cos(th) - vy*np.sin(phi)*np.sin(th)
         r_dot = vz*np.sin(phi) + vx*np.cos(phi*np.cos(th) + vy*np.sin(th)*np.cos(phi)
 
-        return [th_dot,phi_dot]    
+        return ([th_dot,phi_dot,r_dot])
 ###############################################################################################
 ### UAV Operation Functions
 ###############################################################################################
@@ -139,7 +142,8 @@ class Controller:
 
         self.set_relative_angle() 
         drag_forces = self.get_drag_forces()
-        angle_vel = self.get_spherical_velocities()        #Change over to SET SPHEREICAL VELOCITY, then fetch those values here.  <<<<<<<<<<<<<<<<<<<<<<<<
+        sph_vel = self.get_spherical_velocities()  # <<<<<<<<<<<<<<<<<<<<<<<< Untested. 
+        angle_vel = [sph_vel[0],sph_vel[1]]         
         
         th =  self.relative_angle[0]*np.pi/180 
         phi = self.relative_angle[1]*np.pi/180

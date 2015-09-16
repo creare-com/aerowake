@@ -92,14 +92,16 @@ def disarm_UAV():
     update_goal([0,0],0,[0,0])
     #vehAPI.channel_override = {"3" : 999 }
     vehAPI.flush()
-    vehAPI.armed = False
-    vehAPI.flush()
-    while vehAPI.armed and not api.exit:
-        print " -- Waiting for UAV to disarm..."    
-        time.sleep(.5)
+    
+    if not vehControl.uav_flying:
+        vehAPI.armed = False
+        vehAPI.flush()
+
+        while vehAPI.armed and not api.exit:
+            print " -- Waiting for UAV to disarm..."    
+            time.sleep(.5)
 
     print " -- Controller Status: Vehicle Armed: %s" % vehAPI.armed
-    vehControl.uav_flying = False
     vehControl.uav_armed = vehAPI.armed
 
 def takeoff_UAV(alt):
@@ -129,27 +131,33 @@ def control_check():
     if vehControl.uav_mode != 'STABILIZE':
         human_rc_control()
     if vehControl.uav_mode == 'STABILIZE' and not vehControl.rc_write_priv:
-        controller_rc_control()
-
+        human_rc_control()  #controller_rc_control()   
+        
 def write_channels(ch_out): 
-    if vehControl.rc_write_priv:
+    if vehControl.rc_write_priv and vehControl.uav_mode == 'STABILIZE':
         vehAPI.channel_override = {"1":ch_out[0], "2":ch_out[1], "3":ch_out[2], "4":ch_out[3]}
         vehAPI.flush()
         #print "---- Controller Wrote to Channels"
     else:   
-        print " ---- "        
-        #print "---- RC Control Active"     
+        #print " ---- "        
+        print "---- RC Control Active"     
 
 ##############################################################
 # Mavlink Callback
 ##############################################################
+
+def ship_callback():
+    #usage: This will update the ship state and the goal state when it recieves a new packet from the GCS. 
+    update_ship()
+    update_goal()
+    #print " -- Ship Callback"
 
 #Setup Attitude Callback
 def uav_callback(attitude):
     #usage: This will update the UAV state in the controller whenever it receives a new packet from the telemetry link over ttyAMA0
     print "UAV Callback" 
     update_uav()   
-    update_ship() # WRONG PLACE FOR THIS 
+    ship_callback() # WRONG PLACE FOR THIS 
     control_check()
     channel_out = vehControl.run_controller() 
     write_channels(channel_out)
@@ -157,12 +165,6 @@ def uav_callback(attitude):
 
     
 vehAPI.add_attribute_observer('attitude' , uav_callback)
-
-def ship_callback():
-    #usage: This will update the ship state and the goal state when it recieves a new packet from the GCS. 
-    update_ship()
-    update_goal()
-    #print " -- Ship Callback"
 
 
 ##############################################################
@@ -180,7 +182,6 @@ human_rc_control()
 
 arm_UAV()
 
-controller_rc_control()
 # Run this for a bit as a test
 count=1
 while count<20:
@@ -200,7 +201,7 @@ while count<20:
 
 
 human_rc_control()
-disarm_UAV()
+#disarm_UAV()
 
 
 
