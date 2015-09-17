@@ -18,3 +18,4 @@ def writeToLogFile(dataPkt):
     f.write(outstr)
     print "Wrote to Logfile"
     f.close()
+

@@ -44,6 +44,8 @@ class Controller:
         self.xyz_ctrl_effort = [0,0,0] #Forces from the controller in XYZ plane
         self.sph_ctrl_effort = [0,0,0] #Forces the UAV is trying to exert in the spherical        
         self.spherical_vel = [0,0,0]
+
+        self.control_count = 0
         
 ###############################################################################################
 ### Utility Functions
@@ -65,8 +67,6 @@ class Controller:
 ###############################################################################################
 ### Geometric Functions
 ###############################################################################################
-
-
 
     def get_distance(self): #Tested separately. Gives the 2D GPS position distance from the ship to UAV
         act1 = self.uav_coord
@@ -121,6 +121,7 @@ class Controller:
        return [0,0] #  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         
     def angle_2_pwm(self,angle):
+        angle=angle
         return int( self.saturate(1500+angle*(2000/np.pi)  ,1000,2000))
 
 #    def get_spherical_velocities(self):  # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Needs to be tested.  Not sure about directions. 
@@ -144,22 +145,22 @@ class Controller:
 
     def set_spherical_velocities(self): # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Needs to be tested.  Not sure about directions. 
         v_uav_rel_global = np.array(self.uav_vel) - np.array(self.ship_vel) #This is north south up, not relative to ship. 
-        vE = v_uav_rel[0] 
-        vN = v_uav_rel[1] 
-        vz = v_uav_rel[2]
+#        vE = v_uav_rel[0] 
+#        vN = v_uav_rel[1] 
+#        vz = v_uav_rel[2]
         
-        vx = -(vN*np.cos(self.ship_heading*np.pi/180) + vE*np.sin(self.ship_heading*np.pi/180)) # <<<<<<<<<<<<<<<<<<<<< Should this be ship or UAV?
-        vy =  -vN*np.sin(self.ship_heading*np.pi/180) + vE*np.cos(self.ship_heading*np.pi/180) 
+#        vx = -(vN*np.cos(self.ship_heading*np.pi/180) + vE*np.sin(self.ship_heading*np.pi/180)) # <<<<<<<<<<<<<<<<<<<<< Should this be ship or UAV?#
+#        vy =  -vN*np.sin(self.ship_heading*np.pi/180) + vE*np.cos(self.ship_heading*np.pi/180) 
 
-        th =  self.relative_angle[0]*np.pi/180 
-        phi = self.relative_angle[1]*np.pi/180
-
-        th_dot = vy*np.cos(th) - vx*np.sin(th) 
-        phi_dot = vz*np.cos(phi) - vx*np.sin(phi)*np.cos(th) - vy*np.sin(phi)*np.sin(th)
-        r_dot = vz*np.sin(phi) + vx*np.cos(phi*np.cos(th) + vy*np.sin(th)*np.cos(phi)
+#        th =  self.relative_angle[0]*np.pi/180 
+#        phi = self.relative_angle[1]*np.pi/180
+#
+#        th_dot = vy*np.cos(th) - vx*np.sin(th) 
+#        phi_dot = vz*np.cos(phi) - vx*np.sin(phi)*np.cos(th) - vy*np.sin(phi)*np.sin(th)
+#        r_dot = vz*np.sin(phi) + vx*np.cos(phi*np.cos(th) + vy*np.sin(th)*np.cos(phi)
         
-        self.spherical_vel = [th_dot, phi_dot ,r_dot]
-
+#        self.spherical_vel = [th_dot, phi_dot ,r_dot]
+        self.spherical_vel = [5,5,5]
         
         
         
@@ -171,14 +172,15 @@ class Controller:
     def run_controller(self):
         #make sure everything is updated here.      
         # F_tension, R, relative angles, drag forces, velocities
+        self.control_count +=1        
 
         self.set_relative_angle() 
         self.set_spherical_velocities()        
         
         drag_forces = self.get_drag_forces()
-        sph_vel = self.spherical_vel()  # <<<<<<<<<<<<<<<<<<<<<<<< Untested. 
+        sph_vel = self.spherical_vel  # <<<<<<<<<<<<<<<<<<<<<<<< Untested. 
         angle_vel = [sph_vel[0],sph_vel[1]]         
-        
+
         th =  self.relative_angle[0]*np.pi/180 
         phi = self.relative_angle[1]*np.pi/180
 
@@ -188,13 +190,13 @@ class Controller:
         fx = (ft)*np.cos(th)*np.cos(phi) - drag_forces[0]
         fy = (ft)*np.sin(th)*np.cos(phi) - drag_forces[1]
         fz = (ft)*np.sin(phi) + var.m*var.g
-
+       
         #Calculate azmuth/inclination angle error
         e_angle = np.array(self.goal_angle)*np.pi/180 - np.array([th,phi])  #[theta, phi]
         f_in = var.kp_pose*e_angle - var.kd_pose*angle_vel
 
         #print f_in
-
+        
         #Calculate forces to move the UAV given the control inputs.         
         fix = -f_in[0]*np.sin(th) - f_in[1]*np.sin(phi)
         fiy = f_in[0]*np.cos(th)

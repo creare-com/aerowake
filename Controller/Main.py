@@ -21,7 +21,7 @@ LogData = imp.load_source("LogData","../../../../../../../../home/pi/aerowake-mi
 # Setup
 ##############################################################
 
-time.sleep(1)
+time.sleep(5)
 
 AdcEnable=False #make True if you have the ADS1015 connected via i2c
 
@@ -42,6 +42,12 @@ vehAPI = api.get_vehicles()[0]
 print " -- Initialize Controller"
 vehControl = Controller.Controller()
 
+
+vehAPI.parameters.SR1_EXTRA1 = 10
+vehAPI.parameters.SR1_POSITION = 10
+vehAPI.parameters.SR1_EXTRA2 = 10
+
+t1_0 =datetime.datetime.now()
 ##############################################################
 # DroneKit Specific Functions
 ##############################################################
@@ -56,6 +62,7 @@ def update_uav():
     vehControl.uav_attitude = [ vehAPI.attitude.roll , vehAPI.attitude.pitch ]
     vehControl.uav_vel = vehAPI.velocity
     vehControl.uav_heading = 65 #vehControl.wrap360(vehAPI.attitude.yaw*180/np.pi)  #check this
+    
         
 
 def update_ship():
@@ -78,9 +85,13 @@ def arm_UAV():
     vehAPI.flush()
     vehAPI.armed = True
     vehAPI.flush()
+    arm_c = 0
     while not vehAPI.armed and not api.exit:
         print " -- Waiting for UAV to arm..."
         time.sleep(.5)
+        arm_c+=1
+        if arm_c >10:
+            vehAPI.exit
 
     vehControl.uav_armed = vehAPI.armed
     update_goal([0,0],0,[0,5])
@@ -146,24 +157,25 @@ def write_channels(ch_out):
 ##############################################################
 
 def ship_callback():
-    #usage: This will update the ship state and the goal state when it recieves a new packet from the GCS. 
+    #usage: This will update the ship state and the goal state when it recieves a new packet from the GCS.  
+
     update_ship()
-    update_goal()
+    
+    #update_goal()
     #print " -- Ship Callback"
 
 #Setup Attitude Callback
 def uav_callback(attitude):
-    #usage: This will update the UAV state in the controller whenever it receives a new packet from the telemetry link over ttyAMA0
-    print "UAV Callback" 
+    #usage: This will update the UAV state in the controller whenever it receives a new packet from the telemetry link over ttyAMA0 
     update_uav()   
     ship_callback() # WRONG PLACE FOR THIS 
     control_check()
     channel_out = vehControl.run_controller() 
     write_channels(channel_out)
-
-
     
+   
 vehAPI.add_attribute_observer('attitude' , uav_callback)
+#vehAPI.add_attribute_observer('location', uav_callback)
 
 
 ##############################################################
@@ -184,9 +196,9 @@ def compile_telem():
     yaw = float(vehControl.uav_heading)
     throttle = 1.23
     
-    vox = float(vehControl.uav_velocity[0])
-    voy = float(vehControl.uav_velocity[1])
-    voz = float(vehControl.uav_velocity[2]) 
+    vox = float(vehControl.uav_vel[0])
+    voy = float(vehControl.uav_vel[1])
+    voz = float(vehControl.uav_vel[2]) 
     vth = float(vehControl.spherical_vel[0])
     vphi = float(vehControl.spherical_vel[1])
     vr = float(vehControl.spherical_vel[2])
@@ -224,6 +236,7 @@ def compile_telem():
 # Run this for a bit as a test
 count=1
 while count<20:
+    tw1= datetime.datetime.now()
     if AdcEnable:
         Ch00 = adc0.readADCSingleEnded(0,var.adcGain,var.adcSPS)/1000
     else:
@@ -234,9 +247,15 @@ while count<20:
    # print outData
     #print "         altitude = " + str(vehAPI.location.alt)    
     LogData.writeToLogFile('outData')
+    print "---------------------------------------------------------------"
     count+=1
-    time.sleep(.1)
+    
+    time.sleep(1)
+    tw2= datetime.datetime.now()
 
+
+print "Called attitude callback ",  vehControl.control_count , " times in ", (datetime.datetime.now()-t1_0).total_seconds() ," s. Rate: ",  vehControl.control_count / (datetime.datetime.now()-t1_0).total_seconds()
+print "While loop takes",  (tw2-tw1).total_seconds()
 
 human_rc_control()
 #disarm_UAV()
