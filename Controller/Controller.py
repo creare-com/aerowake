@@ -14,8 +14,10 @@ class Controller:
         self.uav_vel = [0,0,0]      #UAV velocity [m/s] [x,y,z]    
         self.uav_alt = 0            #UAV Altitude [m]
         self.uav_mode = 0           #UAV Mode
-        self.uav_attitude = [0,0]       #Current UAV attitude (roll,pitch)[radians]
-        self.uav_heading = 0  #UAV heading (0 to 360). [Deg]. 
+        self.uav_attitude = [0,0]   #Current UAV attitude (roll,pitch)[radians]
+        self.uav_heading = 0        #UAV heading (0 to 360). [Deg]. 
+        self.uav_airspeed = 0       #aispeed in [m/s] via the pitot tube
+
 
     #todo: make one function that updates all of these fields
         self.goal_attitude = [0,0]  #Goal UAV attitude (roll,pitch)[radians]    
@@ -27,6 +29,7 @@ class Controller:
         self.ship_coord = [0,0]     #GPS position of ship station (tether) [lat,lon] [degrees]
         self.ship_heading = 0       #Heading of ship [degrees]
         self.ship_tether_length = 0             #Tether length [m]
+        self.ship_airspeed = 0  # ship airspeed in [m/s] @ pitot tube. 
 
 
         self.uav_flying = False     #Flag for if the UAV is flying or not
@@ -37,6 +40,10 @@ class Controller:
     #todo: make one function that updates all of these fields
         self.relative_position = [0,0,0] #UAV position relative to ship. (x,y,z) [m]. X is parallel with ship(forward positive), Y perpendicular to ship, Z is alt. 
         self.relative_angle = [0,0] #UAV angles off stern of ship. (theta,phi) [degrees] theta=horizontal, phi=vertical
+        self.pose_hold_effort = [0,0,0] #Forces the UAV is trying to exert to stay put. XYZ 
+        self.xyz_ctrl_effort = [0,0,0] #Forces from the controller in XYZ plane
+        self.sph_ctrl_effort = [0,0,0] #Forces the UAV is trying to exert in the spherical        
+        self.spherical_vel = [0,0,0]
         
 ###############################################################################################
 ### Utility Functions
@@ -58,6 +65,8 @@ class Controller:
 ###############################################################################################
 ### Geometric Functions
 ###############################################################################################
+
+
 
     def get_distance(self): #Tested separately. Gives the 2D GPS position distance from the ship to UAV
         act1 = self.uav_coord
@@ -107,15 +116,33 @@ class Controller:
         
     def force_2_thr_pwm(self,force):
         return int(self.saturate(1000+force*10,1000,2000))
+
+    def get_drag_forces(self):
+       return [0,0] #  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         
     def angle_2_pwm(self,angle):
         return int( self.saturate(1500+angle*(2000/np.pi)  ,1000,2000))
-        
-    def get_drag_forces(self):
-        return [0,0] #  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
-    def get_spherical_velocities(self):  # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Needs to be tested.  Not sure about directions. 
-        
+#    def get_spherical_velocities(self):  # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Needs to be tested.  Not sure about directions. 
+#        
+#        v_uav_rel_global = np.array(self.uav_vel) - np.array(self.ship_vel) #This is north south up, not relative to ship. 
+#        vE = v_uav_rel[0] 
+#        vN = v_uav_rel[1] 
+#        vz = v_uav_rel[2]
+#        
+#        vx = -(vN*np.cos(self.ship_heading*np.pi/180) + vE*np.sin(self.ship_heading*np.pi/180)) # <<<<<<<<<<<<<<<<<<<<< Should this be ship or UAV?
+#        vy =  -vN*np.sin(self.ship_heading*np.pi/180) + vE*np.cos(self.ship_heading*np.pi/180) 
+#        
+#        th =  self.relative_angle[0]*np.pi/180 
+#        phi = self.relative_angle[1]*np.pi/180
+#
+#        th_dot = vy*np.cos(th) - vx*np.sin(th) 
+#        phi_dot = vz*np.cos(phi) - vx*np.sin(phi)*np.cos(th) - vy*np.sin(phi)*np.sin(th)
+#        r_dot = vz*np.sin(phi) + vx*np.cos(phi*np.cos(th) + vy*np.sin(th)*np.cos(phi)
+#        
+#        return 5#[th_dot, phi_dot ,r_dot]
+
+    def set_spherical_velocities(self): # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Needs to be tested.  Not sure about directions. 
         v_uav_rel_global = np.array(self.uav_vel) - np.array(self.ship_vel) #This is north south up, not relative to ship. 
         vE = v_uav_rel[0] 
         vN = v_uav_rel[1] 
@@ -123,15 +150,20 @@ class Controller:
         
         vx = -(vN*np.cos(self.ship_heading*np.pi/180) + vE*np.sin(self.ship_heading*np.pi/180)) # <<<<<<<<<<<<<<<<<<<<< Should this be ship or UAV?
         vy =  -vN*np.sin(self.ship_heading*np.pi/180) + vE*np.cos(self.ship_heading*np.pi/180) 
-        
+
         th =  self.relative_angle[0]*np.pi/180 
         phi = self.relative_angle[1]*np.pi/180
 
         th_dot = vy*np.cos(th) - vx*np.sin(th) 
         phi_dot = vz*np.cos(phi) - vx*np.sin(phi)*np.cos(th) - vy*np.sin(phi)*np.sin(th)
         r_dot = vz*np.sin(phi) + vx*np.cos(phi*np.cos(th) + vy*np.sin(th)*np.cos(phi)
+        
+        self.spherical_vel = [th_dot, phi_dot ,r_dot]
 
-        return ([th_dot,phi_dot,r_dot])
+        
+        
+        
+        
 ###############################################################################################
 ### UAV Operation Functions
 ###############################################################################################
@@ -141,8 +173,10 @@ class Controller:
         # F_tension, R, relative angles, drag forces, velocities
 
         self.set_relative_angle() 
+        self.set_spherical_velocities()        
+        
         drag_forces = self.get_drag_forces()
-        sph_vel = self.get_spherical_velocities()  # <<<<<<<<<<<<<<<<<<<<<<<< Untested. 
+        sph_vel = self.spherical_vel()  # <<<<<<<<<<<<<<<<<<<<<<<< Untested. 
         angle_vel = [sph_vel[0],sph_vel[1]]         
         
         th =  self.relative_angle[0]*np.pi/180 
@@ -167,16 +201,21 @@ class Controller:
         fiz = f_in[1]*np.cos(phi)
         
         #Add the forces
-        ftx = fx + fix
-        fty = fy + fiy
-        ftz = fz + fiz
-          
+        ftx = float(fx + fix)+.000000001 #<<<<<<<<<<<<<<<<<<<< Was getting NaN due to division below. 
+        fty = float(fy + fiy)+.000000001
+        ftz = float(fz + fiz)+.000000001
+        
         #Calculate Roll, Pitch, Throttle
         f_total = np.sqrt(ftx**2 + fty**2 + ftz**2)
 
-        pitch_out = self.angle_2_pwm( 0)  #<<<<<<<<<<<<<<<<< Fill in -- look @ matlab script
-        roll_out = self.angle_2_pwm( 0 ) 
-        thr_out = self.force_2_thr_pwm(0)
+        pitch_out = self.angle_2_pwm( np.arctan(ftz/ftx))  #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< make sure this is right!!!!!!!!!!!!! 
+        roll_out = self.angle_2_pwm( np.arctan(ftz/fty)) 
+        thr_out = self.force_2_thr_pwm(f_total)
+        
+                # Store some data  
+        self.pose_hold_effort = [fx,fy,fz] #Forces the UAV is trying to exert to stay put. XYZ 
+        self.xyz_ctrl_effort = [fix,fiy,fiz] #Forces from the controller in XYZ plane
+        self.sph_ctrl_effort = [pitch_out,roll_out,thr_out] #Forces the UAV is trying to exert in the spherical 
         
         self.goal_attitude=[1,1] # <<<<<<<<< Fill in
   

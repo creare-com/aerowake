@@ -54,7 +54,6 @@ def update_uav():
     vehControl.uav_coord = [42.3578720 ,-71.0979608 ]#[vehAPI.location.lat,vehAPI.location.lon]
     vehControl.uav_mode = vehAPI.mode.name
     vehControl.uav_attitude = [ vehAPI.attitude.roll , vehAPI.attitude.pitch ]
-    print vehControl.uav_attitude
     vehControl.uav_vel = vehAPI.velocity
     vehControl.uav_heading = 65 #vehControl.wrap360(vehAPI.attitude.yaw*180/np.pi)  #check this
         
@@ -64,7 +63,7 @@ def update_ship():
     vehControl.ship_alt = 0
     vehControl.ship_coord = [ 42.3579384 , -71.0977609 ]#[0,0]
     vehControl.ship_heading = 65 #vehControl.wrap360(0) 
-    vehControl.ship_tether_length = 0
+    vehControl.ship_tether_length = 10
 
 def update_goal(attitude,alt,angle):
     print " -- Controller Goal State Updated"
@@ -173,14 +172,54 @@ vehAPI.add_attribute_observer('attitude' , uav_callback)
 human_rc_control()
 
 #event: Takeoff Command Given
-
 #event: Wait at specified altitude until a command is given
-
 #event: Command packet recieved, execute sweep
-
 #event: land command given
 
 arm_UAV()
+
+def compile_telem():
+    roll = float(vehControl.uav_attitude[0])
+    pitch = float(vehControl.uav_attitude[1]) 
+    yaw = float(vehControl.uav_heading)
+    throttle = 1.23
+    
+    vox = float(vehControl.uav_velocity[0])
+    voy = float(vehControl.uav_velocity[1])
+    voz = float(vehControl.uav_velocity[2]) 
+    vth = float(vehControl.spherical_vel[0])
+    vphi = float(vehControl.spherical_vel[1])
+    vr = float(vehControl.spherical_vel[2])
+    
+    airspd = float(vehControl.uav_airspeed)
+    lat = float(vehControl.uav_coord[0])
+    lon = float(vehControl.uav_coord[1])
+    alt = float(vehControl.uav_alt)    
+    
+    s_lat = float(vehControl.ship_coord[0])
+    s_lon = float(vehControl.ship_coord[1])  
+    t_dist = float(vehControl.get_diagonal_distance()) 
+    
+    th = float(vehControl.relative_angle[0])
+    phi = float(vehControl.relative_angle[1])
+    goal_th = float(vehControl.goal_angle[0])
+    goal_phi = float(vehControl.goal_angle[1])
+    
+    fx = float(vehControl.pose_hold_effort[0])
+    fy = float(vehControl.pose_hold_effort[1])    
+    fz = float(vehControl.pose_hold_effort[2])
+    
+    fix= float(vehControl.xyz_ctrl_effort[0])
+    fiy= float(vehControl.xyz_ctrl_effort[1])
+    fiz= float(vehControl.xyz_ctrl_effort[2])
+    
+    p = float(vehControl.sph_ctrl_effort[0])
+    r = float(vehControl.sph_ctrl_effort[1])
+    thr = float(vehControl.sph_ctrl_effort[2])
+
+    #need 31
+    out = "%.2f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f" %(count,roll,pitch,yaw,throttle,vox,voy,voz,vth,vphi,vr,airspd,lat,lon,alt,s_lat,s_lon,t_dist,th,phi,goal_th,goal_phi,fx,fy,fz,fix,fiy,fiz,p,r,thr)
+    return out
 
 # Run this for a bit as a test
 count=1
@@ -190,14 +229,13 @@ while count<20:
     else:
         Ch00=0.00   
 
-    roll = float(vehControl.uav_attitude[0])
-    pitch = float(vehControl.uav_attitude[1])
-    outData = " -- Count: %.2f    ADC: %.2f   Roll: %.2f  Pitch: %.2f" %(count,Ch00,roll,pitch)
-    print outData
+
+    outData = compile_telem()
+   # print outData
     #print "         altitude = " + str(vehAPI.location.alt)    
-    #LogData.writeToLogFile('outData')
+    LogData.writeToLogFile('outData')
     count+=1
-    time.sleep(.5)
+    time.sleep(.1)
 
 
 human_rc_control()
