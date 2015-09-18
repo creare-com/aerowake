@@ -75,7 +75,7 @@ class GCS(t.HasTraits):
     mavlink_message = t.Enum(mavlink_msgs, label="Mavlink Message")    
     mavlink_message_filt = t.Enum(mavlink_msgs_filt, label="Mavlink Message")    
     mavlink_message_params = t.Str(label="params")
-    mavlink_message_args = t.Str(label="Arguments")
+    mavlink_message_args = t.Str(', '.join(mavlink_msgs_attr[mavlink_msgs_filt[0]]['args'][1:]), label="Arguments")
     
     # ON GCS: Incoming
     # Tether
@@ -255,9 +255,12 @@ class GCS(t.HasTraits):
     traits_view = tui.View(
         tui.Group(
                   group_input,
-                  group_uav,
-                  group_gcs,
-                  orientation='horizontal'),
+                  tui.Group(
+                            group_uav,
+                            group_gcs,
+                            orientation='horizontal'
+                  ),
+                  orientation='vertical'),
         resizable=True
     )
     
@@ -550,7 +553,7 @@ if __name__ == "__main__":
     gcs = GCS()
 #    gcs.setup_uav_link("COM8")
 #    gcs.poll_uav()
-    gcs.setup_gcs_link("COM7")
-    gcs.poll_gcs()
+#    gcs.setup_gcs_link("COM7")
+#    gcs.poll_gcs()
     gcs.configure_traits()
-#    gcs.uav_polling = False
+#    gcs.close()
