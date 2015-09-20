@@ -21,7 +21,7 @@ LogData = imp.load_source("LogData","../../../../../../../../home/pi/aerowake-mi
 # Setup
 ##############################################################
 
-time.sleep(5)
+time.sleep(1)
 
 AdcEnable=False #make True if you have the ADS1015 connected via i2c
 

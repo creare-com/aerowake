@@ -21,6 +21,8 @@ LogData = imp.load_source("LogData","../../../../../../../../home/pi/aerowake-mi
 # Setup
 ##############################################################
 
+#Preflight Checkout--
+
 time.sleep(1)
 
 AdcEnable=False #make True if you have the ADS1015 connected via i2c
@@ -240,7 +242,6 @@ while count<10*6:
         Ch00 = adc0.readADCSingleEnded(0,var.adcGain,var.adcSPS)/1000
     else:
         Ch00=0.00   
-
 
     out_data = compile_telem()
     LogData.write_to_log(out_data)
