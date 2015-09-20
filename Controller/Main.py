@@ -21,7 +21,7 @@ LogData = imp.load_source("LogData","../../../../../../../../home/pi/aerowake-mi
 # Setup
 ##############################################################
 
-time.sleep(5)
+time.sleep(1)
 
 AdcEnable=False #make True if you have the ADS1015 connected via i2c
 
@@ -63,8 +63,7 @@ def update_uav():
     vehControl.uav_vel = vehAPI.velocity
     vehControl.uav_heading = 65 #vehControl.wrap360(vehAPI.attitude.yaw*180/np.pi)  #check this
     
-        
-
+       
 def update_ship():
     #print " -- Controller Ship State Updated"
     vehControl.ship_alt = 0
@@ -235,7 +234,7 @@ def compile_telem():
 
 # Run this for a bit as a test
 count=1
-while count<20:
+while count<10*6:
     tw1= datetime.datetime.now()
     if AdcEnable:
         Ch00 = adc0.readADCSingleEnded(0,var.adcGain,var.adcSPS)/1000
@@ -243,14 +242,12 @@ while count<20:
         Ch00=0.00   
 
 
-    outData = compile_telem()
-   # print outData
-    #print "         altitude = " + str(vehAPI.location.alt)    
-    LogData.writeToLogFile('outData')
+    out_data = compile_telem()
+    LogData.write_to_log(out_data)
     print "---------------------------------------------------------------"
     count+=1
     
-    time.sleep(1)
+    time.sleep(.1)
     tw2= datetime.datetime.now()
 
 
