@@ -23,7 +23,7 @@ LogData = imp.load_source("LogData","../../../../../../../../home/pi/aerowake-mi
 
 #Preflight Checkout--
 
-time.sleep(1)
+time.sleep(10)
 
 AdcEnable=False #make True if you have the ADS1015 connected via i2c
 
@@ -69,7 +69,7 @@ def update_uav():
 def update_ship():
     #print " -- Controller Ship State Updated"
     vehControl.ship_alt = 0
-    vehControl.ship_coord = [ 42.3579384 , -71.0977609 ]#[0,0]
+    vehControl.ship_coord = [ 42.3555431, -71.1017078 ]#[0,0]
     vehControl.ship_heading = 65 #vehControl.wrap360(0) 
     vehControl.ship_tether_length = 10
 
@@ -77,7 +77,7 @@ def update_goal(attitude,alt,angle):
     print " -- Controller Goal State Updated"
     vehControl.goal_attitude = attitude
     vehControl.goal_alt = alt
-    vehControl.goal_angle = angle   
+    vehControl.goal_angle = [0,30]   
 
 #Arm Vehicle
 def arm_UAV():
@@ -189,7 +189,7 @@ human_rc_control()
 #event: Command packet recieved, execute sweep
 #event: land command given
 
-arm_UAV()
+#arm_UAV()
 
 def compile_telem():
     roll = float(vehControl.uav_attitude[0])
@@ -236,7 +236,7 @@ def compile_telem():
 
 # Run this for a bit as a test
 count=1
-while count<10*6:
+while count<10*60*5:
     tw1= datetime.datetime.now()
     if AdcEnable:
         Ch00 = adc0.readADCSingleEnded(0,var.adcGain,var.adcSPS)/1000
