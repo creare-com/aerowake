@@ -124,46 +124,24 @@ class Controller:
         angle=angle
         return int( self.saturate(1500+angle*(2000/np.pi)  ,1000,2000))
 
-#    def get_spherical_velocities(self):  # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Needs to be tested.  Not sure about directions. 
-#        
-#        v_uav_rel_global = np.array(self.uav_vel) - np.array(self.ship_vel) #This is north south up, not relative to ship. 
-#        vE = v_uav_rel[0] 
-#        vN = v_uav_rel[1] 
-#        vz = v_uav_rel[2]
-#        
-#        vx = -(vN*np.cos(self.ship_heading*np.pi/180) + vE*np.sin(self.ship_heading*np.pi/180)) # <<<<<<<<<<<<<<<<<<<<< Should this be ship or UAV?
-#        vy =  -vN*np.sin(self.ship_heading*np.pi/180) + vE*np.cos(self.ship_heading*np.pi/180) 
-#        
-#        th =  self.relative_angle[0]*np.pi/180 
-#        phi = self.relative_angle[1]*np.pi/180
-#
-#        th_dot = vy*np.cos(th) - vx*np.sin(th) 
-#        phi_dot = vz*np.cos(phi) - vx*np.sin(phi)*np.cos(th) - vy*np.sin(phi)*np.sin(th)
-#        r_dot = vz*np.sin(phi) + vx*np.cos(phi*np.cos(th) + vy*np.sin(th)*np.cos(phi)
-#        
-#        return 5#[th_dot, phi_dot ,r_dot]
-
     def set_spherical_velocities(self): # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Needs to be tested.  Not sure about directions. 
         v_uav_rel_global = np.array(self.uav_vel) - np.array(self.ship_vel) #This is north south up, not relative to ship. 
-#        vE = v_uav_rel[0] 
-#        vN = v_uav_rel[1] 
-#        vz = v_uav_rel[2]
+        vE = v_uav_rel_global[0] 
+        vN = v_uav_rel_global[1] 
+        vz = v_uav_rel_global[2]
         
-#        vx = -(vN*np.cos(self.ship_heading*np.pi/180) + vE*np.sin(self.ship_heading*np.pi/180)) # <<<<<<<<<<<<<<<<<<<<< Should this be ship or UAV?#
-#        vy =  -vN*np.sin(self.ship_heading*np.pi/180) + vE*np.cos(self.ship_heading*np.pi/180) 
+        vx = -(vN*np.cos(self.ship_heading*np.pi/180) + vE*np.sin(self.ship_heading*np.pi/180)) # <<<<<<<<<<<<<<<<<<<<< Should this be ship or UAV?#
+        vy =  -vN*np.sin(self.ship_heading*np.pi/180) + vE*np.cos(self.ship_heading*np.pi/180) 
 
-#        th =  self.relative_angle[0]*np.pi/180 
-#        phi = self.relative_angle[1]*np.pi/180
+        th =  self.relative_angle[0]*np.pi/180 
+        phi = self.relative_angle[1]*np.pi/180
 #
-#        th_dot = vy*np.cos(th) - vx*np.sin(th) 
-#        phi_dot = vz*np.cos(phi) - vx*np.sin(phi)*np.cos(th) - vy*np.sin(phi)*np.sin(th)
-#        r_dot = vz*np.sin(phi) + vx*np.cos(phi*np.cos(th) + vy*np.sin(th)*np.cos(phi)
+        th_dot = vy*np.cos(th) - vx*np.sin(th) 
+        phi_dot = vz*np.cos(phi) - vx*np.sin(phi)*np.cos(th) - vy*np.sin(phi)*np.sin(th)
+        r_dot = vz*np.sin(phi) + vx*np.cos(phi)*np.cos(th) + vy*np.sin(th)*np.cos(phi)
         
-#        self.spherical_vel = [th_dot, phi_dot ,r_dot]
-        self.spherical_vel = [5,5,5]
-        
-        
-        
+        self.spherical_vel = [th_dot, phi_dot ,r_dot]
+#        self.spherical_vel = [5,5,5]
         
 ###############################################################################################
 ### UAV Operation Functions
@@ -199,8 +177,8 @@ class Controller:
         
         #Calculate forces to move the UAV given the control inputs.         
         fix = -f_in[0]*np.sin(th) - f_in[1]*np.sin(phi)
-        fiy = f_in[0]*np.cos(th)
-        fiz = f_in[1]*np.cos(phi)
+        fiy =  f_in[0]*np.cos(th)
+        fiz =  f_in[1]*np.cos(phi)
         
         #Add the forces
         ftx = float(fx + fix)+.000000001 #<<<<<<<<<<<<<<<<<<<< Was getting NaN due to division below. 
