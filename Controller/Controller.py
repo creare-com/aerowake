@@ -21,7 +21,6 @@ class Controller:
 
     #todo: make one function that updates all of these fields
         self.goal_attitude = [0,0]  #Goal UAV attitude (roll,pitch)[radians]    
-        self.goal_alt = 0           #Goal UAV Altitude [m]
         self.goal_angle = [0,0]     #Goal UAV Angles (theta, phi) [degrees]
     
         self.ship_alt = 0           #GPS altitude of ship station (tether) [m]
@@ -122,7 +121,7 @@ class Controller:
         
     def angle_2_pwm(self,angle):
         angle=angle
-        return int( self.saturate(1500+angle*(2000/np.pi)  ,1000,2000))
+        return int( self.saturate(1500+angle*(180/np.pi)*500/45  ,1000,2000))
 
     def set_spherical_velocities(self): # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Needs to be tested.  Not sure about directions. 
         v_uav_rel_global = np.array(self.uav_vel) - np.array(self.ship_vel) #This is north south up, not relative to ship. 
@@ -162,7 +161,7 @@ class Controller:
         th =  self.relative_angle[0]*np.pi/180 
         phi = self.relative_angle[1]*np.pi/180
 
-        ft= 5 #newtons  #  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< need a way to measure or estimate
+        ft= 10 #newtons  #  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< need a way to measure or estimate
         
         #Calculate force needed to maintain position on tether
         fx = (ft)*np.cos(th)*np.cos(phi) - drag_forces[0]
@@ -183,7 +182,7 @@ class Controller:
         #Add the forces
         ftx = float(fx + fix)+.000000001 #<<<<<<<<<<<<<<<<<<<< Was getting NaN due to division below. 
         fty = float(fy + fiy)+.000000001
-        ftz = float(fz + fiz)+.000000001
+        ftz = float(fz + fiz)
         
         #Calculate Roll, Pitch, Throttle
         f_total = np.sqrt(ftx**2 + fty**2 + ftz**2)
@@ -193,9 +192,7 @@ class Controller:
         thr_out = self.force_2_thr_pwm(f_total)
         
                 # Store some data  
-        self.pose_hold_effort = [fx,fy,fz] #Forces the UAV is trying to exert to stay put. XYZ 
-        self.xyz_ctrl_effort = [fix,fiy,fiz] #Forces from the controller in XYZ plane
-        self.sph_ctrl_effort = [pitch_out,roll_out,thr_out] #Forces the UAV is trying to exert in the spherical 
+ 
         
         self.goal_attitude=[1,1] # <<<<<<<<< Fill in
   
@@ -204,7 +201,58 @@ class Controller:
         yaw_in = var.kp_yaw*e_heading 
         #hand back [rollPWM, pitchPWM, throttlePWM, yawPWM]     
 
+        self.pose_hold_effort = [fx,fy,fz] #Forces the UAV is trying to exert to stay put. XYZ 
+        self.xyz_ctrl_effort = [fix,fiy,fiz] #Forces from the controller in XYZ plane
+        self.sph_ctrl_effort = [pitch_out,roll_out,thr_out,yaw_in] #Forces the UAV is trying to exert in the spherical 
+
         return [roll_out,pitch_out,thr_out,1500] #[ch1,ch2,ch3,ch4]
+        
+        
+        
+        
+    def compile_telem(self):
+        roll = float(self.uav_attitude[0])
+        pitch = float(self.uav_attitude[1]) 
+        yaw = float(self.uav_heading)
+        throttle = 1.23
+        
+        vox = float(self.uav_vel[0])
+        voy = float(self.uav_vel[1])
+        voz = float(self.uav_vel[2]) 
+        vth = float(self.spherical_vel[0])
+        vphi = float(self.spherical_vel[1])
+        vr = float(self.spherical_vel[2])
+        
+        airspd = float(self.uav_airspeed)
+        lat = float(self.uav_coord[0])
+        lon = float(self.uav_coord[1])
+        alt = float(self.uav_alt)    
+        
+        s_lat = float(self.ship_coord[0])
+        s_lon = float(self.ship_coord[1])  
+        t_dist = float(self.get_diagonal_distance()) 
+        
+        th = float(self.relative_angle[0])
+        phi = float(self.relative_angle[1])
+        goal_th = float(self.goal_angle[0])
+        goal_phi = float(self.goal_angle[1])
+        
+        fx = float(self.pose_hold_effort[0])
+        fy = float(self.pose_hold_effort[1])    
+        fz = float(self.pose_hold_effort[2])
+        
+        fix= float(self.xyz_ctrl_effort[0])
+        fiy= float(self.xyz_ctrl_effort[1])
+        fiz= float(self.xyz_ctrl_effort[2])
+        
+        p = float(self.sph_ctrl_effort[0])
+        r = float(self.sph_ctrl_effort[1])
+        thr = float(self.sph_ctrl_effort[2])
+        yw = float(self.sph_ctrl_effort[3])
+    
+        #need 31
+        out = "%.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f" %(roll,pitch,yaw,throttle,vox,voy,voz,vth,vphi,vr,airspd,lat,lon,alt,s_lat,s_lon,t_dist,th,phi,goal_th,goal_phi,fx,fy,fz,fix,fiy,fiz,p,r,thr,yw)
+        return out
 
 
 

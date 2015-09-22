@@ -9,7 +9,7 @@ import datetime
 import var
 
 def write_to_log(dataPkt):
-    with open('log_file.txt','a') as f:
+    with open('log_file1.txt','a') as f:
         var.logN+=1
         now= datetime.datetime.now()
         timestamp = now.strftime("%H:%M:%S")

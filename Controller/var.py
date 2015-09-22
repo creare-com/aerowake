@@ -20,13 +20,13 @@ failsafeActive = 0  #1=failsafe active, land the uav!
 
 
 # UAV Physical Properties
-m = 3
-g = 9.81
+m = 2.135 #kg
+g = 9.81  
 
 
 # Position Controller Gains
-kp_th = 1
-kp_phi = 1
+kp_th = 10
+kp_phi = 10
 
 kd_th = 1
 kd_phi = 1

@@ -22,7 +22,7 @@ LogData = imp.load_source("LogData","../../../../../../../../home/pi/aerowake-mi
 ##############################################################
 
 #Preflight Checkout--
-
+runtime = 5 #min
 time.sleep(10)
 
 AdcEnable=False #make True if you have the ADS1015 connected via i2c
@@ -58,26 +58,24 @@ t1_0 =datetime.datetime.now()
 #Update UAV Controller State
 def update_uav():
     #print " -- Controller UAV State Updated"
-    vehControl.uav_alt = 5 #vehAPI.location.alt
-    vehControl.uav_coord = [42.3578720 ,-71.0979608 ]#[vehAPI.location.lat,vehAPI.location.lon]
+    vehControl.uav_alt = vehAPI.location.alt
+    vehControl.uav_coord = [vehAPI.location.lat,vehAPI.location.lon]
     vehControl.uav_mode = vehAPI.mode.name
     vehControl.uav_attitude = [ vehAPI.attitude.roll , vehAPI.attitude.pitch ]
     vehControl.uav_vel = vehAPI.velocity
-    vehControl.uav_heading = 65 #vehControl.wrap360(vehAPI.attitude.yaw*180/np.pi)  #check this
+    vehControl.uav_heading = vehControl.wrap360(vehAPI.attitude.yaw*180/np.pi)  #check this
     
        
 def update_ship():
     #print " -- Controller Ship State Updated"
-    vehControl.ship_alt = 0
-    vehControl.ship_coord = [ 42.3555431, -71.1017078 ]#[0,0]
-    vehControl.ship_heading = 65 #vehControl.wrap360(0) 
-    vehControl.ship_tether_length = 10
+    vehControl.ship_alt = 0 	 # gcs.location.alt  # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< HardCoded (remove)
+    vehControl.ship_coord = [ 42.35, -71.10 ]# [gcs.location.lat,gcs.location.lon]  # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< HardCoded (remove)
+    vehControl.ship_heading = 65 # vehControl.wrap360(gcs.attitude.yaw*180/np.pi) # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< HardCoded (remove)
+    vehControl.ship_tether_length = 9.5 	             # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< HardCoded (remove)
 
 def update_goal(attitude,alt,angle):
     print " -- Controller Goal State Updated"
-    vehControl.goal_attitude = attitude
-    vehControl.goal_alt = alt
-    vehControl.goal_angle = [0,30]   
+    vehControl.goal_angle = [0,30]   # angle  	# <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< HardCoded (remove)
 
 #Arm Vehicle
 def arm_UAV():
@@ -92,7 +90,7 @@ def arm_UAV():
         time.sleep(.5)
         arm_c+=1
         if arm_c >10:
-            vehAPI.exit
+            vehAPI.exit  #This doesnt exit the API, it throws and error, and allows the api to exit. 
 
     vehControl.uav_armed = vehAPI.armed
     update_goal([0,0],0,[0,5])
@@ -138,7 +136,7 @@ def controller_rc_control():
     #usage: Reset flag to give the controller write-privileges to the RC Override. 
     vehControl.rc_write_priv = True
 
-def control_check():
+def control_check(): #not sure what this does. Probably delete. 
     if vehControl.uav_mode != 'STABILIZE':
         human_rc_control()
     if vehControl.uav_mode == 'STABILIZE' and not vehControl.rc_write_priv:
@@ -191,59 +189,17 @@ human_rc_control()
 
 #arm_UAV()
 
-def compile_telem():
-    roll = float(vehControl.uav_attitude[0])
-    pitch = float(vehControl.uav_attitude[1]) 
-    yaw = float(vehControl.uav_heading)
-    throttle = 1.23
-    
-    vox = float(vehControl.uav_vel[0])
-    voy = float(vehControl.uav_vel[1])
-    voz = float(vehControl.uav_vel[2]) 
-    vth = float(vehControl.spherical_vel[0])
-    vphi = float(vehControl.spherical_vel[1])
-    vr = float(vehControl.spherical_vel[2])
-    
-    airspd = float(vehControl.uav_airspeed)
-    lat = float(vehControl.uav_coord[0])
-    lon = float(vehControl.uav_coord[1])
-    alt = float(vehControl.uav_alt)    
-    
-    s_lat = float(vehControl.ship_coord[0])
-    s_lon = float(vehControl.ship_coord[1])  
-    t_dist = float(vehControl.get_diagonal_distance()) 
-    
-    th = float(vehControl.relative_angle[0])
-    phi = float(vehControl.relative_angle[1])
-    goal_th = float(vehControl.goal_angle[0])
-    goal_phi = float(vehControl.goal_angle[1])
-    
-    fx = float(vehControl.pose_hold_effort[0])
-    fy = float(vehControl.pose_hold_effort[1])    
-    fz = float(vehControl.pose_hold_effort[2])
-    
-    fix= float(vehControl.xyz_ctrl_effort[0])
-    fiy= float(vehControl.xyz_ctrl_effort[1])
-    fiz= float(vehControl.xyz_ctrl_effort[2])
-    
-    p = float(vehControl.sph_ctrl_effort[0])
-    r = float(vehControl.sph_ctrl_effort[1])
-    thr = float(vehControl.sph_ctrl_effort[2])
-
-    #need 31
-    out = "%.2f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f" %(count,roll,pitch,yaw,throttle,vox,voy,voz,vth,vphi,vr,airspd,lat,lon,alt,s_lat,s_lon,t_dist,th,phi,goal_th,goal_phi,fx,fy,fz,fix,fiy,fiz,p,r,thr)
-    return out
 
 # Run this for a bit as a test
 count=1
-while count<10*60*5:
+while count<10*60*runtime:
     tw1= datetime.datetime.now()
     if AdcEnable:
         Ch00 = adc0.readADCSingleEnded(0,var.adcGain,var.adcSPS)/1000
     else:
         Ch00=0.00   
 
-    out_data = compile_telem()
+    out_data = vehControl.compile_telem()
     LogData.write_to_log(out_data)
     print "---------------------------------------------------------------"
     count+=1
