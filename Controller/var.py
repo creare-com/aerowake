@@ -25,11 +25,11 @@ g = 9.81
 
 
 # Position Controller Gains
-kp_th = 10
-kp_phi = 10
+kp_th = 40
+kp_phi = 40
 
-kd_th = 1
-kd_phi = 1
+kd_th = 10
+kd_phi = 10
 
 ki_th = 0
 ki_phi = 0

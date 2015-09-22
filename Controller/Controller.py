@@ -41,7 +41,7 @@ class Controller:
         self.relative_angle = [0,0] #UAV angles off stern of ship. (theta,phi) [degrees] theta=horizontal, phi=vertical
         self.pose_hold_effort = [0,0,0] #Forces the UAV is trying to exert to stay put. XYZ 
         self.xyz_ctrl_effort = [0,0,0] #Forces from the controller in XYZ plane
-        self.sph_ctrl_effort = [0,0,0] #Forces the UAV is trying to exert in the spherical        
+        self.sph_ctrl_effort = [0,0,0,0] #Forces the UAV is trying to exert in the spherical        
         self.spherical_vel = [0,0,0]
 
         self.control_count = 0
@@ -203,13 +203,10 @@ class Controller:
 
         self.pose_hold_effort = [fx,fy,fz] #Forces the UAV is trying to exert to stay put. XYZ 
         self.xyz_ctrl_effort = [fix,fiy,fiz] #Forces from the controller in XYZ plane
-        self.sph_ctrl_effort = [pitch_out,roll_out,thr_out,yaw_in] #Forces the UAV is trying to exert in the spherical 
+        self.sph_ctrl_effort = [pitch_out,roll_out,thr_out,yaw_in] #Forces the UAV is trying to exert in the spherical	
 
         return [roll_out,pitch_out,thr_out,1500] #[ch1,ch2,ch3,ch4]
-        
-        
-        
-        
+                
     def compile_telem(self):
         roll = float(self.uav_attitude[0])
         pitch = float(self.uav_attitude[1]) 
@@ -248,7 +245,7 @@ class Controller:
         p = float(self.sph_ctrl_effort[0])
         r = float(self.sph_ctrl_effort[1])
         thr = float(self.sph_ctrl_effort[2])
-        yw = float(self.sph_ctrl_effort[3])
+        yw =  float(self.sph_ctrl_effort[3])
     
         #need 31
         out = "%.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f" %(roll,pitch,yaw,throttle,vox,voy,voz,vth,vphi,vr,airspd,lat,lon,alt,s_lat,s_lon,t_dist,th,phi,goal_th,goal_phi,fx,fy,fz,fix,fiy,fiz,p,r,thr,yw)
