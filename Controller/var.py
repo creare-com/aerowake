@@ -13,6 +13,7 @@ adc0Address=0x48
 # Logging Variables
 
 logN = 0
+log_file_name='testing_log_file_default.csv'
 
 # Failsafe Variables
 
@@ -37,8 +38,8 @@ ki_phi = 0
 kp_pose = np.array([kp_th,kp_phi])
 kd_pose = np.array([kd_th,kd_phi])
 
-kp_yaw = 1
-kd_yaw = 1
+kp_yaw = 5
+kd_yaw = 5
 
 
 

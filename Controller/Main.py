@@ -23,6 +23,10 @@ LogData = imp.load_source("LogData","../../../../../../../../home/pi/aerowake-mi
 
 #Preflight Checkout--
 runtime = 2 #min
+run_goal = [0,20]
+var.log_file_name = 'testing_log_01.csv'
+
+
 time.sleep(20)
 
 AdcEnable=False #make True if you have the ADS1015 connected via i2c
@@ -43,7 +47,7 @@ vehAPI = api.get_vehicles()[0]
 #initialize Controller
 print " -- Initialize Controller"
 vehControl = Controller.Controller()
-
+time.sleep(.1)
 
 vehAPI.parameters.SR1_EXTRA1 = 10
 vehAPI.parameters.SR1_POSITION = 10
@@ -63,7 +67,8 @@ def update_uav():
     vehControl.uav_mode = vehAPI.mode.name
     vehControl.uav_attitude = [ vehAPI.attitude.roll , vehAPI.attitude.pitch ]
     vehControl.uav_vel = vehAPI.velocity
-    vehControl.uav_heading = vehControl.wrap360(vehAPI.attitude.yaw*180/np.pi)  #check this
+    vehControl.h_mem = vehControl.uav_heading
+    vehControl.uav_heading = (vehAPI.attitude.yaw*180/np.pi)  #check this
     print vehControl.relative_angle
 
     #what happens if you connect the GCS mid flight??
@@ -75,9 +80,9 @@ def update_ship():
     vehControl.ship_heading = 65 # vehControl.wrap360(gcs.attitude.yaw*180/np.pi) # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< HardCoded (remove)
     vehControl.ship_tether_length = 9.5 	             # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< HardCoded (remove)
 
-def update_goal(attitude,alt,angle):
+def update_goal(g_angle):
     print " -- Controller Goal State Updated"
-    vehControl.goal_angle = [0,30]   # angle  	# <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< HardCoded (remove)
+    vehControl.goal_angle = g_angle
 
 #Arm Vehicle
 def arm_UAV():
@@ -190,7 +195,7 @@ human_rc_control()
 #event: land command given
 
 #arm_UAV()
-
+update_goal(run_goal) # <<<<<<<<<<<<<< TEMPORARY WAY TO SET THE GOAL LOCATION -- SET ABOVE
 
 # Run this for a bit as a test
 count=1
@@ -203,7 +208,9 @@ while count<10*60*runtime:
 
     out_data = vehControl.compile_telem()
     LogData.write_to_log(out_data)
-    print "---------------------------------------------------------------"
+    if count%50==0:
+        t_rem = (10*60*runtime - count)*10
+        print "---- time remaining = %.2f seconds" %(t_rem) 
     count+=1
     
     time.sleep(.1)
