@@ -14,6 +14,7 @@ class GCS(object):
     # Mission inputs
     mission_mode_int = None
     mission_mode_str = ''
+    autopilot_mode = False
     
     # Flight scheduler inputs
     sweep_angle = None
@@ -77,6 +78,8 @@ class GCS(object):
         elif mtyp == "SET_MISSION_MODE":
             self.mission_mode_int = m.mode
             self.mission_mode_str = get_mission_mode.get(m.mode, '')
+        elif mtyp == "SET_PILOT_MODE":
+            self.autopilot_mode = m.mode            
         elif mtyp == "SCHEDULE_SWEEP":
             self.sweep_angle = m.angle
             self.sweep_alt_start = m.altitude_start

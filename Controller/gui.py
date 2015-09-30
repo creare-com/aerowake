@@ -67,6 +67,7 @@ class GCS(t.HasTraits):
     # ON GCS: Outgoing
     mission_message = t.Enum(set_mission_mode.keys(),
                               label="Mission Type")
+    autopilot_mode = t.Bool(False)                              
     sweep_angle = t.Float(label="Angle (degrees)")
     sweep_alt_start = t.Float(label="Start Altitude (m)")
     sweep_alt_end = t.Float(label="End Altitude (m)")
@@ -185,6 +186,7 @@ class GCS(t.HasTraits):
     
     group_input = tui.Group(
                             tui.Item(name="mission_status", enabled_when='False'),
+                            tui.Item(name="autopilot_mode"),
                             tui.Item(name="mission_message"),
                             tui.Item(name="sweep_angle", 
                                      visible_when='mission_message=="SCHEDULE_SWEEP"'),
@@ -263,6 +265,9 @@ class GCS(t.HasTraits):
                   orientation='vertical'),
         resizable=True
     )
+    
+    def _autopilot_mode_changed(self):
+        self.uav.mav.set_autopilot_mode_send(self.autopilot_mode)
     
     def _update_mission_fired(self):
         """ This will fire when the update_mission button is clicked

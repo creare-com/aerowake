@@ -148,6 +148,13 @@ def control_check(): #not sure what this does. Probably delete.
         human_rc_control()
     if vehControl.uav_mode == 'STABILIZE' and not vehControl.rc_write_priv:
         human_rc_control()  #controller_rc_control()   
+
+def pilot_mode_check():
+    if vehControl.uav_mode != "STABILIZE":
+        return False
+    else:
+        return gcs.autopilot_mode
+        
         
 def write_channels(ch_out): 
     if vehControl.rc_write_priv and vehControl.uav_mode == 'STABILIZE':
@@ -198,23 +205,30 @@ human_rc_control()
 update_goal(run_goal) # <<<<<<<<<<<<<< TEMPORARY WAY TO SET THE GOAL LOCATION -- SET ABOVE
 
 # Run this for a bit as a test
-count=1
-while count<10*60*runtime:
-    tw1= datetime.datetime.now()
-    if AdcEnable:
-        Ch00 = adc0.readADCSingleEnded(0,var.adcGain,var.adcSPS)/1000
-    else:
-        Ch00=0.00   
 
-    out_data = vehControl.compile_telem()
-    LogData.write_to_log(out_data)
-    if count%50==0:
-        t_rem = (10*60*runtime - count)*10
-        print "---- time remaining = %.2f seconds" %(t_rem) 
-    count+=1
+while True:
+    control_check()
+    count=0
+    while pilot_mode_check():
+        if count == 0:
+            control_check()
+        tw1= datetime.datetime.now()
+        if AdcEnable:
+            Ch00 = adc0.readADCSingleEnded(0,var.adcGain,var.adcSPS)/1000
+        else:
+            Ch00 = 0.00   
     
-    time.sleep(.1)
-    tw2= datetime.datetime.now()
+        out_data = vehControl.compile_telem()
+        LogData.write_to_log(out_data)
+        if count%50==0:
+            t_rem = (10*60*runtime - count)*10
+            print "---- time remaining = %.2f seconds" %(t_rem) 
+        count+=1
+        
+        time.sleep(.1)
+        tw2= datetime.datetime.now()
+    time.sleep(0.1)
+    print "Waiting Loop"
 
 
 print "Called attitude callback ",  vehControl.control_count , " times in ", (datetime.datetime.now()-t1_0).total_seconds() ," s. Rate: ",  vehControl.control_count / (datetime.datetime.now()-t1_0).total_seconds()
