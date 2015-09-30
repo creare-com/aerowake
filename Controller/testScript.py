@@ -17,9 +17,9 @@ vehControl = Controller.Controller()
 def update_uav():
     #print " -- Controller UAV State Updated"
     vehControl.uav_alt = 0
-    vehControl.uav_coord = [ 42.3561080, -71.1008495 ]
+    vehControl.uav_coord = [ 42.3561080, -71.1008495 ] #3
     vehControl.uav_attitude = [0,0]
-    vehControl.uav_vel = [1,0,0] #North, East, Up
+    vehControl.uav_vel = [1,-1,0] #North, East, Up
     vehControl.h_mem = 48
     vehControl.uav_heading = 0#vehControl.wrap360(-20)  #check this
     #what happens if you connect the GCS mid flight??
@@ -27,9 +27,11 @@ def update_uav():
 def update_ship():
     #print " -- Controller Ship State Updated"
     vehControl.ship_alt = 0 	 # gcs.location.alt  # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< HardCoded (remove)
-    #vehControl.ship_coord = [42.3558741,-71.1015308]# [gcs.location.lat,gcs.location.lon]  # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< HardCoded (remove)
-    vehControl.ship_coord = [42.3556145,-71.1008361]    
-    vehControl.ship_heading = 45  # vehControl.wrap360(gcs.attitude.yaw*180/np.pi) # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< HardCoded (remove)
+   
+    #vehControl.ship_coord = [42.3558741,-71.1015308] #4    
+    vehControl.ship_coord = [42.3556145,-71.1008361] #5
+    #vehControl.ship_coord = [42.3558741,-71.1015308] #6
+    vehControl.ship_heading = 45 # vehControl.wrap360(gcs.attitude.yaw*180/np.pi) # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< HardCoded (remove)
     vehControl.ship_tether_length = 60 	             # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< HardCoded (remove)
 
 def update_goal():

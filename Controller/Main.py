@@ -133,6 +133,8 @@ def land_UAV(landAlt):
         update_goal([0,0],landAlt,[0,45])
         # At this point, need to reel in the tether, then trigger UAV Disarm
 
+
+
 def human_rc_control():
     #usage: Call this to give control back to the humans RC Controller
     vehControl.rc_write_priv = False
@@ -194,6 +196,8 @@ vehAPI.add_attribute_observer('attitude' , uav_callback)
 ##############################################################
 # Main Loop
 ##############################################################
+
+
 human_rc_control()
 
 #event: Takeoff Command Given

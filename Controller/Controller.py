@@ -11,7 +11,7 @@ import var
 
 class Controller:
     def __init__(self):
-        self.description = "flight scheduler and controller to handle high level commands"
+        #self.description = "flight scheduler and controller to handle high level commands"
         self.uav_coord = [1,1]      #GPS coordinates of UAV [lat,lon] [degrees]
         self.uav_vel = [0,0,0]      #UAV velocity [m/s] [x,y,z]    
         self.uav_alt = 0            #UAV Altitude [m]
@@ -19,7 +19,7 @@ class Controller:
         self.uav_attitude = [0,0]   #Current UAV attitude (roll,pitch)[radians]
         self.uav_heading = 0        #UAV heading (+- 180 degrees). [Deg]. 
         self.uav_airspeed = 0       #aispeed in [m/s] via the pitot tube
-
+        self.uav_vel_rel = [0,0]
 
     #todo: make one function that updates all of these fields
         self.goal_attitude = [0,0]  #Goal UAV attitude (roll,pitch)[radians]    
@@ -36,7 +36,7 @@ class Controller:
         self.uav_flying = False     #Flag for if the UAV is flying or not
         self.uav_failsafe = False   #Flag for if the UAV is in failsafe or not
         self.uav_armed = False      #Flag for if the UAV is armed or not. 
-        self.rc_write_priv = False #Flag for whether the controller can write to RC Override or not. 
+        self.rc_write_priv = False  #Flag for whether the controller can write to RC Override or not. 
         
     #todo: make one function that updates all of these fields
         self.relative_position = [0,0,0] #UAV position relative to ship. (x,y,z) [m]. X is parallel with ship(forward positive), Y perpendicular to ship, Z is alt. 
@@ -151,11 +151,15 @@ class Controller:
         
         vx = -(vN*np.cos(self.ship_heading*np.pi/180) + vE*np.sin(self.ship_heading*np.pi/180)) # <<<<<<<<<<<<<<<<<<<<< Should this be ship or UAV?#
         vy =  -vN*np.sin(self.ship_heading*np.pi/180) + vE*np.cos(self.ship_heading*np.pi/180) 
-        print('vel X %.4f   vel Y %.4f') %(vx,vy)
-        
+        #print('vel X %.4f   vel Y %.4f \n') %(vx,vy)
+ 
+        self.uav_vel_rel = [vx,vy]
+               
         th =  self.relative_angle[0]*np.pi/180 
         phi = self.relative_angle[1]*np.pi/180
-#
+        #print ('theta %.4f  phi %.4f \n') %(th*180/np.pi,phi*180/np.pi)
+#       
+
         th_dot = vy*np.cos(th) - vx*np.sin(th) 
         phi_dot = vz*np.cos(phi) - vx*np.sin(phi)*np.cos(th) - vy*np.sin(phi)*np.sin(th)
         r_dot = vz*np.sin(phi) + vx*np.cos(phi)*np.cos(th) + vy*np.sin(th)*np.cos(phi)
@@ -258,6 +262,9 @@ class Controller:
         vphi = float(self.spherical_vel[1])
         vr = float(self.spherical_vel[2])
         
+        v_rel_x = float(self.uav_vel_rel[0])
+        v_rel_y = float(self.uav_vel_rel[1])
+        
         airspd = float(self.uav_airspeed)
         lat = float(self.uav_coord[0])
         lon = float(self.uav_coord[1])
@@ -274,6 +281,7 @@ class Controller:
         
         th = float(self.relative_angle[0])
         phi = float(self.relative_angle[1])
+        
         goal_th = float(self.goal_angle[0])
         goal_phi = float(self.goal_angle[1])
         
@@ -291,7 +299,7 @@ class Controller:
         yw =  float(self.control_output[3])
     
         #need 31
-        out = "%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f" %(roll,pitch,yaw,throttle,vox,voy,voz,vth,vphi,vr,airspd,lat,lon,alt,th,phi,goal_th,goal_phi,fx,fy,fz,fix,fiy,fiz,p,r,thr,yw,s_lat,s_lon,t_dist,s_alt,s_head,s_vel_x,s_vel_y,s_vel_z)
+        out = "%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f" %(roll,pitch,yaw,throttle,vox,voy,voz,vth,vphi,vr,airspd,lat,lon,alt,th,phi,goal_th,goal_phi,fx,fy,fz,fix,fiy,fiz,p,r,thr,yw,s_lat,s_lon,t_dist,s_alt,s_head,s_vel_x,s_vel_y,s_vel_z,v_rel_x,v_rel_y)
         return out
 
 #        out = "%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f,%.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f" %(roll,pitch,yaw,throttle,vox,voy,voz,vth,vphi,vr,airspd,lat,lon,alt,s_lat,s_lon,t_dist,th,phi,goal_th,goal_phi,fx,fy,fz,fix,fiy,fiz,p,r,thr,yw)
