@@ -24,6 +24,7 @@ mavlink_msgs.sort()
 mavlink_msgs_filt = [
  'SET_HOME_POSITION',
  'HEARTBEAT',
+ 'SET_MODE',
 ]
 mavlink_msgs_filt.sort()
 
@@ -268,6 +269,8 @@ class GCS(t.HasTraits):
     
     def _autopilot_mode_changed(self):
         self.uav.mav.set_pilot_mode_send(self.autopilot_mode)
+        if self.autopilot_mode:
+            self.uav.set_mode(2)
     
     def _update_mission_fired(self):
         """ This will fire when the update_mission button is clicked
@@ -556,9 +559,9 @@ class GCS(t.HasTraits):
             
 if __name__ == "__main__":
     gcs = GCS()
-    gcs.setup_uav_link("COM9")
-    gcs.poll_uav()
-#    gcs.setup_gcs_link("COM7")
+   # gcs.setup_uav_link("COM9", 56700)
+   # gcs.poll_uav()
+#    gcs.setup_gcs_link("COM7", 115200)
 #    gcs.poll_gcs()
     gcs.configure_traits()
 #    gcs.close()
