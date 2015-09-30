@@ -232,9 +232,6 @@
           <message id="225" name="SET_MISSION_MODE">
                <field type="uint8_t" name="mode">mission mode: 0 = Take off, 1 = Land, 2 = Start mission, 3 = Stop mission,  4 = Loiter, 9 = Emergency All Stop</field>
           </message>
-          <message id="225" name="SET_PILOT_MODE">
-               <field type="uint8_t" name="mode">mission mode: 0 = Human Control, 1 = Autopilot </field>
-          </message>
           <message id="226" name="REPORT_MISSION_STATUS">
                <field type="uint8_t" name="mode">mission mode: 0 = Taking off, 1 = Landing, 2 = Flying Mission, 3 = Stopping mission, 4 = Loitering, 9 = Emergency Stop </field>
           </message>
@@ -242,6 +239,9 @@
                <field type="float" name="u">u-velocity (m/s)</field>
                <field type="float" name="v">v-velocity (m/s)</field>
                <field type="float" name="w">w-velocity (m/s)</field>
+          </message>
+          <message id="228" name="SET_PILOT_MODE">
+               <field type="uint8_t" name="mode">mission mode: 0 = Human Control, 1 = Autopilot </field>
           </message>
           <message id="230" name="SCHEDULE_SWEEP">
                <field type="float" name="angle">Sweep angle (degrees)</field>

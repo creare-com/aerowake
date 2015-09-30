@@ -267,7 +267,7 @@ class GCS(t.HasTraits):
     )
     
     def _autopilot_mode_changed(self):
-        self.uav.mav.set_autopilot_mode_send(self.autopilot_mode)
+        self.uav.mav.set_pilot_mode_send(self.autopilot_mode)
     
     def _update_mission_fired(self):
         """ This will fire when the update_mission button is clicked
@@ -556,8 +556,8 @@ class GCS(t.HasTraits):
             
 if __name__ == "__main__":
     gcs = GCS()
-#    gcs.setup_uav_link("COM8")
-#    gcs.poll_uav()
+    gcs.setup_uav_link("COM9")
+    gcs.poll_uav()
 #    gcs.setup_gcs_link("COM7")
 #    gcs.poll_gcs()
     gcs.configure_traits()

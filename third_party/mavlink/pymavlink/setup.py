@@ -19,8 +19,8 @@ from generator import mavgen, mavparse
 mdef_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'message_definitions')
 dialects_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'dialects')
 
-v09_dialects = glob.glob(os.path.join(mdef_path, 'v0.9', '*.xml'))
-v10_dialects = glob.glob(os.path.join(mdef_path, 'v1.0', '*.xml'))
+v09_dialects = glob.glob(os.path.join(mdef_path, 'v0.9', 'gcs*.xml'))
+v10_dialects = glob.glob(os.path.join(mdef_path, 'v1.0', 'gcs*.xml'))
 
 v09_dialects
 
