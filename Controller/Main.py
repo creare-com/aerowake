@@ -16,18 +16,17 @@ var = imp.load_source("var","../../../../home/pi/aerowake-mit/Controller/var.py"
 Controller = imp.load_source("Controller","../../../../../../../../home/pi/aerowake-mit/Controller/Controller.py")
 Setup = imp.load_source("Setup","../../../../home/pi/aerowake-mit/Controller/Setup.py")
 LogData = imp.load_source("LogData","../../../../../../../../home/pi/aerowake-mit/Controller/LogData.py")
-
 ##############################################################
 # Setup
 ##############################################################
 
 #Preflight Checkout--
-runtime = 2 #min
+runtime = .5  #min
 run_goal = [0,20]
 var.log_file_name = 'testing_log_01.csv'
 
 
-time.sleep(20)
+time.sleep(2)
 
 AdcEnable=False #make True if you have the ADS1015 connected via i2c
 
@@ -224,15 +223,14 @@ while True:
     
         out_data = vehControl.compile_telem()
         LogData.write_to_log(out_data)
-        if count%50==0:
+        if (int(count)%10)==0:
             t_rem = (10*60*runtime - count)*10
             print "---- time remaining = %.2f seconds" %(t_rem) 
         count+=1
-        
         time.sleep(.1)
         tw2= datetime.datetime.now()
     time.sleep(0.1)
-    print "Waiting Loop"
+    #print "Waiting Loop"
 
 
 print "Called attitude callback ",  vehControl.control_count , " times in ", (datetime.datetime.now()-t1_0).total_seconds() ," s. Rate: ",  vehControl.control_count / (datetime.datetime.now()-t1_0).total_seconds()
