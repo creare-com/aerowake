@@ -270,7 +270,7 @@ class GCS(t.HasTraits):
     def _autopilot_mode_changed(self):
         self.uav.mav.set_pilot_mode_send(self.autopilot_mode)
         if self.autopilot_mode:
-            self.uav.set_mode(2)
+            self.uav.set_mode(0)
     
     def _update_mission_fired(self):
         """ This will fire when the update_mission button is clicked
