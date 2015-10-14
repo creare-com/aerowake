@@ -91,10 +91,10 @@ class Controller:
         return diag_dist #[meters]
 
     def get_global_angle(self): #Tested separately. Gives the heading angle from North from the ship to UAV. 
-        act1 = self.uav_coord #UAV FIRST
-        act2 = self.ship_coord #SHIP SECOND
-        dlat=act1[0]-act2[0]
-        dlon=act1[1]-act2[1]
+        act1 = self.ship_coord #SHIP FIRST
+        act2 = self.uav_coord #UAV SECOND
+        #dlat=act1[0]-act2[0]
+        dlon=act1[1]-act2[1] #ship - uav
         arg1= np.sin(dlon*np.pi/180) * np.cos(act2[0]*np.pi/180) 
         arg2= np.cos(act1[0]*np.pi/180) * np.sin(act2[0]*np.pi/180) - np.sin(act1[0]*np.pi/180) * np.cos(act2[0]*np.pi/180) * np.cos(dlon*np.pi/180)        
         g_rel_ang =  -np.arctan2( arg1, arg2)
