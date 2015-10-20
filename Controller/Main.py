@@ -24,16 +24,14 @@ LogData = imp.load_source("LogData","../../../../../../../../home/pi/aerowake-mi
 runtime = .5  #min
 run_goal = [0,20]
 var.log_file_name = 'testing_log_01.csv'
+standalone = True
 
 
 time.sleep(2)
 
-AdcEnable=False #make True if you have the ADS1015 connected via i2c
 
 print "\n \n \n \n \n \n -- AeroWake Controller \n \n \n"
 print " -- Running Hardware Setup Routine"
-if AdcEnable:
-    adc0=Setup.InitializeADCHardware()
 
 ## Connection to API
 #api = local_connect()
@@ -209,28 +207,42 @@ update_goal(run_goal) # <<<<<<<<<<<<<< TEMPORARY WAY TO SET THE GOAL LOCATION --
 
 # Run this for a bit as a test
 
-while True:
-    control_check()
-    count=0
-    while pilot_mode_check():
-        if count == 0:
-            control_check()
-        tw1= datetime.datetime.now()
-        if AdcEnable:
-            Ch00 = adc0.readADCSingleEnded(0,var.adcGain,var.adcSPS)/1000
-        else:
-            Ch00 = 0.00   
+if standalone==False:
+    while True:
+        control_check()
+        count=0
+        while pilot_mode_check():
+            if count == 0:
+                control_check()
+            tw1= datetime.datetime.now()
+        
+            out_data = vehControl.compile_telem()
+            LogData.write_to_log(out_data)
+            if (int(count)%10)==0:
+                t_rem = (10*60*runtime - count)*10
+                print "---- time remaining = %.2f seconds" %(t_rem) 
+            count+=1
+            time.sleep(.1)
+            tw2= datetime.datetime.now()
+        time.sleep(0.1)
+        #print "Waiting Loop"
+
+if standalone == True:
+    while True:
+        control_check()
+        count=0
     
+        tw1= datetime.datetime.now()
+        
         out_data = vehControl.compile_telem()
         LogData.write_to_log(out_data)
-        if (int(count)%10)==0:
+        
+        if (int(count)%20)==0:
             t_rem = (10*60*runtime - count)*10
             print "---- time remaining = %.2f seconds" %(t_rem) 
         count+=1
-        time.sleep(.1)
+        time.sleep(.05)
         tw2= datetime.datetime.now()
-    time.sleep(0.1)
-    #print "Waiting Loop"
 
 
 print "Called attitude callback ",  vehControl.control_count , " times in ", (datetime.datetime.now()-t1_0).total_seconds() ," s. Rate: ",  vehControl.control_count / (datetime.datetime.now()-t1_0).total_seconds()

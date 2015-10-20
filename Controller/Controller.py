@@ -49,7 +49,8 @@ class Controller:
         self.control_count = 0
         self.h_mem = 0
         self.t_mem = datetime.datetime.now()
-        
+        self.prev_e = np.array([0,0])
+        self.e_int = np.array([0,0])
         
 ###############################################################################################
 ### Utility Functions
@@ -135,15 +136,12 @@ class Controller:
     def yaw_2_pwm(self,yaw_input):
         return int(self.saturate(1500+yaw_input,1400,1600))
 
-    def set_spherical_velocities(self): # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Needs to be tested.  Not sure about directions. 
+    def set_spherical_velocities(self): # <<<<<<<<<<<<<< Needs to be tested.  Not sure about directions. 
         # Set up velocity mappings
         # velocity_x > 0 => fly North
-        # velocity_x < 0 => fly South
         # velocity_y > 0 => fly East
-        # velocity_y < 0 => fly West
         # velocity_z < 0 => ascend
-        # velocity_z > 0 => descend        
-        
+    
         v_uav_rel_global = np.array(self.uav_vel) - np.array(self.ship_vel) #This is north south up, not relative to ship. 
         vN = v_uav_rel_global[0] 
         vE = v_uav_rel_global[1] 
@@ -157,15 +155,13 @@ class Controller:
                
         th =  self.relative_angle[0]*np.pi/180 
         phi = self.relative_angle[1]*np.pi/180
-        #print ('theta %.4f  phi %.4f \n') %(th*180/np.pi,phi*180/np.pi)
-#       
-
+    
         th_dot = vy*np.cos(th) - vx*np.sin(th) 
         phi_dot = vz*np.cos(phi) - vx*np.sin(phi)*np.cos(th) - vy*np.sin(phi)*np.sin(th)
         r_dot = vz*np.sin(phi) + vx*np.cos(phi)*np.cos(th) + vy*np.sin(th)*np.cos(phi)
         
         self.spherical_vel = [th_dot, phi_dot ,r_dot]
-#        self.spherical_vel = [5,5,5]
+
         
 ###############################################################################################
 ### UAV Operation Functions
@@ -183,8 +179,8 @@ class Controller:
         self.set_spherical_velocities()        
         
         drag_forces = self.get_drag_forces()
-        sph_vel = self.spherical_vel  # <<<<<<<<<<<<<<<<<<<<<<<< Untested. 
-        angle_vel = [sph_vel[0],sph_vel[1]]         
+        #sph_vel = self.spherical_vel  # <<<<<<<<<<<<<<<<<<<<<<<< Untested. 
+        #angle_vel = [sph_vel[0],sph_vel[1]]         
 
         th =  self.relative_angle[0]*np.pi/180 
         phi = self.relative_angle[1]*np.pi/180
@@ -198,10 +194,16 @@ class Controller:
        
         #Calculate azmuth/inclination angle error
         e_angle = np.array(self.goal_angle)*np.pi/180 - np.array([th,phi])  #[theta, phi]
-        f_in = var.kp_pose*e_angle - var.kd_pose*angle_vel
-
-        #print f_in
+        try:
+            e_angle_dot = (e_angle - self.prev_e)/dt
+        except:
+            print '---- dt=0'
+            e_angle_dot = 0            
+        self.prev_e = e_angle
+        self.e_int += e_angle*dt       
         
+        f_in = var.kp_pose*e_angle + var.kd_pose*e_angle_dot + var.ki_pose*self.e_int
+
         #Calculate forces to move the UAV given the control inputs.         
         fix = -f_in[0]*np.sin(th) - f_in[1]*np.sin(phi)
         fiy =  f_in[0]*np.cos(th)
@@ -220,7 +222,7 @@ class Controller:
         #Add the forces
         ftx = float(fx + fix)
         fty = float(fy + fiy)
-        ftz = float(fz + fiz)+.000000001 #<<<<<<<<<<<<<<<<<<<< Was getting NaN due to division below. 
+        ftz = float(fz + fiz)+0.000000001 #<<<<<<<<<<<<<<<<<<<< Was getting NaN due to division below. 
         
         #Calculate Roll, Pitch, Throttle
         f_total = np.sqrt(ftx**2 + fty**2 + ftz**2)
@@ -241,14 +243,19 @@ class Controller:
         #PD controller on yaw
         yaw_in = var.kp_yaw*e_heading - var.kd_yaw*yaw_vel     
         
- 
         self.goal_attitude=[pitch_out,roll_out,thr_out] #
         self.pose_hold_effort = [fx,fy,fz] #Forces the UAV is trying to exert to stay put. XYZ 
         self.xyz_ctrl_effort = [fix,fiy,fiz] #Forces from the controller in XYZ plane
         self.control_output = [self.pitch_2_pwm(pitch_out),self.roll_2_pwm(roll_out),self.force_2_thr_pwm(thr_out),self.yaw_2_pwm(yaw_in)] #Forces the UAV is trying to exert in the spherical	
 
         return self.control_output #[ch1,ch2,ch3,ch4]
-                
+              
+              
+              
+              
+
+              
+              
     def compile_telem(self):
         roll = float(self.uav_attitude[0])
         pitch = float(self.uav_attitude[1]) 
