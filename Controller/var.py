@@ -37,6 +37,7 @@ ki_phi = 0
 
 kp_pose = np.array([kp_th,kp_phi])
 kd_pose = np.array([kd_th,kd_phi])
+ki_pose = np.array([ki_th,ki_phi])
 
 kp_yaw = 5
 kd_yaw = 5
