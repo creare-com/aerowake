@@ -11,6 +11,7 @@ from pymavlink import mavutil
 import signal, sys
 #from Adafruit_ADS1x15 import ADS1x15
 import imp
+import gps
 
 var = imp.load_source("var","../../../../home/pi/aerowake-mit/Controller/var.py")
 Controller = imp.load_source("Controller","../../../../../../../../home/pi/aerowake-mit/Controller/Controller.py")
@@ -21,19 +22,16 @@ LogData = imp.load_source("LogData","../../../../../../../../home/pi/aerowake-mi
 ##############################################################
 
 #Preflight Checkout--
-runtime = .5  #min
+runtime =  .5 #min
 run_goal = [0,20]
-var.log_file_name = 'testing_log_01.csv'
-
+var.log_file_name = 'GPS_testing_0005.csv'
+standalone=True
 
 time.sleep(2)
 
-AdcEnable=False #make True if you have the ADS1015 connected via i2c
+
 
 print "\n \n \n \n \n \n -- AeroWake Controller \n \n \n"
-print " -- Running Hardware Setup Routine"
-if AdcEnable:
-    adc0=Setup.InitializeADCHardware()
 
 ## Connection to API
 #api = local_connect()
@@ -48,9 +46,22 @@ print " -- Initialize Controller"
 vehControl = Controller.Controller()
 time.sleep(.1)
 
-vehAPI.parameters.SR1_EXTRA1 = 10
-vehAPI.parameters.SR1_POSITION = 10
-vehAPI.parameters.SR1_EXTRA2 = 10
+# GPS Service
+gpsd_ses = gps.gps("localhost","2947")
+gpsd_ses.stream(gps.WATCH_ENABLE | gps.WATCH_NEWSTYLE)
+report =gpsd_ses.next()
+print ' -- GPSD Setup Complete'
+
+
+#vehAPI.parameters['SR1_EXTRA1']=8.0
+#vehAPI.parameters['SR1_POSITION']=8.0
+#vehAPI.parameters['SR1_EXTRA2']=8.0 
+#vehAPI.flush()
+
+
+
+time.sleep(1)
+#vehAPI.exit
 
 t1_0 =datetime.datetime.now()
 ##############################################################
@@ -62,26 +73,49 @@ t1_0 =datetime.datetime.now()
 def update_uav():
     #print " -- Controller UAV State Updated"
     vehControl.uav_alt = vehAPI.location.alt
-    vehControl.uav_coord = [vehAPI.location.lat,vehAPI.location.lon]
+    #vehControl.uav_coord = [vehAPI.location.lat,vehAPI.location.lon]
     vehControl.uav_mode = vehAPI.mode.name
     vehControl.uav_attitude = [ vehAPI.attitude.roll , vehAPI.attitude.pitch ]
     vehControl.uav_vel = vehAPI.velocity
     vehControl.h_mem = vehControl.uav_heading
     vehControl.uav_heading = (vehAPI.attitude.yaw*180/np.pi)  #check this
-    print vehControl.relative_angle
-
+    #print '----- '
+    #print '%.2f     %.2f     %.2f ' %(vehControl.relative_angle[0],vehControl.relative_angle[1],vehControl.get_distance())
+    #print '----- ' 
     #what happens if you connect the GCS mid flight??
        
 def update_ship():
     #print " -- Controller Ship State Updated"
-    vehControl.ship_alt = 0 	 # gcs.location.alt  # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< HardCoded (remove)
-    vehControl.ship_coord = [ 42.3555669, -71.1015294 ]# [gcs.location.lat,gcs.location.lon]  # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< HardCoded (remove)
-    vehControl.ship_heading = 65 # vehControl.wrap360(gcs.attitude.yaw*180/np.pi) # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< HardCoded (remove)
-    vehControl.ship_tether_length = 9.5 	             # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< HardCoded (remove)
+    vehControl.ship_alt = 0#gcs.gcs_alt  # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< HardCoded (remove)
+    vehControl.ship_coord = [42.35854040,-71.09724260]#[gcs.gcs_lat,gcs.gcs_lon]  # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< HardCoded (remove)
+    vehControl.ship_heading = 60#gcs.gcs_yaw*180/np.pi #vehControl.wrap360(gcs.attitude.yaw*180/np.pi) # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< HardCoded (remove)
+    vehControl.ship_tether_length = 10 	             # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< HardCoded (remove)
 
 def update_goal(g_angle):
     print " -- Controller Goal State Updated"
     vehControl.goal_angle = g_angle
+
+def gps_update():
+    print 'GPS LOOP'
+    try:
+        report =gpsd_ses.next()
+        if hasattr(report,'time'):
+            print report.time
+        else:
+            print 'NOTHING IN REPORT'
+
+
+        if report['class'] == 'TPV':
+            if hasattr(report,'lat'):
+                print ' -- Got GPSD Update --   lat: ',report.lat,'  lon: ',report.lon
+                vehControl.uav_coord = [report.lat,report.lon]
+        else:
+            print " -- No GPSD Update -- "
+    except StopIteration:
+        #gpsd_ses = None
+        print "GPSD HAS TERMINATED"
+        
+
 
 #Arm Vehicle
 def arm_UAV():
@@ -99,12 +133,11 @@ def arm_UAV():
             vehAPI.exit  #This doesnt exit the API, it throws and error, and allows the api to exit. 
 
     vehControl.uav_armed = vehAPI.armed
-    update_goal([0,0],0,[0,5])
     print " -- Controller Status: Vehicle Armed: %s" % vehAPI.armed
 
 def disarm_UAV():
     print "\n  -- Disarming UAV \n"
-    update_goal([0,0],0,[0,0])
+    #update_goal([0,0],0,[0,0])
     #vehAPI.channel_override = {"3" : 999 }
     vehAPI.flush()
     
@@ -162,9 +195,9 @@ def write_channels(ch_out):
         vehAPI.channel_override = {"1":ch_out[0], "2":ch_out[1], "3":ch_out[2], "4":ch_out[3]}
         vehAPI.flush()
         #print "---- Controller Wrote to Channels"
-    else:   
+    #else:   
         #print " ---- "        
-        print "---- RC Control Active"     
+        #print "---- RC Control Active"     
 
 ##############################################################
 # Mavlink Callback
@@ -209,35 +242,62 @@ update_goal(run_goal) # <<<<<<<<<<<<<< TEMPORARY WAY TO SET THE GOAL LOCATION --
 
 # Run this for a bit as a test
 
-while True:
-    control_check()
-    count=0
-    while pilot_mode_check():
-        if count == 0:
-            control_check()
-        tw1= datetime.datetime.now()
-        if AdcEnable:
-            Ch00 = adc0.readADCSingleEnded(0,var.adcGain,var.adcSPS)/1000
-        else:
-            Ch00 = 0.00   
-    
+
+
+
+if standalone==False:
+    while True:
+        control_check()
+        count=0
+        while pilot_mode_check():
+            if count == 0:
+                control_check()
+            tw1= datetime.datetime.now()
+     
+            out_data = vehControl.compile_telem()
+            LogData.write_to_log(out_data)
+            if (int(count)%30)==0:
+                t_rem = (10*60*runtime - count)*10
+                print "---- time remaining = %.2f seconds" %(t_rem) 
+            count+=1
+            time.sleep(.1)
+            tw2= datetime.datetime.now()
+        time.sleep(0.1)
+    print "Waiting Loop"
+
+
+
+
+arm_UAV()
+vehAPI.channel_override = { "1":1500, "2":1500, "3":1500, "4":1500, "5":0, "6":0, "7":0, "8":0}
+
+count=0
+if standalone==True:
+    while True:
+        print ' ----------------------------------------------------------------- '
+        control_check()
+        gps_update()        
+
+        tw1=datetime.datetime.now()
         out_data = vehControl.compile_telem()
         LogData.write_to_log(out_data)
-        if (int(count)%10)==0:
-            t_rem = (10*60*runtime - count)*10
-            print "---- time remaining = %.2f seconds" %(t_rem) 
         count+=1
         time.sleep(.1)
         tw2= datetime.datetime.now()
-    time.sleep(0.1)
-    #print "Waiting Loop"
+        #print count
+        if count>runtime*60*10:
+            break
+        
+vehAPI.channel_override = { "1":0, "2":0, "3":0, "4":0, "5":0, "6":0, "7":0, "8":0}
 
+gpsd_ses.running = False
 
 print "Called attitude callback ",  vehControl.control_count , " times in ", (datetime.datetime.now()-t1_0).total_seconds() ," s. Rate: ",  vehControl.control_count / (datetime.datetime.now()-t1_0).total_seconds()
 print "While loop takes",  (tw2-tw1).total_seconds()
 
 human_rc_control()
-#disarm_UAV()
+disarm_UAV()
+
 
 
 
