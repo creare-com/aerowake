@@ -186,8 +186,8 @@ def uav_callback(attitude):
     write_channels(channel_out)
     
    
-vehAPI.add_attribute_observer('attitude' , uav_callback)
-#vehAPI.add_attribute_observer('location', uav_callback)
+#vehAPI.add_attribute_observer('attitude' , uav_callback)
+vehAPI.add_attribute_observer('location', uav_callback)
 
 
 ##############################################################
@@ -225,6 +225,8 @@ if standalone==False:
             time.sleep(.1)
             tw2= datetime.datetime.now()
         time.sleep(0.1)
+        
+        
         #print "Waiting Loop"
 
 if standalone == True:
