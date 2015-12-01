@@ -217,7 +217,7 @@ class Controller:
             fix = thres/abs(fin_t) * fix
             fiy = thres/abs(fin_t) * fiy
             fiz = thres/abs(fin_t) * fiz
-            print ' ---- Controls Saturated '+str(int(fin_t))
+            #print ' ---- Controls Saturated '+str(int(fin_t))
         
         #Add the forces
         ftx = float(fx + fix)
