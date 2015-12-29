@@ -46,8 +46,7 @@ class Sensor(object):
         
 if __name__ == "__main__":
     import time
-    # s1 = Sensor(0x10)
-    s1 = Sensor(0x18) # This seems to have moved and I don't know why - JDW
+    s1 = Sensor(0x18)
     s2 = Sensor(0x20, FSS=5)
     num_reads = 10000
     t0 = time.time()
@@ -55,7 +54,7 @@ if __name__ == "__main__":
         s2.read()
     t1 = time.time()
     dt = (t1 - t0) / num_reads
-    print "Accomplished %d reads in %fs = %fms/read = %fkHz"%(num_reads, (t1 - t0), (dt * 1000), (1 / dt) / 1000)
+    print "Accomplished %d reads in %fs = %fms/read = %fHz"%(num_reads, (t1 - t0), (dt * 1000), (1 / dt))
 
     t0 = time.time()
     for i in xrange(num_reads / 2):
@@ -63,7 +62,7 @@ if __name__ == "__main__":
         s2.read()
     t1 = time.time()
     dt = (t1 - t0) / num_reads
-    print "Accomplished %d interlaced reads in %fs = %fms/read = %fkHz"%(num_reads, (t1 - t0), (dt * 1000), (1 / dt) / 1000)
+    print "Accomplished %d interlaced reads in %fs = %fms/read = %fHz"%(num_reads, (t1 - t0), (dt * 1000), (1 / dt))
 
     t0 = time.time()
     with open('log.txt', 'wc') as logfile:
@@ -72,14 +71,14 @@ if __name__ == "__main__":
             logfile.write('%f:%f,%f\n'%(time.time(), p, t))
     t1 = time.time()
     dt = (t1 - t0) / num_reads
-    print "Accomplished %d reads & logs in %fs = %fms/read = %fkHz"%(num_reads, (t1 - t0), (dt * 1000), (1 / dt) / 1000)
+    print "Accomplished %d reads & logs in %fs = %fms/read = %fHz"%(num_reads, (t1 - t0), (dt * 1000), (1 / dt))
     
     import sys
-    t0 = time.time()
-    for i in xrange(num_reads):
-        p,t = s2.read()
-        sys.stderr.write('%f:%f,%f\n'%(time.time(), p, t))
-    t1 = time.time()
-    dt = (t1 - t0) / num_reads
-    print "Accomplished %d reads & outputs in %fs = %fms/read = %fkHz"%(num_reads, (t1 - t0), (dt * 1000), (1 / dt) / 1000)
+    # t0 = time.time()
+    # for i in xrange(num_reads):
+        # p,t = s2.read()
+        # sys.stderr.write('%f:%f,%f\n'%(time.time(), p, t))
+    # t1 = time.time()
+    # dt = (t1 - t0) / num_reads
+    # print "Accomplished %d reads & outputs in %fs = %fms/read = %fHz"%(num_reads, (t1 - t0), (dt * 1000), (1 / dt))
     
