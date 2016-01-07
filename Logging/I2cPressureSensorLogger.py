@@ -8,31 +8,39 @@ def parse_bits(a):
 
 
 class PressureSensor(object):
-    def __init__(self, address, FSS=0.5, differential=True):
+    def __init__(self, addr, FSS=0.5, OSdig=1638, desc='Pressure Sensor'):
         """
         Parameters
         -----------
         address : int
             i2c sensor address. Can be specified as (for example) 0x10
         FSS : float
-            Sensor full scale level. span in inH2O
-        differential : bool
-            If this is a differential pressure sensor (True) or a guage pressure sensor (False)
+            Sensor full scale level span in the same units as the sensor output (either inH20 or psi)
+        OSdig : int
+            Digital offset of sensor word
+        desc : string
+            Human-readable description to identify this sensor
         """
         # Save attributes
-        self.address = address
+        self.address = addr
         self.FSS = FSS
-        self.differential = differential
-        if differential:
-            self.OSdig = 8192
-        else:
-            self.OSdig = 1638
+        self.OSdig = OSdig
+        self.description = desc
 
 	# Open the bus
         busnum = I2C.get_default_bus()
         self._bus = smbus.SMBus(busnum)
-      
+    
+    def get_desc():
+        return self.description
+    
     def read_p(self):
+        """
+        Returns
+        -------
+        pressure : float
+            The pressure indicated by the sensor, in the same units that FSS was provided to __init__ earlier
+        """
         # t0 = time.time()
         a = self._bus.read_i2c_block_data(self.address, 0, 2)
         # t1 = time.time()
@@ -49,47 +57,50 @@ class PressureSensor(object):
     def parse_pt(self, b):
         return self.parse_p(b), self.parse_t(b)
     def parse_p(self, b):
-        return (int(b[2:16], 2) - 1.0 * self.OSdig) / (2 **14) * self.FSS * (self.differential + 1)
+        return (int(b[2:16], 2) - 1.0 * self.OSdig) / (2 **14) * self.FSS
     def parse_t(self, b):
         return (int(b[16:-5], 2) * 200. / (2**11 -1) - 50)
     def __del__(self):
         self._bus.close()
 
+class DlvrPressureSensor(PressureSensor):
+    def __init__(self, addr, FSP=0.5, differential=True, desc='DLVR Series Pressure Sensor'):#If this is a differential pressure sensor (True) or a gage pressure sensor (False)
+        if differential:
+            OSdig=8192
+        else:
+            OSdig=1638
+        FSS = FSP * (differential + 1)
+        super(DlvrPressureSensor, self).__init__(OSdig=OSdig, addr=addr, FSS=FSS, desc=desc)
+
+class DlvPressureSensor(PressureSensor):
+    def __init__(self, addr, FSP=0.5, desc='DLV Series Pressure Sensor'):
+        super(DlvPressureSensor, self).__init__(OSdig=1638, addr=addr, FSS=FSP, desc=desc)
+        
 if __name__ == "__main__":
     import time
     
     # Settings
-    diff_p_sensor_addresses = [
-        0x18, 0x20,
-        0x18, 0x20,
-        0x18, 0x20,
-        0x18, 0x20,
-        0x18, 0x20,
-        0x18, 0x20,
-        0x18, 0x20,
-        0x18, 0x20,
-        0x18, 0x20,
-        0x18, 0x20,
-        0x18, 0x20,
-        0x18, 0x20,
+
+    FSP_lo = 10 #inH20, for DLVR-F50D-E2NS-C-NI3F
+    FSP_hi = 1  #inH20, for DLVR-L05D-E3NS-C-NI3F
+    # Descriptions will be used for column names, so the units are listed here too
+    probe_sensor_settings = [
+        {'desc':'Ch0  lo (inH2O)', 'addr':0x18, 'FSP':FSP_lo}, {desc:'Ch0  hi (inH2O)', 'addr':0x20, 'FSP':FSP_hi}, 
+        {'desc':'Ch1  lo (inH2O)', 'addr':0x18, 'FSP':FSP_lo}, {desc:'Ch1  hi (inH2O)', 'addr':0x20, 'FSP':FSP_hi}, 
+        {'desc':'Ch2  lo (inH2O)', 'addr':0x18, 'FSP':FSP_lo}, {desc:'Ch2  hi (inH2O)', 'addr':0x20, 'FSP':FSP_hi}, 
+        {'desc':'Ch3  lo (inH2O)', 'addr':0x18, 'FSP':FSP_lo}, {desc:'Ch3  hi (inH2O)', 'addr':0x20, 'FSP':FSP_hi}, 
+        {'desc':'Ch4  lo (inH2O)', 'addr':0x18, 'FSP':FSP_lo}, {desc:'Ch4  hi (inH2O)', 'addr':0x20, 'FSP':FSP_hi}, 
+        {'desc':'Ch5  lo (inH2O)', 'addr':0x18, 'FSP':FSP_lo}, {desc:'Ch5  hi (inH2O)', 'addr':0x20, 'FSP':FSP_hi}, 
+        {'desc':'Ch6  lo (inH2O)', 'addr':0x18, 'FSP':FSP_lo}, {desc:'Ch6  hi (inH2O)', 'addr':0x20, 'FSP':FSP_hi}, 
+        {'desc':'Ch7  lo (inH2O)', 'addr':0x18, 'FSP':FSP_lo}, {desc:'Ch7  hi (inH2O)', 'addr':0x20, 'FSP':FSP_hi}, 
+        {'desc':'Ch8  lo (inH2O)', 'addr':0x18, 'FSP':FSP_lo}, {desc:'Ch8  hi (inH2O)', 'addr':0x20, 'FSP':FSP_hi}, 
+        {'desc':'Ch9  lo (inH2O)', 'addr':0x18, 'FSP':FSP_lo}, {desc:'Ch9  hi (inH2O)', 'addr':0x20, 'FSP':FSP_hi}, 
+        {'desc':'Ch10 lo (inH2O)', 'addr':0x18, 'FSP':FSP_lo}, {desc:'Ch10 hi (inH2O)', 'addr':0x20, 'FSP':FSP_hi}, 
+        {'desc':'Ch11 lo (inH2O)', 'addr':0x18, 'FSP':FSP_lo}, {desc:'Ch11 hi (inH2O)', 'addr':0x20, 'FSP':FSP_hi}, 
     ]
-    diff_p_sensor_desc = [ # Human-readable descriptions for CSV header row
-        'Ch0  lo', 'Ch0  hi',
-        'Ch1  lo', 'Ch1  hi',
-        'Ch2  lo', 'Ch2  hi',
-        'Ch3  lo', 'Ch3  hi',
-        'Ch4  lo', 'Ch4  hi',
-        'Ch5  lo', 'Ch5  hi',
-        'Ch6  lo', 'Ch6  hi',
-        'Ch7  lo', 'Ch7  hi',
-        'Ch8  lo', 'Ch8  hi',
-        'Ch9  lo', 'Ch9  hi',
-        'Ch10 lo', 'Ch10 hi',
-        'Ch11 lo', 'Ch11 hi',
-    ]
-    csv_column_names=['System time (s)', 'Time since previous line (ms)'] + diff_p_sensor_desc
-    FSS_for_all_sensors = 0.5
-    diff_p_sensors = [PressureSensor(addr, FSS=FSS_for_all_sensors) for addr in diff_p_sensor_addresses]
+    probe_sensors = [DlvrPressureSensor(**set) for set in settings]
+    absolute_sensor = DlvPressureSensor(addr=0x18, 
+    csv_column_names=['System time (s)', 'Time since previous line (ms)'] + [sensor.get_desc() for sensor in probe_sensors]
     logfile_name = 'pressure_log.csv'
     temp_read_interval_s = 1.0 # Read temperature and absolute pressure every second
     
