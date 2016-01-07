@@ -73,14 +73,30 @@ if __name__ == "__main__":
         0x18, 0x20,
         0x18, 0x20,
     ]
+    diff_p_sensor_desc = [ # Human-readable descriptions for CSV header row
+        'Ch0  lo', 'Ch0  hi',
+        'Ch1  lo', 'Ch1  hi',
+        'Ch2  lo', 'Ch2  hi',
+        'Ch3  lo', 'Ch3  hi',
+        'Ch4  lo', 'Ch4  hi',
+        'Ch5  lo', 'Ch5  hi',
+        'Ch6  lo', 'Ch6  hi',
+        'Ch7  lo', 'Ch7  hi',
+        'Ch8  lo', 'Ch8  hi',
+        'Ch9  lo', 'Ch9  hi',
+        'Ch10 lo', 'Ch10 hi',
+        'Ch11 lo', 'Ch11 hi',
+    ]
+    csv_column_names=['System time (s)', 'Time since previous line (ms)'] + diff_p_sensor_desc
     FSS_for_all_sensors = 0.5
     diff_p_sensors = [PressureSensor(addr, FSS=FSS_for_all_sensors) for addr in diff_p_sensor_addresses]
-    logfile_name = 'pressure_log.txt'
+    logfile_name = 'pressure_log.csv'
     temp_read_interval_s = 1.0 # Read temperature and absolute pressure every second
     
     # Main loop
     try:
         with open(logfile_name, 'wc') as logfile:
+            logfile.write('"'+'","'.join(csv_column_names)+'"\n')
             time_last_read_temp = time.time() - temp_read_interval_s;
             now = time.time()
             dt = 0
@@ -102,8 +118,7 @@ if __name__ == "__main__":
                     ap = None
                 dt=time.time()-now
                 now = time.time()
-                # Current log format is: System time in seconds, time since last entry in ms, 24x pressures
-                log_str = '%.3fs,%.fms,%s\n'%(now,dt*1000,pressure_str)
+                log_str = '%.3f,%.3f,%s\n'%(now,dt*1000,pressure_str)
                 logfile.write(log_str)
     except KeyboardInterrupt:
         print "Caught keyboard interrupt; exiting."
