@@ -1,95 +1,32 @@
-import smbus
 import time
-import Adafruit_GPIO.I2C as I2C
-
-def parse_bits(a):
-    b = ''.join(['0'*(8-aa.bit_length())+ bin(aa)[2:] for aa in a])
-    return b
-
-
-class PressureSensor(object):
-    def __init__(self, address, FSS=0.5, differential=True):
-        """
-        Parameters
-        -----------
-        address : int
-            i2c sensor address. Can be specified as (for example) 0x10
-        FSS : float
-            Sensor full scale level. span in inH2O
-        differential : bool
-            If this is a differential pressure sensor (True) or a guage pressure sensor (False)
-        """
-        # Save attributes
-        self.address = address
-        self.FSS = FSS
-        self.differential = differential
-        if differential:
-            self.OSdig = 8192
-        else:
-            self.OSdig = 1638
-
-	# Open the bus
-        busnum = I2C.get_default_bus()
-        self._bus = smbus.SMBus(busnum)
-      
-    def read_p(self):
-        # t0 = time.time()
-        a = self._bus.read_i2c_block_data(self.address, 0, 2)
-        # t1 = time.time()
-        b = parse_bits(a)
-        # t2 = time.time()
-        p = self.parse_p(b)
-        # t3 = time.time()
-        # print 'pressure read: %d, %d, %d'%(100000*(t1-t0), 100000*(t2-t1), 100000*(t3-t2))
-        return p
-    def read_pt(self):
-        a = self._bus.read_i2c_block_data(self.address, 0, 4)
-        b = parse_bits(a)
-        return self.parse_pt(b)
-    def parse_pt(self, b):
-        return self.parse_p(b), self.parse_t(b)
-    def parse_p(self, b):
-        return (int(b[2:16], 2) - 1.0 * self.OSdig) / (2 **14) * self.FSS * (self.differential + 1)
-    def parse_t(self, b):
-        return (int(b[16:-5], 2) * 200. / (2**11 -1) - 50)
-    def __del__(self):
-        self._bus.close()
+from sensors import DlvrPressureSensor, DlvPressureSensor, TemperatureSensor
 
 if __name__ == "__main__":
     import time
     
     # Settings
-    diff_p_sensor_addresses = [
-        0x18, 0x20,
-        0x18, 0x20,
-        0x18, 0x20,
-        0x18, 0x20,
-        0x18, 0x20,
-        0x18, 0x20,
-        0x18, 0x20,
-        0x18, 0x20,
-        0x18, 0x20,
-        0x18, 0x20,
-        0x18, 0x20,
-        0x18, 0x20,
+    FSP_lo = 10 #inH20, for DLVR-F50D-E2NS-C-NI3F
+    FSP_hi = 1  #inH20, for DLVR-L05D-E3NS-C-NI3F
+    # Descriptions will be used for column names, so the units are listed here too
+    probe_sensor_settings = [
+        {'desc':'Ch0  lo (inH2O)', 'addr':0x18, 'FSP':FSP_lo}, {'desc':'Ch0  hi (inH2O)', 'addr':0x20, 'FSP':FSP_hi}, 
+        {'desc':'Ch1  lo (inH2O)', 'addr':0x18, 'FSP':FSP_lo}, {'desc':'Ch1  hi (inH2O)', 'addr':0x20, 'FSP':FSP_hi}, 
+        {'desc':'Ch2  lo (inH2O)', 'addr':0x18, 'FSP':FSP_lo}, {'desc':'Ch2  hi (inH2O)', 'addr':0x20, 'FSP':FSP_hi}, 
+        {'desc':'Ch3  lo (inH2O)', 'addr':0x18, 'FSP':FSP_lo}, {'desc':'Ch3  hi (inH2O)', 'addr':0x20, 'FSP':FSP_hi}, 
+        {'desc':'Ch4  lo (inH2O)', 'addr':0x18, 'FSP':FSP_lo}, {'desc':'Ch4  hi (inH2O)', 'addr':0x20, 'FSP':FSP_hi}, 
+        {'desc':'Ch5  lo (inH2O)', 'addr':0x18, 'FSP':FSP_lo}, {'desc':'Ch5  hi (inH2O)', 'addr':0x20, 'FSP':FSP_hi}, 
+        {'desc':'Ch6  lo (inH2O)', 'addr':0x18, 'FSP':FSP_lo}, {'desc':'Ch6  hi (inH2O)', 'addr':0x20, 'FSP':FSP_hi}, 
+        {'desc':'Ch7  lo (inH2O)', 'addr':0x18, 'FSP':FSP_lo}, {'desc':'Ch7  hi (inH2O)', 'addr':0x20, 'FSP':FSP_hi}, 
+        {'desc':'Ch8  lo (inH2O)', 'addr':0x18, 'FSP':FSP_lo}, {'desc':'Ch8  hi (inH2O)', 'addr':0x20, 'FSP':FSP_hi}, 
+        {'desc':'Ch9  lo (inH2O)', 'addr':0x18, 'FSP':FSP_lo}, {'desc':'Ch9  hi (inH2O)', 'addr':0x20, 'FSP':FSP_hi}, 
+        {'desc':'Ch10 lo (inH2O)', 'addr':0x18, 'FSP':FSP_lo}, {'desc':'Ch10 hi (inH2O)', 'addr':0x20, 'FSP':FSP_hi}, 
+        {'desc':'Ch11 lo (inH2O)', 'addr':0x18, 'FSP':FSP_lo}, {'desc':'Ch11 hi (inH2O)', 'addr':0x20, 'FSP':FSP_hi}, 
     ]
-    diff_p_sensor_desc = [ # Human-readable descriptions for CSV header row
-        'Ch0  lo', 'Ch0  hi',
-        'Ch1  lo', 'Ch1  hi',
-        'Ch2  lo', 'Ch2  hi',
-        'Ch3  lo', 'Ch3  hi',
-        'Ch4  lo', 'Ch4  hi',
-        'Ch5  lo', 'Ch5  hi',
-        'Ch6  lo', 'Ch6  hi',
-        'Ch7  lo', 'Ch7  hi',
-        'Ch8  lo', 'Ch8  hi',
-        'Ch9  lo', 'Ch9  hi',
-        'Ch10 lo', 'Ch10 hi',
-        'Ch11 lo', 'Ch11 hi',
-    ]
-    csv_column_names=['System time (s)', 'Time since previous line (ms)'] + diff_p_sensor_desc
-    FSS_for_all_sensors = 0.5
-    diff_p_sensors = [PressureSensor(addr, FSS=FSS_for_all_sensors) for addr in diff_p_sensor_addresses]
+    probe_sensors = [DlvrPressureSensor(**set) for set in probe_sensor_settings]
+    absolute_sensor = DlvPressureSensor(desc='Absolute pressure (PSIA)', addr=0x18, FSP=30)
+    temp_sensor = TemperatureSensor(desc='Ambient temperature (C)', addr=0x18)
+    csv_column_names=['System time (s)', 'Time since previous line (ms)'] \
+        + [sensor.get_desc() for sensor in probe_sensors] + [absolute_sensor.get_desc(), temp_sensor.get_desc()]
     logfile_name = 'pressure_log.csv'
     temp_read_interval_s = 1.0 # Read temperature and absolute pressure every second
     
@@ -101,27 +38,22 @@ if __name__ == "__main__":
             now = time.time()
             dt = 0
             while True:
-                pressures = [] # apparently list append is fairly fast
-                for sensor in diff_p_sensors:
+                probe_pressures = [] # apparently list append is fairly fast
+                for sensor in probe_sensors:
                     p = sensor.read_p()
-                    # p,t = sensor.read_pt()
-                    pressures.append(p)
-                pressure_str=','.join([str(p) for p in pressures])
+                    probe_pressures.append(p)
+                probe_pressure_str=','.join([str(p) for p in probe_pressures])
                 if now - time_last_read_temp >= temp_read_interval_s:
-                    #TODO: read these sensors and log them
-                    # print "Reading and logging temperature and absolute pressure. %.3f"%(dt * 1000)
-                    t = 0
-                    ap = 0
+                    t_str = str(temp_sensor.read_t())
+                    ap_str = str(absolute_sensor.read_p())
                     time_last_read_temp = now
+                    log_str = '%.3f,%.3f,%s,%s,%s\n'%(now,dt*1000,probe_pressure_str,ap_str,t_str)
                 else:
-                    t = None
-                    ap = None
+                    log_str = '%.3f,%.3f,%s\n'%(now,dt*1000,probe_pressure_str)
                 dt=time.time()-now
                 now = time.time()
-                log_str = '%.3f,%.3f,%s\n'%(now,dt*1000,pressure_str)
                 logfile.write(log_str)
     except KeyboardInterrupt:
         print "Caught keyboard interrupt; exiting."
-    except Exception as e:
-        print "Caught exception:\n%s"%repr(e)
-        pass
+    # except Exception as e:
+        # print "Caught exception:\n%s"%repr(e)
