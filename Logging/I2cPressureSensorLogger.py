@@ -1,6 +1,5 @@
 import time
-from AllSensors import DlvrPressureSensor, DlvPressureSensor
-from Microchip import TemperatureSensor
+from sensors import DlvrPressureSensor, DlvPressureSensor, TemperatureSensor
 
 if __name__ == "__main__":
     import time
