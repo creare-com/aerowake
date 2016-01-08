@@ -10,6 +10,8 @@ def parse_bits(a):
 class PressureSensor(object):
     def __init__(self, addr, FSS=0.5, OSdig=1638, desc='Pressure Sensor'):
         """
+        Specifically an All Sensors pressure sensor
+        
         Parameters
         -----------
         address : int
@@ -27,7 +29,7 @@ class PressureSensor(object):
         self.OSdig = OSdig
         self.description = desc
 
-	# Open the bus
+        # Open the bus
         busnum = I2C.get_default_bus()
         self._bus = smbus.SMBus(busnum)
     
@@ -41,14 +43,9 @@ class PressureSensor(object):
         pressure : float
             The pressure indicated by the sensor, in the same units that FSS was provided to __init__ earlier
         """
-        # t0 = time.time()
         a = self._bus.read_i2c_block_data(self.address, 0, 2)
-        # t1 = time.time()
         b = parse_bits(a)
-        # t2 = time.time()
         p = self.parse_p(b)
-        # t3 = time.time()
-        # print 'pressure read: %d, %d, %d'%(100000*(t1-t0), 100000*(t2-t1), 100000*(t3-t2))
         return p
     def read_pt(self):
         a = self._bus.read_i2c_block_data(self.address, 0, 4)
@@ -75,7 +72,48 @@ class DlvrPressureSensor(PressureSensor):
 class DlvPressureSensor(PressureSensor):
     def __init__(self, addr, FSP=0.5, desc='DLV Series Pressure Sensor'):
         super(DlvPressureSensor, self).__init__(OSdig=1638, addr=addr, FSS=FSP, desc=desc)
+
+class TemperatureSensor(object):
+    def __init__(self, addr, desc='Temperature Sensor'):
+        """
+        Specifically the Microchip MCP9808 digital temperature sensor.
         
+        Parameters
+        -----------
+        address : int
+            i2c sensor address. Can be specified as (for example) 0x10
+        desc : string
+            Human-readable description to identify this sensor
+        """
+        # Save attributes
+        self.address = addr
+        self.description = desc
+
+        # Open the bus
+        busnum = I2C.get_default_bus()
+        self._bus = smbus.SMBus(busnum)
+    
+    def get_desc(self):
+        return self.description
+    
+    def read_t(self):
+        """
+        Returns
+        -------
+        pressure : float
+            The temperature, in degrees C, of the sensor die
+        """
+        a = self._bus.read_i2c_block_data(self.address, 0x05, 2)
+        b = parse_bits(a)
+        t = self.parse_t(b)
+        return p
+    def parse_t(self, b):
+        abs_t = int(b[4:], 2) * 2**-4 # Temperature is represented in 0.0625 degree C increments
+        sign_bit = b[3] # 0 for temps >= 0C, 1 otherwise
+        return abs_t if sign_bit == 0 else -abs_t
+    def __del__(self):
+        self._bus.close()
+
 if __name__ == "__main__":
     import time
     
@@ -99,7 +137,9 @@ if __name__ == "__main__":
     ]
     probe_sensors = [DlvrPressureSensor(**set) for set in probe_sensor_settings]
     absolute_sensor = DlvPressureSensor(desc='Absolute pressure (PSIA)', addr=0x18, FSP=30)
-    csv_column_names=['System time (s)', 'Time since previous line (ms)'] + [sensor.get_desc() for sensor in probe_sensors] + [absolute_sensor.get_desc()]
+    temp_sensor = TemperatureSensor(desc='Ambient temperature (C)', addr=0x18)
+    csv_column_names=['System time (s)', 'Time since previous line (ms)'] \
+        + [sensor.get_desc() for sensor in probe_sensors] + [absolute_sensor.get_desc(), temp_sensor.get_desc()]
     logfile_name = 'pressure_log.csv'
     temp_read_interval_s = 1.0 # Read temperature and absolute pressure every second
     
@@ -117,10 +157,10 @@ if __name__ == "__main__":
                     probe_pressures.append(p)
                 probe_pressure_str=','.join([str(p) for p in probe_pressures])
                 if now - time_last_read_temp >= temp_read_interval_s:
-                    t = 0
+                    t_str = str(temp_sensor.read_t())
                     ap_str = str(absolute_sensor.read_p())
                     time_last_read_temp = now
-                    log_str = '%.3f,%.3f,%s,%s\n'%(now,dt*1000,probe_pressure_str,ap_str)
+                    log_str = '%.3f,%.3f,%s,%s,%s\n'%(now,dt*1000,probe_pressure_str,ap_str,t_str)
                 else:
                     log_str = '%.3f,%.3f,%s\n'%(now,dt*1000,probe_pressure_str)
                 dt=time.time()-now
