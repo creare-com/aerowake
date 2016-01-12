@@ -44,7 +44,7 @@ if __name__ == "__main__":
                     probe_pressures.append(p)
                 probe_pressure_str=','.join([str(p) for p in probe_pressures])
                 if now - time_last_read_temp >= temp_read_interval_s:
-                    t_str = str(temp_sensor.read_t())
+                    t_str = str(temp_sensor.read_temp_c())
                     ap_str = str(absolute_sensor.read_p())
                     time_last_read_temp = now
                     log_str = '%.3f,%.3f,%s,%s,%s\n'%(now,dt*1000,probe_pressure_str,ap_str,t_str)
