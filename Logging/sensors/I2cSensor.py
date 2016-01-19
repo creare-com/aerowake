@@ -1,4 +1,5 @@
 import smbus
+import struct
 import Adafruit_GPIO.I2C as I2C
 
 
@@ -24,7 +25,7 @@ class I2cSensor(object):
     def set_desc(self, desc):
         self._description = desc
 
-    def read_byte_data(self, start_register, byte_count):
+    def _read_byte_data(self, start_register, byte_count):
         """
         Read read a number of bytes starting at a particular register (address)
         
@@ -42,44 +43,23 @@ class I2cSensor(object):
         """
         return self._bus.read_i2c_block_data(self._address, start_register, byte_count)
         
-    def read_bit_data(self, start_register, byte_count):
-        """
-        Read read a number of bytes starting at a particular register (address)
-        
-        Parameters
-        -----------
-        start_register : int
-            The I2C register (or address) on the sensor from which to begin reading
-        byte_count : int
-            The number of bytes to read
-            
-        Returns
-        -------
-        bits : string
-            The data read from the sensor, as a string of bits.
-            Byte ordering starts at start_register and moves upward through the memory space.
-            Bit ordering is MSB to LSB, counting upward in list index.
-            So if the device has 0x05 at register 0, and 0x07 at register 1,
-            read_bit_data(0,2) will return '0000010100000111'.
-        """
-        return I2cSensor.parse_bits(self.read_byte_data(start_register, byte_count))
-        
     @staticmethod
-    def parse_bits(bytes):
+    def _two_bytes_to_one_word(two_bytes):
         """
         Parameters
         ----------
-        bytes : list of integers
-            The input to break out into a string of bits, eg [5, 7].
+        two_bytes : list of exactly two bytes
+            The input to combine, eg [5, 7].
             Each number must be less than 255.
+            The first is considered the most significant byte.
             
         Returns
         -------
-        bits : string
-            A string of bytes representing the input, eg '0000010100000111'
+        one_word : integer
+            An integer representing the input, eg 0x0507
         """
-        bits = ''.join(['0'*(8-byte.bit_length())+ bin(byte)[2:] for byte in bytes])
-        return bits
+
+        return struct.unpack('H',struct.pack('BB',two_bytes[1],two_bytes[0]))[0]
 
     def __del__(self):
         self._bus.close()

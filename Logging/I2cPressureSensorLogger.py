@@ -37,11 +37,20 @@ if __name__ == "__main__":
             time_last_read_temp = time.time() - temp_read_interval_s;
             now = time.time()
             dt = 0
+            elapsed_time_reading = 0
+            elapsed_time_parsing = 0
+            num_readings = 0
             while True:
                 probe_pressures = [] # apparently list append is fairly fast
+                # Read all data as close to simultaneously as possible
+                t0 = time.time()
                 for sensor in probe_sensors:
-                    p = sensor.read_p()
-                    probe_pressures.append(p)
+                    sensor.retrieve_p()
+                t1 = time.time()
+                # Do all the parsing overhead afterwards
+                for sensor in probe_sensors:
+                    probe_pressures.append(sensor.parse_p())
+                t2 = time.time()
                 probe_pressure_str=','.join([str(p) for p in probe_pressures])
                 if now - time_last_read_temp >= temp_read_interval_s:
                     t_str = str(temp_sensor.read_temp_c())
@@ -50,10 +59,14 @@ if __name__ == "__main__":
                     log_str = '%.3f,%.3f,%s,%s,%s\n'%(now,dt*1000,probe_pressure_str,ap_str,t_str)
                 else:
                     log_str = '%.3f,%.3f,%s\n'%(now,dt*1000,probe_pressure_str)
+                elapsed_time_reading += (t1 - t0)
+                elapsed_time_parsing += (t2 - t1)
+                num_readings += 1
                 dt=time.time()-now
                 now = time.time()
                 logfile.write(log_str)
     except KeyboardInterrupt:
         print "Caught keyboard interrupt; exiting."
+        print "Spent an average of %fms on reading and an average of %fms on parsing."%((elapsed_time_reading / num_readings)*1000, (elapsed_time_parsing / num_readings)*1000)
     # except Exception as e:
         # print "Caught exception:\n%s"%repr(e)

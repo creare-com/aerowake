@@ -28,26 +28,77 @@ class PressureSensor(I2cSensor):
         # Save attributes
         self.FSS = FSS
         self.OSdig = OSdig
+        self._retrieved_p_word = None
+        self._retrieved_t_word = None
     
+    def retrieve_p(self):
+        """
+        Reads pressure word from the sensor but does not parse it.
+        Reads are split into "retrieve" and "parse" so that we can do all the sensor communications
+        as close to simultaneously as possible.
+        """
+        self._retrieved_p_word = self._read_byte_data(0, 2)
+        
+    def retrieve_t(self):
+        """
+        Reads temperature word from the sensor but does not parse it.
+        Reads are split into "retrieve" and "parse" so that we can do all the sensor communications
+        as close to simultaneously as possible.
+        """
+        self._retrieved_t_word = self._read_byte_data(2, 2)
+        
     def read_p(self):
         """
+        Retrieves the pressure, parses it, and returns the result.
+        
         Returns
         -------
         pressure : float
             The pressure indicated by the sensor, in the same units that FSS was provided to __init__ earlier
         """
-        bits = self.read_bit_data(0, 2)
-        p = self.parse_p(bits)
-        return p
-    def read_pt(self):
-        bits = self.read_bit_data(0, 4)
-        return self.parse_pt(bits)
-    def parse_pt(self, b):
-        return self.parse_p(b), self.parse_t(b)
-    def parse_p(self, b):
-        return (int(b[2:16], 2) - 1.0 * self.OSdig) / (2 **14) * self.FSS
-    def parse_t(self, b):
-        return (int(b[16:-5], 2) * 200. / (2**11 -1) - 50)
+        self.retrieve_p()
+        return self.parse_p()
+        
+    def read_t(self):
+        """
+        Retrieves the temperature, parses it, and returns the result.
+        
+        Returns
+        -------
+        temperature : float
+            The temperature indicated by the sensor, in degrees C
+        """
+        self.retrieve_t()
+        return self.parse_t()
+        
+    def parse_p(self, b = None):
+        """
+        Parameters
+        ----------
+        b : list of two integers, each < 255
+            If provided, will parse this word.  Otherwise, will parse the last retrieved data.
+            Throws an exception if you haven't provided b or called retrieve_p.
+        
+        Returns
+        -------
+        pressure : float
+            The pressure indicated by the sensor, in the same units that FSS was provided to __init__ earlier,
+            as of the last time retrieve_p was called.
+        """
+        if not b:
+            b = self._retrieved_p_word
+            if not b:
+                raise Exception('No data to parse!  Make sure to call retrieve_p() or supply a value to parse.')
+        p_word = self._two_bytes_to_one_word(b) & 0x3FFF
+        return (p_word - 1.0 * self.OSdig) / (2 **14) * self.FSS
+
+    def parse_t(self, b = None):
+        if not b:
+            b = self._retrieved_t_word
+            if not b:
+                raise Exception('No data to parse!  Make sure to call retrieve_t() or supply a value to parse.')
+        t_word = (self._two_bytes_to_one_word(b) & 0xFFE0) >> 5
+        return (t_word * 200.0 / (2**11 -1) - 50)
 
 class DlvrPressureSensor(PressureSensor):
     """
