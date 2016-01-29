@@ -23,7 +23,7 @@ if __name__ == "__main__":
         {'desc':'Ch11 lo (inH2O)', 'addr':0x2b, 'FSP':FSP_lo}, {'desc':'Ch11 hi (inH2O)', 'addr':0x3b, 'FSP':FSP_hi}, 
     ]
     probe_sensors = [DlvrPressureSensor(**set) for set in probe_sensor_settings]
-    absolute_sensor = DlvPressureSensor(desc='Absolute pressure (PSIA)', addr=0x10, FSP=30)
+    absolute_sensor = DlvPressureSensor(desc='Absolute pressure (PSIA)', addr=0x40, FSP=30)
     temp_sensor = TemperatureSensor(desc='Ambient temperature (C)', addr=0x18)
     csv_column_names=['System time (s)', 'Time since previous line (ms)'] \
         + [sensor.get_desc() for sensor in probe_sensors] + [absolute_sensor.get_desc(), temp_sensor.get_desc()]
