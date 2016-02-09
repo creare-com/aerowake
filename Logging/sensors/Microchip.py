@@ -27,10 +27,14 @@ class TemperatureSensor(I2cSensor):
         pressure : float
             The temperature, in degrees C, of the sensor die
         """
-        bytes = self._read_byte_data(5, 2)
-        t = self.parse_t(bytes)
-        return t
-        
+        try:
+            bytes = self._read_byte_data(5, 2)
+            t = self.parse_t(bytes)
+            return t
+        except IOError:
+            print "Could not read temperature sensor at address %02X"%self._address
+            return 0
+
     def read_temp_f(self):
         """
         Returns
