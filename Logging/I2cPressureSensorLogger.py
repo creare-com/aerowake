@@ -5,8 +5,8 @@ if __name__ == "__main__":
     import time
     
     # Settings
-    FSP_lo = 10 #inH20, for DLVR-F50D-E2NS-C-NI3F
-    FSP_hi = 1  #inH20, for DLVR-L05D-E3NS-C-NI3F
+    FSP_lo = 1.0 #inH20, for DLVR-F50D-E2NS-C-NI3F
+    FSP_hi = 1.0 #inH20, for DLVR-L05D-E3NS-C-NI3F
     # Descriptions will be used for column names, so the units are listed here too
     probe_sensor_settings = [
         {'desc':'Ch0  lo (inH2O)', 'addr':0x20, 'FSP':FSP_lo}, {'desc':'Ch0  hi (inH2O)', 'addr':0x30, 'FSP':FSP_hi}, 
