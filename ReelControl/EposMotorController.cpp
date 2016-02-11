@@ -8,6 +8,10 @@ EposMotorController::EposMotorController(std::string port, unsigned int baudRate
     std::cout << "Constructing EposMotorController with port " << port << std::endl;
 }
 
+EposMotorController::~EposMotorController() {
+    close();
+}
+
 void EposMotorController::open() 
 {
     unsigned int error_code = 0;
@@ -46,6 +50,16 @@ void EposMotorController::open()
     } else {
         std::cout << "Failed to open motor controller: " << lookupError(error_code) << std::endl;
         throw std::exception();
+    }
+}
+
+void EposMotorController::close() {
+    if(true || deviceHandle != NULL) {
+        unsigned int error_code = 0;
+        if(VCS_CloseDevice(deviceHandle, &error_code) == 0) {
+            std::cout << "Failed to close motor controller: " << lookupError(error_code) << std::endl;
+            throw std::exception();
+        } // else succeeded
     }
 }
 
