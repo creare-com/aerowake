@@ -1,6 +1,7 @@
 // JDW 2016-2-10
 // Copyright Creare 2016
 #include "EposMotorController.hpp"
+const unsigned short EposMotorController::NODE_ID = 1;// This would matter much more in a CAN network
 
 EposMotorController::EposMotorController(std::string port, unsigned int baudRate) :
     portName(port), baudRate(baudRate)
@@ -54,7 +55,7 @@ void EposMotorController::open()
 }
 
 void EposMotorController::close() {
-    if(true || deviceHandle != NULL) {
+    if(deviceHandle != NULL) {
         unsigned int error_code = 0;
         if(VCS_CloseDevice(deviceHandle, &error_code) == 0) {
             std::cout << "Failed to close motor controller: " << lookupError(error_code) << std::endl;
@@ -62,8 +63,67 @@ void EposMotorController::close() {
         } // else succeeded
     }
 }
+void EposMotorController::clearFaultAndEnable() {
+    if (isFaulted()) {
+        clearFault();
+    }
+    enable();
+}
 
-std::string lookupError(unsigned int error) {
+void EposMotorController::clearFault() {
+    unsigned int error_code = 0;
+    if(VCS_ClearFault(deviceHandle, NODE_ID, &error_code) == 0)
+    {
+        std::cout << "Failed to clear fault: " << lookupError(error_code) << std::endl;
+        throw std::exception();
+    }
+}
+
+void EposMotorController::enable() {
+    unsigned int error_code = 0;
+    if(VCS_SetEnableState(deviceHandle, NODE_ID, &error_code) == 0)
+    {
+        std::cout << "Failed to set enabled state: " << lookupError(error_code) << std::endl;
+        throw std::exception();
+    }
+}
+
+void EposMotorController::disable() {
+    unsigned int error_code = 0;
+    if(VCS_SetDisableState(deviceHandle, NODE_ID, &error_code) == 0)
+    {
+        std::cout << "Failed to set disabled state: " << lookupError(error_code) << std::endl;
+        throw std::exception();
+    }
+}
+
+bool EposMotorController::isEnabled() {
+    unsigned int error_code = 0;
+    int enabled = 0;
+    if(VCS_GetEnableState(deviceHandle, NODE_ID, &enabled, &error_code) != 0)
+    {
+        if(enabled) { return true; }
+        else        { return false; }    
+    } else {
+        std::cout << "Failed to read enabled state: " << lookupError(error_code) << std::endl;
+        throw std::exception();
+    }
+}
+
+bool EposMotorController::isFaulted() {
+    unsigned int error_code = 0;
+    int faulted = 0;
+    if(VCS_GetFaultState(deviceHandle, NODE_ID, &faulted, &error_code) != 0)
+    {
+        if(faulted) { return true; }
+        else        { return false; }    
+    } else {
+        std::cout << "Failed to read fault state: " << lookupError(error_code) << std::endl;
+        throw std::exception();
+    }
+}
+
+std::string EposMotorController::lookupError(unsigned int error) {
     switch(error) {
         case 0x00000000: return "Function was successful"; break;
         case 0x05030000: return "Toggle bit not alternated"; break;
