@@ -6,11 +6,11 @@ const unsigned short EposMotorController::NODE_ID = 1;// This would matter much 
 EposMotorController::EposMotorController(std::string port, unsigned int baudRate) :
     portName(port), baudRate(baudRate), curOpMode(EPOS_OPMODE_UNKNOWN)
 {
-    std::cout << "Constructing EposMotorController with port " << port << std::endl;
+
 }
 
 EposMotorController::~EposMotorController() {
-    close();
+    close(); // Also disables
 }
 
 void EposMotorController::open() 
