@@ -4,7 +4,7 @@
 const unsigned short EposMotorController::NODE_ID = 1;// This would matter much more in a CAN network
 
 EposMotorController::EposMotorController(std::string port, unsigned int baudRate) :
-    portName(port), baudRate(baudRate)
+    portName(port), baudRate(baudRate), curOpMode(EPOS_OPMODE_UNKNOWN)
 {
     std::cout << "Constructing EposMotorController with port " << port << std::endl;
 }
@@ -32,69 +32,52 @@ void EposMotorController::open()
         if(0 != VCS_GetProtocolStackSettings(deviceHandle, &actual_baud_rate, &actual_timeout, &error_code)) {
             if(0 != VCS_SetProtocolStackSettings(deviceHandle, baudRate, actual_timeout, &error_code)) {
                 if(0 != VCS_GetProtocolStackSettings(deviceHandle, &actual_baud_rate, &actual_timeout, &error_code)) {
-                    if (actual_baud_rate != baudRate) {
-                        std::cout << "Tried to set port rate to " << baudRate << " but instead got " << actual_baud_rate << std::endl;
-                        throw std::exception();
+                    if (actual_baud_rate == baudRate) {
+                        // Right now we only support one operating mode; enter it
+                        setOperatingMode(EPOS_OPMODE_PROFILE_POSITION_MODE);
+                    } else {
+                        std::stringstream ss;
+                        ss << "Tried to set port rate to " << baudRate << " but instead got " << actual_baud_rate << std::endl;
+                        fail(ss.str(), error_code);
                     }
-                } else {
-                    std::cout << "Failed to confirm port settings: " << lookupError(error_code) << std::endl;
-                    throw std::exception();
-                }
-            } else {
-                std::cout << "Failed to write port settings: " << lookupError(error_code) << std::endl;
-                throw std::exception();
-            }
-        } else {
-            std::cout << "Failed to read port settings: " << lookupError(error_code) << std::endl;
-            throw std::exception();
-        }
-    } else {
-        std::cout << "Failed to open motor controller: " << lookupError(error_code) << std::endl;
-        throw std::exception();
-    }
+                } else { fail("Failed to confirm port settings", error_code, true); }
+            } else { fail("Failed to write port settings", error_code, true); }
+        } else { fail("Failed to read port settings", error_code, true); }
+    } else { fail("Failed to open motor controller", error_code, true); }
 }
-
+/************************************
+             Open/close
+************************************/
 void EposMotorController::close() {
-    if(deviceHandle != NULL) {
-        unsigned int error_code = 0;
-        if(VCS_CloseDevice(deviceHandle, &error_code) == 0) {
-            std::cout << "Failed to close motor controller: " << lookupError(error_code) << std::endl;
-            throw std::exception();
-        } // else succeeded
-    }
+    setOperatingMode(EPOS_OPMODE_UNKNOWN);
+    unsigned int error_code = 0;
+    if(VCS_CloseDevice(deviceHandle, &error_code) == 0)
+    { fail("Failed to close motor controller", error_code, false); }
 }
 void EposMotorController::clearFaultAndEnable() {
-    if (isFaulted()) {
-        clearFault();
-    }
+    if (isFaulted()) { clearFault(); }
     enable();
 }
 
+/************************************
+             State
+************************************/
 void EposMotorController::clearFault() {
     unsigned int error_code = 0;
     if(VCS_ClearFault(deviceHandle, NODE_ID, &error_code) == 0)
-    {
-        std::cout << "Failed to clear fault: " << lookupError(error_code) << std::endl;
-        throw std::exception();
-    }
+    { fail("Failed to clear fault", error_code, true); }
 }
 
 void EposMotorController::enable() {
     unsigned int error_code = 0;
     if(VCS_SetEnableState(deviceHandle, NODE_ID, &error_code) == 0)
-    {
-        std::cout << "Failed to set enabled state: " << lookupError(error_code) << std::endl;
-        throw std::exception();
-    }
+    { fail("Failed to set enabled state", error_code, true); }
 }
 
 void EposMotorController::disable() {
     unsigned int error_code = 0;
     if(VCS_SetDisableState(deviceHandle, NODE_ID, &error_code) == 0)
-    {
-        std::cout << "Failed to set disabled state: " << lookupError(error_code) << std::endl;
-        throw std::exception();
-    }
+    { fail("Failed to set disabled state", error_code, false); }
 }
 
 bool EposMotorController::isEnabled() {
@@ -104,10 +87,7 @@ bool EposMotorController::isEnabled() {
     {
         if(enabled) { return true; }
         else        { return false; }    
-    } else {
-        std::cout << "Failed to read enabled state: " << lookupError(error_code) << std::endl;
-        throw std::exception();
-    }
+    } else { fail("Failed to read fault state", error_code, true); return false; }
 }
 
 bool EposMotorController::isFaulted() {
@@ -117,10 +97,77 @@ bool EposMotorController::isFaulted() {
     {
         if(faulted) { return true; }
         else        { return false; }    
-    } else {
-        std::cout << "Failed to read fault state: " << lookupError(error_code) << std::endl;
-        throw std::exception();
+    } else { fail("Failed to read fault state", error_code, true); return false; }
+}
+
+
+/************************************
+             Movement
+************************************/
+void EposMotorController::setOperatingMode(OperatingMode mode) {
+    unsigned int error_code = 0;
+    switch(mode) {
+        case EPOS_OPMODE_PROFILE_POSITION_MODE:
+            if(VCS_ActivateProfilePositionMode(deviceHandle, NODE_ID, &error_code) == 0)
+            { fail("Failed to activate Profile Positioning Mode", error_code, true); }
+            break;
+        case EPOS_OPMODE_UNKNOWN:
+        default:
+            // Handled at the end of this function
+            break;
     }
+    
+    curOpMode = mode;
+}
+
+void EposMotorController::moveToPosition(long position) {
+    if(curOpMode == EPOS_OPMODE_PROFILE_POSITION_MODE) {
+        unsigned int error_code = 0;
+        if(VCS_MoveToPosition(deviceHandle,
+            NODE_ID, 
+            position, 
+            1, // absolute = TRUE
+            1, // cancel the last one = TRUE
+            &error_code) == 0)
+        { fail("Failed to command movement to position", error_code, true); }
+    } else {
+        std::stringstream ss;
+        ss << "Cannot move to a position unless in a positioning mode.  Currently in mode " << curOpMode << ".";
+        fail(ss.str(), true);
+    }
+}
+
+void EposMotorController::haltMovement() {
+    switch(curOpMode) {
+        case EPOS_OPMODE_PROFILE_POSITION_MODE:
+        default:
+            haltPositionMovement();
+            break;
+    }
+}
+
+void EposMotorController::haltPositionMovement() {
+    unsigned int error_code = 0;
+    if(VCS_HaltPositionMovement(deviceHandle, NODE_ID, &error_code) == 0)
+    { fail("Failed to halt position movement", error_code, false); }
+}
+
+/************************************
+           Error handling
+************************************/
+
+void EposMotorController::fail(std::string message, bool disable_motor) {
+    std::cout << message << std::endl;
+    if(disable_motor) {
+        disable(); // Note that this is likely to throw an exception, so code after this line may not execute.
+    }
+    throw std::exception();
+}
+
+void EposMotorController::fail(std::string message, int error_code, bool disable_motor) {
+    std::stringstream ss;
+    ss << message << ": " << lookupError(error_code);
+    fail(ss.str(), disable_motor);
 }
 
 std::string EposMotorController::lookupError(unsigned int error) {
