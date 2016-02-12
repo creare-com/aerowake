@@ -9,14 +9,15 @@
 #include <sstream>
 
 class EposMotorController {
-private:
-    std::string portName;
-    void * deviceHandle;
-    unsigned int baudRate;
+public:
     enum OperatingMode {
         EPOS_OPMODE_UNKNOWN,
         EPOS_OPMODE_PROFILE_POSITION_MODE,
     };
+private:
+    std::string portName;
+    void * deviceHandle;
+    unsigned int baudRate;
     OperatingMode curOpMode;
 
     std::string lookupError(unsigned int error);
@@ -24,8 +25,7 @@ private:
     void fail(std::string message, int error_code, bool disable_motor); // The method called when an error is detected
     void fail(std::string message, bool disable_motor); // The method called when an error is detected
     
-    void setOperatingMode(OperatingMode mode);
-    void haltPositionMovement();
+    void haltPositionMovement(); // Users of this class should call haltMovement() instead
 public:
     static const unsigned short NODE_ID; // This would matter much more in a CAN network
     
@@ -35,6 +35,7 @@ public:
     // Open/close the specified port. (throw an exception on failure)
     void open();
     void close();
+    bool isOpen() { return deviceHandle != NULL; };
 
     // Enable/disable movement. (throw an exception on failure)
     void clearFaultAndEnable();
@@ -44,7 +45,9 @@ public:
     bool isFaulted();
     
     // Command the motor's movement
+    void setOperatingMode(OperatingMode mode);
     void moveToPosition(long position);
+    void setMaxVelocity(unsigned int velocity); // Applies to both position and velocity control
     void haltMovement();
 };
 

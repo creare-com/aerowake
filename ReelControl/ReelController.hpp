@@ -10,6 +10,7 @@
 class ReelController {
 private:
     EposMotorController motor_controller;
+    void init();
 public:
     ReelController(std::string port = "/dev/ttyS0");
 };

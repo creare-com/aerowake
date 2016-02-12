@@ -49,6 +49,7 @@ void EposMotorController::open()
              Open/close
 ************************************/
 void EposMotorController::close() {
+    disable(); // turn it off before releasing control
     setOperatingMode(EPOS_OPMODE_UNKNOWN);
     unsigned int error_code = 0;
     if(VCS_CloseDevice(deviceHandle, &error_code) == 0)
@@ -96,10 +97,9 @@ bool EposMotorController::isFaulted() {
     if(VCS_GetFaultState(deviceHandle, NODE_ID, &faulted, &error_code) != 0)
     {
         if(faulted) { return true; }
-        else        { return false; }    
+        else        { return false; }
     } else { fail("Failed to read fault state", error_code, true); return false; }
 }
-
 
 /************************************
              Movement
@@ -135,6 +135,12 @@ void EposMotorController::moveToPosition(long position) {
         ss << "Cannot move to a position unless in a positioning mode.  Currently in mode " << curOpMode << ".";
         fail(ss.str(), true);
     }
+}
+
+void EposMotorController::setMaxVelocity(unsigned int velocity) {
+    unsigned int error_code = 0;
+    if(VCS_SetMaxProfileVelocity(deviceHandle, NODE_ID, velocity, &error_code) == 0)
+    { fail("Failed to set maximum velocity", error_code, true); }
 }
 
 void EposMotorController::haltMovement() {
