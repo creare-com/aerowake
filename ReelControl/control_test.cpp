@@ -3,11 +3,22 @@
 #include <iostream>
 #include <string>
 #include <getopt.h>
+#include <signal.h>
 #include "ReelController.hpp"
 using namespace std;
 
+bool g_interrupted;
+
+void my_signal_handler(int s) {
+    g_interrupted = true;
+}
+
 int main(int argc, char* argv[]) {
     string port = "/dev/ttyS0";
+    g_interrupted = false;
+    
+    signal(SIGINT,  my_signal_handler); // ctrl-c
+    signal(SIGTERM, my_signal_handler); // killall
     
     // Parse command line options
     opterr = 0;
@@ -35,6 +46,17 @@ int main(int argc, char* argv[]) {
     }
     
     cout << "Starting" << endl;
-    ReelController rc(port);
+    try {
+        ReelController rc(port);
+        rc.test(); 
+    } catch (exception e) {
+        cout << "Caught exception! " << e.what() << endl;
+    }
+    
     cout << "Done!" << endl;
+    
+    
+    cout << "Waiting for interrupt." << endl;
+    while(!g_interrupted);
+    cout << "Cleaning up." << endl;
 }

@@ -13,6 +13,7 @@ private:
     void init();
 public:
     ReelController(std::string port = "/dev/ttyS0");
+    void test();
 };
 
 #endif // REEL_CONTROLLER_H

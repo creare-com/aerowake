@@ -102,7 +102,7 @@ bool EposMotorController::isFaulted() {
 }
 
 /************************************
-             Movement
+             Configuration
 ************************************/
 void EposMotorController::setOperatingMode(OperatingMode mode) {
     unsigned int error_code = 0;
@@ -120,6 +120,39 @@ void EposMotorController::setOperatingMode(OperatingMode mode) {
     curOpMode = mode;
 }
 
+void EposMotorController::setSensorType(unsigned short type) {
+    switch (type) {
+        case ST_UNKNOWN               :
+        case ST_INC_ENCODER_3CHANNEL  :
+        case ST_INC_ENCODER_2CHANNEL  :
+        case ST_HALL_SENSORS          :
+        case ST_SSI_ABS_ENCODER_BINARY:
+        case ST_SSI_ABS_ENCODER_GREY  :
+        {
+            unsigned int error_code = 0;
+            if(VCS_SetSensorType(deviceHandle, NODE_ID, type, &error_code) == 0)
+            { fail("Failed to set sensor type", error_code, true); }
+            break;
+        }
+        default:
+        {
+            std::stringstream ss; 
+            ss << "Cannot set sensor type " << type << "; not a valid type.";
+            fail(ss.str(), true);
+            break;
+        }
+    }
+}
+
+void EposMotorController::setEncoderSettings(unsigned int pulses_per_turn, bool invert_polarity) {
+    unsigned int error_code = 0;
+    if(VCS_SetIncEncoderParameter(deviceHandle, NODE_ID, pulses_per_turn, invert_polarity, &error_code) == 0)
+    { fail("Failed to set encoder parameters", error_code, false); }
+}
+
+/************************************
+             Movement
+************************************/
 void EposMotorController::moveToPosition(long position) {
     if(curOpMode == EPOS_OPMODE_PROFILE_POSITION_MODE) {
         unsigned int error_code = 0;

@@ -44,8 +44,12 @@ public:
     bool isEnabled();
     bool isFaulted();
     
-    // Command the motor's movement
+    // Configuration (throw an exception on failure)
     void setOperatingMode(OperatingMode mode);
+    void setSensorType(unsigned short type); // Must be one of the "ST_..." constants from Definitions.h
+    void setEncoderSettings(unsigned int pulses_per_turn=500, bool invert_polarity=false); // These are the default settings within the controller
+    
+    // Command the motor's movement (throw an exception on failure)
     void moveToPosition(long position);
     void setMaxVelocity(unsigned int velocity); // Applies to both position and velocity control
     void haltMovement();
