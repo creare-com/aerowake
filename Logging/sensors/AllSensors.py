@@ -37,7 +37,11 @@ class PressureSensor(I2cSensor):
         Reads are split into "retrieve" and "parse" so that we can do all the sensor communications
         as close to simultaneously as possible.
         """
-        self._retrieved_p_word = self._read_byte_data(0, 2)
+        try:
+            self._retrieved_p_word = self._read_byte_data(0, 2)
+        except IOError:
+            self._retrieved_p_word = [0,0]
+            print "Could not read pressure sensor at address %02X"%self._address
         
     def retrieve_t(self):
         """
