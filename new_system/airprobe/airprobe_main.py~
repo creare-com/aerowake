@@ -1,0 +1,29 @@
+import datetime
+import time
+
+
+ERROR_HARDWARE_FAULT = 999
+RETRACTED = 1000
+
+class airprobe_run:
+    def __init__(self,dt):
+        
+
+        # USER CONFIGURABLE SETTINGS
+        self.dt_des = dt
+        time.sleep(.1)
+
+
+    ## Functions
+    
+
+################################################################################
+################################################################################
+
+
+    def run(self):
+        airprobe_data = [0,0,0,0,0]        
+        #log data
+
+        return airprobe_data
+

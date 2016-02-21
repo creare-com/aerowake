@@ -1,0 +1,57 @@
+import datetime
+
+from Queue import Empty
+import time
+
+import numpy as np
+from gimbal_controller import gimbal_controller
+
+dt_des =1/200.0
+r_controller = gimbal_controller(dt_des)
+error=0
+r_controller.goal=0
+
+r_controller.active = True
+
+index = 0
+g_set = [-15,0,15]
+
+t_gim = 0
+scan =False
+
+while True:
+    #check if any new goal has been set
+    t_gim +=dt_des    
+
+    if t_gim>2:
+        t_gim=0
+        scan = True
+        t_scan_start = datetime.datetime.now()
+
+    if scan:
+        r_controller.goal = g_set[index]
+        if np.abs(r_controller.roll_rate)<.5 and np.abs(r_controller.roll-g_set[index])<2:
+            index +=1
+            r_controller.e_int=0
+            if index==len(g_set):
+                index=0
+                scan = False
+                r_controller.goal = g_set[index]
+                print (datetime.datetime.now()-t_scan_start).total_seconds()
+
+    t_0 = datetime.datetime.now()
+
+    #run the roll controller
+    r_controller.run_gimbal()
+
+    t_1 = datetime.datetime.now()
+    dt = (t_1-t_0).total_seconds()
+    sleep_time = dt_des-dt
+    if sleep_time<0:
+        sleep_time = 0
+        #print('GIMBAL LOOP TOOK TOO LONG %.4f' % dt)
+    time.sleep(sleep_time)
+
+
+
+
