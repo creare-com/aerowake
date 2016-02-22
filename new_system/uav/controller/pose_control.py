@@ -21,6 +21,7 @@ class pose_control:
 		self.gcs_alt = 0			# GCS Altitude from pixhawk (m)
 		self.gcs_heading = 0		# GCS Heading (degrees)
 		self.gcs_tether_l = 0		# GCS Tether Length (m)
+        self.gcs_tether_tension = 0 # GCS Tether Tension (newtons)
 
 		# Inputs 
 		self.goal_pose = [0,0,0]	# UAV Goal Position [theta,phi,r] (radians)
@@ -32,6 +33,13 @@ class pose_control:
 		
 		# Memory Items for Control
 		self.control_c = 0
+
+
+        # Controller Gains
+        self.k_phi =[1.2, 2.0,  1.0] 
+        self.k_th  =[1,   2.0,  1.0]
+        self.k_r   =[.5,   3] 
+        self.ft    = 1 #Extra tension to add to tether. (newtons)
 
 
 ##!!!!!!!!!!!!!!!!!!!!!!!!!! Helper Functions !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -66,25 +74,20 @@ class pose_control:
 
 ##!!!!!!!!!!!!!!!!!!!!!!!!!! Mapping Functions !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-    def pitch_2_pwm(self,angle):
-        angle=angle
-        return int( self.saturate(1500+(angle*500/45)  ,1000,2000))
-
-    def roll_2_pwm(self,angle):
-        angle=angle
-        return int(self.saturate(1500-(angle*500/45),1000,2000))
-
-    def thr_2_pwm(self,force):
-    	thr = force*10
-    	return int(self.saturate(1000+thr,1000,2000))
+    def thr_2_force(self,force):
+    	thr = force * throttle_scaling
+    	return int(self.saturate(thr,0,1))
 
 ##!!!!!!!!!!!!!!!!!!!!!!!!!!!! Estimation Functions !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 	def get_drag_vector(self):
 		return [0,0,0]
 
-	def get_tether_vector(self):
-		return [0,0,0]
+	def get_tether_vector(self,r_in,th,phi):
+        fx = -(r_in)*np.cos(phi)*np.sin(th);
+        fy = -(r_in)*np.sin(phi)*np.sin(th);
+        fz = (r_in)*np.cos(th) + self.f_hover;
+		return [fx,fy,fz]
 
 
 
@@ -94,7 +97,72 @@ class pose_control:
 	def run_pose_controller(self):
 		self.control_c +=1
 
+        control_dt = 
 
-		return [roll_pwm,pitch_pwm,throttle_pwm,yaw_pwm]
+        th = self.get_theta()
+        phi = self.get_phi()
+        r = self.get_r()
+
+        #### Forces to move #####
+
+        # error_dot
+        e_phi_dot = 
+        e_th_dot = 
+        e_r_dot = 
+
+        # error
+        self.e_phi = r*(self.goal_phi - phi)
+        self.e_th = r*(self.goal_th - th)
+        self.e_r = self.goal_r - r
+
+        # error integration
+        self.e_phi_int += self.e_phi*control_dt
+        self.e_th_int += self.e_th*control_dt 
+
+        # saturate integration
+        self.e_phi_int = self.saturate(self.e_phi_int,-5,5)
+        self.e_th_int = self.saturate(self.e_th,-5,5)
+
+        #PID magic
+        phi_in = (self.k_phi[0]*self.e_phi) +  (self.k_phi[1]*e_phi_dot) + (self.k_phi[2]*self.e_phi_i)
+        th_in = (self.k_th[0]*self.e_th) +  (self.k_th[1] * e_th_dot) + (self.k_th[2]*self.e_th_i)
+        r_in = self.k_r[0]*self.e_r + self.k_r[1]*e_r_dot + self.tether_tension + self.ft
+
+        # Forces to move
+        fix = -phi_in*np.sin(phi) + th_in*np.cos(th)
+        fiy =  phi_in*np.cos(phi) + th_in*np.sin(th)
+        fiz = -th_in*np.sin(th) 
+
+        # TODO: Saturate fix, fiy, fiz
+
+        #### Forces to balance ####
+
+        [fx,fy,fz] = self.get_tether_vector(r_in,th,phi)
+
+        #### Forces from Drag on Vehicle ####
+
+        [fdx, fdy, fdz] = self.get_drag_vector()
+
+        #### Total Forces for Output ####
+        ftx = fix + fx + fdx
+        fty = fiy + fy + fdy
+        ftz = fiz + fz + fdz
+
+        #### Rotate Forces ####
+        # This is to keep the front of the vehicle pointed at the ship
+        ftx = ftx*np.cos(phi) + fty*np.sin(phi)
+        fty = -ftx*np.sin(phi) + fty*np.cos(phi)
+
+        f_total = (ftx*ftx+fty*fty+ftz*ftz)**0.5
+        throttle = self.thr_2_force(f_total)
+        pitch = np.arctan(ftx/ftz)
+        roll = np.arctan(fty/ftz)
+
+        # Saturate
+        pitch_cmd = self.saturate(pitch,-att_max,att_max)
+        roll_cmd = self.saturate(roll,-att_max,att_max)
+
+
+		return [roll_cmd,pitch_cmd,throttle,yaw_angle]
 
 
