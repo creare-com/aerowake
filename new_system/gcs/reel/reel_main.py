@@ -19,7 +19,7 @@ class reel_run:
 #This will get called at 200hz or whatever rate you want it to, as specified by the airprobe_run().
 
     def run(self):
-        airprobe_data = [0,0,0,0,0]        
+        reel_data = [0,0,0,0,0]        
         #log data
 
         return airprobe_data

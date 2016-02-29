@@ -206,10 +206,34 @@ def abort_mission(reason):
     autopilot.mode = VehicleMode("ALTHOLD")
     #TODO: TEST THIS OUT to make sure it doesnt lock us in whatever mode we specify. 
 
+def send_att_msg(roll,pitch,thr,yaw):
+    TODO: FIX THIS
+    msg = autopilot.message_factory.command_long_encode(
+        0,    #not used
+        0, 0, # target system, target component 
+        mavutil.mavlink.SET_ATTITUDE_TARGET
+        11100000,# type make
+        [1,0,0,0], #attitude quaternion
+        0, #roll rate
+        0, #pitch rate
+        0, #yaw rate
+        thrust) #thrust
+
 logging.info("------------------SYSTEM IS READY!!------------------")
 logging.info("-----------------------------------------------------")
 
+GCS_mode = None
+G_AUTO = 0
+G_TAKEOFF = 1
+G_LAND = 2
+
 while True:
+
+    # State Information
+    pose_controller.uav_coord = [autopilot.location.global_frame.lat, autopilot.location.global_frame.lon]     # GPS Coordinates of UAV [lat,lon] from pixhawk (DD.DDDDDDD)
+    pose_controller.uav_vel = [autopilot.velocity.x,autopilot.velocity.y,autopilot.velocity.x]      # UAV velocity [x,y,z] from pixhawk (m/s)
+    pose_controller.uav_alt = (autopilot.location.local_frame.down *-1       # UAV Alt from pixhawk (m)
+    pose_controller.uav_heading = autopilot.attitude.yaw        # UAV Heading (degrees)
 
     #Get AirProbe Info:
     try:
@@ -217,10 +241,56 @@ while True:
     except Empty:
         pass
 
-    #Rest of the flight control setup. 
+    # Get information from GCS. Update controller state information. 
+    try:
+        gcs_state = DATA_FROM_GCS
+    except Empty:
+        pass
+    pose_controller.gcs_coord = gcs_state[0]      # GPS Coordinates of GCS [lat,lon] from pixhawk (DD.DDDDDD)
+    pose_controller.gcs_vel = gcs_state[1]      # GCS Velocity [x,y,z] from pixhawk (m/s)
+    pose_controller.gcs_alt = gcs_state[2]           # GCS Altitude from pixhawk (m)
+    pose_controller.gcs_heading = gcs_state[3]       # GCS Heading (degrees)
+    pose_controller.gcs_tether_l = gcs_state[4]      # GCS Tether Length (m)
+    pose_controller.gcs_tether_tension = gcs_state[5] # GCS Tether Tension (newtons)
+
+    # Get information from GCS regarding status-- Mode and Goal Location
+    try:
+        gcs_status = STATUS_FROM_GCS
+    except Empty:
+        pass
+    gcs_mode = gcs_status[0]
+    
+    # Operational and Mode Change Logic
+    if gcs_mode==G_AUTO:
+        pose_controller.goal_pose = gcs_status[1]    # UAV Goal Position [theta,phi,r] (radians)
+
+    if gcs_mode==G_LAND:
+        pose_controller.goal_pose = gcs_status[1]
+
+    if gcs_mode==G_TAKEOFF:
+        
+        #here is the actual arm and takeoff commands
+        if gcs_mode_prev == None:
+            while not autopilot.is_armable:
+                print logging.info("Waiting for autopilot to be arm-able")
+                time.sleep(1)
+            autopilot.mode = VehicleMode("GUIDED")
+            autopilot.armed=True
+            while not autopilot.armed:
+                logging.info("Waiting for autopilot to arm")
+                time.sleep(.1)
+            logging.info("Autpilot is Armed!!!")
+        # Here is the takeoff sequence
+        pose_controller.goal_pose = gcs_status[1]
 
 
 
+
+
+    if gcs_mode==None:
+        #disarm vehicle. 
+
+    gcs_mode_prev = gcs_mode
 
     control_outputs = pose_controller.run_pose_controller()
 

@@ -103,22 +103,18 @@ csvwriter = csv.writer(open(str(flight_save_path)+"flight_log_" +str(datetime.da
 
 
 
-#### !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Start Position Controller !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-pose_controller = pose_control()
-
 
 ####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Multiprocessing System Setup !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
 #### Start Air Probe Controller ####
-commands_to_airprobe = Queue()
-data_from_airprobe = Queue()
+commands_to_reel = Queue()
+data_from_reel = Queue()
 try:
-    airprobe = airprobe_main(commands_to_airprobe, data_from_airprobe)
+    reel = reel_controller(commands_to_airprobe, data_from_airprobe)
 except Exception:
-    logging.critical('Problem connection to airprobe. Aborting.')
-    setup_abort("Airprobe System Failure")
+    logging.critical('Problem connection to reel. Aborting.')
+    setup_abort("Reel System Failure")
     #sys.exit(1)
 airporbe.start()
 
@@ -211,20 +207,72 @@ def abort_mission(reason):
 logging.info("------------------SYSTEM IS READY!!------------------")
 logging.info("-----------------------------------------------------")
 
+
+GCS_mode = None
+G_AUTO = 0
+G_TAKEOFF = 1
+G_LAND = 2
+
 while True:
 
-    #Get AirProbe Info:
+    #Get Reel Info:
     try:
-        air_probe_reading = data_from_airprobe.get(False)
+        reel_reading = data_from_airprobe.get(False)
     except Empty:
         pass
 
-    #Rest of the flight control setup. 
+    ##########################################################################################
+    # Populate GCS State information
+
+    gcs_coord = [autopilot.location.global_frame.lat, autopilot.location.global_frame.lon]   # GPS Coordinates of GCS [lat,lon] from pixhawk (DD.DDDDDD)
+    gcs_vel = [autopilot.velocity.x,autopilot.velocity.y,autopilot.velocity.x]      # GCS Velocity [x,y,z] from pixhawk (m/s)
+    gcs_alt = (autopilot.location.local_frame.down *-1           # GCS Altitude from pixhawk (m)
+    gcs_heading = autopilot.attitude.yaw        # GCS Heading (degrees)
+    gcs_tether_l = reel_reading[0]       # GCS Tether Length (m)
+    gcs_tether_tension = reel_reading[1] # GCS Tether Tension (newtons)
+
+    # Transmit the GCS State information to the UAV:
+    send_state_to_uav([gcs_coord,gcs_vel,gcs_alt,gcs_heading,gcs_tether_l,gcs_tether_tension])
+
+
+    ##########################################################################################v
+    # Determine flight mode and waypoints for the vehicle
+
+
+
+    # Modes:
+    # Take Off = Take the vehicle off with slight pitch up.
+    # Auto = Position Control. Needs goal location. 
+    # Land = Landing vehicle: Maintain some throttle and reel the tether in.
+    # None = Do nothing. Initial state. Motors will be on safe, vehicle disarmed. 
+
+    if GCS_mode == G_AUTO:
+        goal_pose = [0,80,10] # phi, theta, R in degrees, meters
+        send_status_to_UAV([GCS_mode,goal_pose])
+
+    if GCS_mode == G_TAKEOFF:
+        r_set = reel_reading[0] # SEt the new goal to a stable location and let the tether wind out. 
+        initial_wp = [0,80,r_set]
+        send_status_to_UAV([GCS_mode, initial_wp])
+        #TODO: Command reel to let tether line out. 
+
+    if GCS_mode == G_LAND:
+        r_prev = reel_reading[0] #Set the new position to a stable location and keep setting the goal R = current reel length
+        final_wp = [0,70,r_prev]
+        send_status_to_UAV([GCS_mode, final_wp])
+        #TODO: Command reel to pull tether line in. 
+
+    if GCS_mode == None:
+        send_status_to_UAV([GCS_mode,[0,0,0]])
 
 
 
 
-    control_outputs = pose_controller.run_pose_controller()
+
+    
+
+
+
 
 
 
