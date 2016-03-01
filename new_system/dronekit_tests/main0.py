@@ -34,69 +34,31 @@ autopilot_connect_path = 'udpin:0.0.0.0:14550'
 
 #### Logging Setup. ####
 
-logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
-fh = logging.FileHandler('system.log')
-fh.setLevel(logging.DEBUG)
-ch = logging.StreamHandler(sys.stdout)
-ch.setLevel(logging.DEBUG)
-form_fh = logging.Formatter('%(relativeCreated)s,%(levelname)s: %(message)s')
-form_ch = logging.Formatter('%(levelname)s: %(message)s')
-fh.setFormatter(form_fh)
-ch.setFormatter(form_ch)
-logger.addHandler(fh)
-logger.addHandler(ch)
-
 # Single Log Format:
 # logging.basicConfig(filename='system.log',format='%(relativeCreated)s,%(levelname)s: %#(message)s',level=logging.DEBUG)
 
-def setup_abort(abort_reason=None):
-    t = 0
-    #display items on screen
-    while t<10:
-        logging.critical("System aborting due to error: %s" %abort_reason) 
-        time.sleep(1)
-        t+=1
-    sys.exit(1)
-
-logging.info("------------ STARTING AEROWAKE SYSTEM ------------")
-logging.info("-------------------- UAV NODE 0 ------------------")
+print("------------ STARTING AEROWAKE SYSTEM ------------")
+print("-------------------- UAV NODE 0 ------------------")
 
 
 ####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Pixhawk System Setup !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 #### Pixhawk Connection ####
-logging.info("Waiting for Pixhawk")
+print("Waiting for Pixhawk")
 while True:
     try:
         #Note: connecting another GCS might mess up stream rates. Start mavproxy with --streamrate=-1 to leave stream params alone.
         autopilot = connect(autopilot_connect_path, heartbeat_timeout=60, rate=20, wait_ready=True)
         break
     except OSError:
-        logging.critical("Cannot find device, is the Pixhawk plugged in? Retrying...")
+        print("Cannot find device, is the Pixhawk plugged in? Retrying...")
         time.sleep(5)
     except APIException:
-        logging.critical("Pixhawk connection timed out. Retrying...")
-logging.info("Pixhawk connected!")
+        print("Pixhawk connection timed out. Retrying...")
+print("Pixhawk connected!")
 
 if(autopilot.parameters['ARMING_CHECK'] != 1):
-    logging.warning("Autopilot reports arming checks are not standard!")
-
-
-#### System Time Setup ####
-
-# We need to get the time from the autopilot (which gets it via gps), because the raspi does not have a RTC
-autopilot_start_time = 0
-rasp_start_time = 0
-@autopilot.on_message('SYSTEM_TIME')
-def autopilot_time_callback(self, attr_name, msg):
-    global autopilot_start_time
-    if(autopilot_start_time is 0 and msg.time_unix_usec > 0):
-        autopilot_start_time = msg.time_unix_usec/1000000
-        human_time = datetime.datetime.fromtimestamp(autopilot_start_time).strftime('%Y-%m-%d %H:%M:%S')
-        logging.info("Got GPS lock at %s" % human_time)
-        rasp_start_time = time.clock()
-
+    print("Autopilot reports arming checks are not standard!")
 
 
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Pixhawk Callback/Logging System !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -112,18 +74,18 @@ def last_heartbeat_listener(self, attr_name, value):
         global timed_out
         if value > 3 and not timed_out:
             timed_out = True
-            logging.critical("Pixhawk connection lost!")
+            print("Pixhawk connection lost!")
         if value < 3 and timed_out:
             timed_out = False;
-            logging.info("Pixhawk connection restored.")
+            print("Pixhawk connection restored.")
 
 @autopilot.on_attribute('armed')
 def arm_disarm_callback(self,attr_name, msg):
-    logging.info("Vehicle is now %sarmed " % ("" if autopilot.armed else "dis"))
+    print("Vehicle is now %sarmed " % ("" if autopilot.armed else "dis"))
 
 @autopilot.on_attribute('mode')
 def mode_callback(self,attr_name, mode):
-    logging.info("Autopilot mode changed to %s" % mode.name)
+    print("Autopilot mode changed to %s" % mode.name)
 
 #####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Main System !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -141,13 +103,49 @@ def send_msg_to_gcs(message):
     autopilot.send_mavlink(msg)
     autopilot.flush()
 
+def goto_position_target_local_ned(north, east, down):
+    """ 
+    Send SET_POSITION_TARGET_LOCAL_NED command to request the vehicle fly to a specified 
+    location in the North, East, Down frame.
 
-logging.info("------------------SYSTEM IS READY!!------------------")
-logging.info("-----------------------------------------------------")
+    It is important to remember that in this frame, positive altitudes are entered as negative 
+    "Down" values. So if down is "10", this will be 10 metres below the home altitude.
+
+    See the above link for information on the type_mask (0=enable, 1=ignore). 
+    At time of writing, acceleration and yaw bits are ignored.
+
+    """
+    msg = autopilot.message_factory.set_position_target_local_ned_encode(
+        0,       # time_boot_ms (not used)
+        0, 0,    # target system, target component
+        mavutil.mavlink.MAV_FRAME_LOCAL_NED, # frame
+        0b0000111111111000, # type_mask (only positions enabled)
+        north, east, down, # x, y, z positions (or North, East, Down in the MAV_FRAME_BODY_NED frame
+        0, 0, 0, # x, y, z velocity in m/s  (not used)
+        0, 0, 0, # x, y, z acceleration (not supported yet, ignored in GCS_Mavlink)
+        0, 0)    # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink) 
+    # send command to vehicle
+    autopilot.send_mavlink(msg)
+
+
+print("------------------SYSTEM IS READY!!------------------")
+print("-----------------------------------------------------")
+
+print "Arming motors"
+# Copter should arm in GUIDED mode
+autopilot.mode    = VehicleMode("GUIDED")
+autopilot.armed   = True    
+
+while not autopilot.armed:      
+    print " Waiting for arming..."
+    time.sleep(1)
 
 while True:
-    time.sleep(1)
-    print 'connected'
+    time.sleep(.1)
+
+    goto_position_target_local_ned(10,10,-100)
+
+
     
 
 
