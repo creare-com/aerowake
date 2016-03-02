@@ -38,3 +38,4 @@ print "bearing: %f " %p.get_bearing()
 
 print (p.get_relative_angles())
 
+print p.run_pose_controller()

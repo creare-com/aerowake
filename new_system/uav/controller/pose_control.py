@@ -34,12 +34,18 @@ class pose_controller_class:
         # Memory Items for Control
         self.control_c = 0
 
+        self.e_phi = 0
+        self.e_th = 0
+        self.e_r = 0
+        self.e_phi_int = 0
+        self.e_th_int = 0 
 
         # Controller Gains
         self.k_phi =[1.2, 2.0,  1.0] 
         self.k_th  =[1,   2.0,  1.0]
         self.k_r   =[.5,   3] 
         self.ft    = 1 #Extra tension to add to tether. (newtons)
+        self.f_hover = 10
 
 
 ##!!!!!!!!!!!!!!!!!!!!!!!!!! Helper Functions !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -90,13 +96,15 @@ class pose_controller_class:
         theta = np.arctan2(xy_dist,z_dist)*180/np.pi
         # Phi Calc
         phi=self.gcs_heading-self.get_bearing()
-        return [phi,theta]
+        r = self.get_diagonal_distance()
+        self.uav_pose=[theta,phi,r]
+        return [phi,theta,r]
 
 
 ##!!!!!!!!!!!!!!!!!!!!!!!!!! Mapping Functions !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     def thr_2_force(self,force):
-        thr = force * throttle_scaling
+        thr = force * 1
         return int(self.saturate(thr,0,1))
 
 ##!!!!!!!!!!!!!!!!!!!!!!!!!!!! Estimation Functions !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -120,21 +128,22 @@ class pose_controller_class:
 
         control_dt = .1
 
-        th = self.get_theta()
-        phi = self.get_phi()
-        r = self.get_r()
+        new_state = self.get_relative_angles()
+        th = new_state[0]
+        phi = new_state[1]
+        r = new_state[2]
 
         #### Forces to move #####
 
         # error_dot
-        e_phi_dot = 0
-        e_th_dot = 0
-        e_r_dot = 0
+        e_phi_dot =  (r*(self.goal_pose[1]-phi) - self.e_phi)/control_dt
+        e_th_dot =   (r*(self.goal_pose[0]-th) - self.e_th)/control_dt
+        e_r_dot =    (  (self.goal_pose[2]-r) - self.e_r)/control_dt
 
         # error
-        self.e_phi = r*(self.goal_phi - phi)
-        self.e_th = r*(self.goal_th - th)
-        self.e_r = self.goal_r - r
+        self.e_phi = r*(self.goal_pose[1] - phi)
+        self.e_th = r*(self.goal_pose[0] - th)
+        self.e_r = self.goal_pose[2] - r
 
         # error integration
         self.e_phi_int += self.e_phi*control_dt
@@ -145,9 +154,9 @@ class pose_controller_class:
         self.e_th_int = self.saturate(self.e_th,-5,5)
 
         #PID magic
-        phi_in = (self.k_phi[0]*self.e_phi) +  (self.k_phi[1]*e_phi_dot) + (self.k_phi[2]*self.e_phi_i)
-        th_in = (self.k_th[0]*self.e_th) +  (self.k_th[1] * e_th_dot) + (self.k_th[2]*self.e_th_i)
-        r_in = self.k_r[0]*self.e_r + self.k_r[1]*e_r_dot + self.tether_tension + self.ft
+        phi_in = (self.k_phi[0]*self.e_phi) +  (self.k_phi[1]*e_phi_dot) + (self.k_phi[2]*self.e_phi_int)
+        th_in = (self.k_th[0]*self.e_th) +  (self.k_th[1] * e_th_dot) + (self.k_th[2]*self.e_th_int)
+        r_in = self.k_r[0]*self.e_r + self.k_r[1]*e_r_dot + self.gcs_tether_tension + self.ft
 
         # Forces to move
         fix = -phi_in*np.sin(phi) + th_in*np.cos(th)
@@ -180,9 +189,12 @@ class pose_controller_class:
         roll = np.arctan(fty/ftz)
 
         # Saturate
+        att_max = .7
+
         pitch_cmd = self.saturate(pitch,-att_max,att_max)
         roll_cmd = self.saturate(roll,-att_max,att_max)
 
+        yaw_angle = 0
 
         return [roll_cmd,pitch_cmd,throttle,yaw_angle]
 
