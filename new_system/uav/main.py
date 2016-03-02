@@ -103,7 +103,7 @@ csvwriter = csv.writer(open(str(flight_save_path)+"flight_log_" +str(datetime.da
 
 #### !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Start Position Controller !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-pose_controller = pose_control()
+pose_controller = pose_controller_class()
 
 
 ####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Multiprocessing System Setup !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -206,18 +206,17 @@ def abort_mission(reason):
     autopilot.mode = VehicleMode("ALTHOLD")
     #TODO: TEST THIS OUT to make sure it doesnt lock us in whatever mode we specify. 
 
-def send_att_msg(roll,pitch,thr,yaw):
-    TODO: FIX THIS
-    msg = autopilot.message_factory.command_long_encode(
-        0,    #not used
-        0, 0, # target system, target component 
-        mavutil.mavlink.SET_ATTITUDE_TARGET
-        11100000,# type make
-        [1,0,0,0], #attitude quaternion
-        0, #roll rate
-        0, #pitch rate
-        0, #yaw rate
-        thrust) #thrust
+def set_attitude_target(quat):
+    msg = vehicle.message_factory.set_attitude_target_encode(
+        0, 0,0,
+        0b000000001,     # bitmask
+        quat,    # quat
+        0,              #roll rate
+        0,              #  pitch rate
+        0,              # yaw speed deg/s
+        .5)             # thrust
+    vehicle.send_mavlink(msg)
+
 
 logging.info("------------------SYSTEM IS READY!!------------------")
 logging.info("-----------------------------------------------------")

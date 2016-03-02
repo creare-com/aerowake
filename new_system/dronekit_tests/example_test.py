@@ -270,18 +270,8 @@ def goto_position_target_local_ned(north, east, down):
     # send command to vehicle
     vehicle.send_mavlink(msg)
 
-
-
 def goto(dNorth, dEast, gotoFunction=vehicle.simple_goto):
-    """
-    Moves the vehicle to a position dNorth metres North and dEast metres East of the current position.
 
-    The method takes a function pointer argument with a single `dronekit.lib.LocationGlobal` parameter for 
-    the target position. This allows it to be called with different position-setting commands. 
-    By default it uses the standard method: dronekit.lib.Vehicle.simple_goto().
-
-    The method reports the distance to target every two seconds.
-    """
     currentLocation=vehicle.location.global_relative_frame
     targetLocation=get_location_metres(currentLocation, dNorth, dEast)
     targetDistance=get_distance_metres(currentLocation, targetLocation)
@@ -295,36 +285,8 @@ def goto(dNorth, dEast, gotoFunction=vehicle.simple_goto):
             break;
         time.sleep(2)
 
-
-
-"""
-Functions that move the vehicle by specifying the velocity components in each direction.
-The two functions use different MAVLink commands. The main difference is
-that depending on the frame used, the NED velocity can be relative to the vehicle
-orientation.
-
-The methods include:
-* send_ned_velocity - Sets velocity components using SET_POSITION_TARGET_LOCAL_NED command
-* send_global_velocity - Sets velocity components using SET_POSITION_TARGET_GLOBAL_INT command
-"""
-
 def send_ned_velocity(velocity_x, velocity_y, velocity_z, duration):
-    """
-    Move vehicle in direction based on specified velocity vectors and
-    for the specified duration.
 
-    This uses the SET_POSITION_TARGET_LOCAL_NED command with a type mask enabling only 
-    velocity components 
-    (http://dev.ardupilot.com/wiki/copter-commands-in-guided-mode/#set_position_target_local_ned).
-    
-    Note that from AC3.3 the message should be re-sent every second (after about 3 seconds
-    with no message the velocity will drop back to zero). In AC3.2.1 and earlier the specified
-    velocity persists until it is canceled. The code below should work on either version 
-    (sending the message multiple times does not cause problems).
-    
-    See the above link for information on the type_mask (0=enable, 1=ignore). 
-    At time of writing, acceleration and yaw bits are ignored.
-    """
     msg = vehicle.message_factory.set_position_target_local_ned_encode(
         0,       # time_boot_ms (not used)
         0, 0,    # target system, target component
@@ -341,24 +303,8 @@ def send_ned_velocity(velocity_x, velocity_y, velocity_z, duration):
         time.sleep(1)
     
     
-
-
 def send_global_velocity(velocity_x, velocity_y, velocity_z, duration):
-    """
-    Move vehicle in direction based on specified velocity vectors.
 
-    This uses the SET_POSITION_TARGET_GLOBAL_INT command with type mask enabling only 
-    velocity components 
-    (http://dev.ardupilot.com/wiki/copter-commands-in-guided-mode/#set_position_target_global_int).
-    
-    Note that from AC3.3 the message should be re-sent every second (after about 3 seconds
-    with no message the velocity will drop back to zero). In AC3.2.1 and earlier the specified
-    velocity persists until it is canceled. The code below should work on either version 
-    (sending the message multiple times does not cause problems).
-    
-    See the above link for information on the type_mask (0=enable, 1=ignore). 
-    At time of writing, acceleration and yaw bits are ignored.
-    """
     msg = vehicle.message_factory.set_position_target_global_int_encode(
         0,       # time_boot_ms (not used)
         0, 0,    # target system, target component
@@ -378,6 +324,22 @@ def send_global_velocity(velocity_x, velocity_y, velocity_z, duration):
     for x in range(0,duration):
         vehicle.send_mavlink(msg)
         time.sleep(1)    
+
+
+
+condition_yaw(270)
+time.sleep(5)
+
+condition_yaw(70)
+time.sleep(5)
+condition_yaw(270)
+time.sleep(5)
+
+condition_yaw(70)
+time.sleep(5)
+condition_yaw(270)
+time.sleep(5)
+print 'done'
 
 
 """
@@ -481,16 +443,6 @@ time.sleep(DURATION)
 
 
 
-"""
-Fly the vehicle in a SQUARE path using velocity vectors (the underlying code calls the 
-SET_POSITION_TARGET_LOCAL_NED command with the velocity parameters enabled).
-
-The thread sleeps for a time (DURATION) which defines the distance that will be travelled.
-
-The code also sets the yaw (MAV_CMD_CONDITION_YAW) using the `set_yaw()` method in each segment
-so that the front of the vehicle points in the direction of travel
-"""
-
 
 #Set up velocity vector to map to each direction.
 # vx > 0 => fly North
@@ -545,18 +497,6 @@ print("Velocity East")
 send_ned_velocity(0,EAST,0,DURATION)
 send_ned_velocity(0,0,0,1)
 
-
-"""
-Fly the vehicle in a DIAMOND path using velocity vectors (the underlying code calls the 
-SET_POSITION_TARGET_GLOBAL_INT command with the velocity parameters enabled).
-
-The thread sleeps for a time (DURATION) which defines the distance that will be travelled.
-
-The code sets the yaw (MAV_CMD_CONDITION_YAW) using the `set_yaw()` method using relative headings
-so that the front of the vehicle points in the direction of travel.
-
-At the end of the second segment the code sets a new home location to the current point.
-"""
 
 print("DIAMOND path using SET_POSITION_TARGET_GLOBAL_INT and velocity parameters")
 # vx, vy are parallel to North and East (independent of the vehicle orientation)
