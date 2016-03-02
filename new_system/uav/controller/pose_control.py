@@ -41,11 +41,16 @@ class pose_controller_class:
         self.e_th_int = 0 
 
         # Controller Gains
-        self.k_phi =[1.2, 2.0,  1.0] 
-        self.k_th  =[1,   2.0,  1.0]
-        self.k_r   =[.5,   3] 
+        # self.k_phi =[1.2, 2.0,  1.0] 
+        # self.k_th  =[1,   2.0,  1.0]
+        # self.k_r   =[.5,   3] 
+
+        self.k_phi =[.1, 0,  0] 
+        self.k_th  =[.1,   0,  0]
+        self.k_r   =[.1,  0] 
+
         self.ft    = 1 #Extra tension to add to tether. (newtons)
-        self.f_hover = 10
+        self.f_hover = 0
 
 
 ##!!!!!!!!!!!!!!!!!!!!!!!!!! Helper Functions !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -93,12 +98,13 @@ class pose_controller_class:
         # Theta First:
         xy_dist = self.get_distance()
         z_dist = self.uav_alt-self.gcs_alt
-        theta = np.arctan2(xy_dist,z_dist)*180/np.pi
+        theta = np.arctan2(xy_dist,z_dist)
         # Phi Calc
         phi=self.gcs_heading-self.get_bearing()
+        phi = phi*np.pi/180
         r = self.get_diagonal_distance()
         self.uav_pose=[theta,phi,r]
-        return [phi,theta,r]
+        return [theta,phi,r]
 
 
 ##!!!!!!!!!!!!!!!!!!!!!!!!!! Mapping Functions !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -112,7 +118,7 @@ class pose_controller_class:
     def get_drag_vector(self):
         return [0,0,0]
 
-    def get_tether_vector(self,r_in,th,phi):
+    def get_tether_vector(self,th,phi,r_in):
         fx = -(r_in)*np.cos(phi)*np.sin(th);
         fy = -(r_in)*np.sin(phi)*np.sin(th);
         fz = (r_in)*np.cos(th) + self.f_hover;
@@ -133,6 +139,9 @@ class pose_controller_class:
         phi = new_state[1]
         r = new_state[2]
 
+        print ">> Convensions: Theta, Phi, R"
+        print ">> Pose: %.2f, %.2f, %.2f" %(th*180/np.pi,phi*180/np.pi,r)
+
         #### Forces to move #####
 
         # error_dot
@@ -144,6 +153,10 @@ class pose_controller_class:
         self.e_phi = r*(self.goal_pose[1] - phi)
         self.e_th = r*(self.goal_pose[0] - th)
         self.e_r = self.goal_pose[2] - r
+
+        print ">> Goal:  %.2f, %.2f, %.2f" %(self.goal_pose[0]*180/np.pi,self.goal_pose[1]*180/np.pi,self.goal_pose[2])
+        print ">> Error: %.2f, %.2f, %.2f" %(self.e_th,self.e_phi,self.e_r)
+
 
         # error integration
         self.e_phi_int += self.e_phi*control_dt
@@ -158,6 +171,9 @@ class pose_controller_class:
         th_in = (self.k_th[0]*self.e_th) +  (self.k_th[1] * e_th_dot) + (self.k_th[2]*self.e_th_int)
         r_in = self.k_r[0]*self.e_r + self.k_r[1]*e_r_dot + self.gcs_tether_tension + self.ft
 
+        print ">> Inputs: %.2f, %.2f, %.2f" %(th_in,phi_in,r_in)
+
+
         # Forces to move
         fix = -phi_in*np.sin(phi) + th_in*np.cos(th)
         fiy =  phi_in*np.cos(phi) + th_in*np.sin(th)
@@ -167,7 +183,9 @@ class pose_controller_class:
 
         #### Forces to balance ####
 
-        [fx,fy,fz] = self.get_tether_vector(r_in,th,phi)
+        [fx,fy,fz] = self.get_tether_vector(th,phi,r_in)
+
+        print ">> Tether: %.2f, %.2f, %.2f" %(fx,fy,fz)
 
         #### Forces from Drag on Vehicle ####
 
@@ -189,10 +207,10 @@ class pose_controller_class:
         roll = np.arctan(fty/ftz)
 
         # Saturate
-        att_max = .7
+        ATT_MAX = .7
 
-        pitch_cmd = self.saturate(pitch,-att_max,att_max)
-        roll_cmd = self.saturate(roll,-att_max,att_max)
+        pitch_cmd = self.saturate(pitch,-ATT_MAX,ATT_MAX)
+        roll_cmd = self.saturate(roll,-ATT_MAX,ATT_MAX)
 
         yaw_angle = 0
 
