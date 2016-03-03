@@ -24,7 +24,6 @@ mavlink_msgs.sort()
 mavlink_msgs_filt = [
  'SET_HOME_POSITION',
  'HEARTBEAT',
- 'SET_MODE',
 ]
 mavlink_msgs_filt.sort()
 
@@ -68,7 +67,6 @@ class GCS(t.HasTraits):
     # ON GCS: Outgoing
     mission_message = t.Enum(set_mission_mode.keys(),
                               label="Mission Type")
-    autopilot_mode = t.Bool(False)                              
     sweep_angle = t.Float(label="Angle (degrees)")
     sweep_alt_start = t.Float(label="Start Altitude (m)")
     sweep_alt_end = t.Float(label="End Altitude (m)")
@@ -187,7 +185,6 @@ class GCS(t.HasTraits):
     
     group_input = tui.Group(
                             tui.Item(name="mission_status", enabled_when='False'),
-                            tui.Item(name="autopilot_mode"),
                             tui.Item(name="mission_message"),
                             tui.Item(name="sweep_angle", 
                                      visible_when='mission_message=="SCHEDULE_SWEEP"'),
@@ -258,19 +255,11 @@ class GCS(t.HasTraits):
     traits_view = tui.View(
         tui.Group(
                   group_input,
-                  tui.Group(
                             group_uav,
                             group_gcs,
-                            orientation='horizontal'
-                  ),
-                  orientation='vertical'),
+                  orientation='horizontal'),
         resizable=True
     )
-    
-    def _autopilot_mode_changed(self):
-        self.uav.mav.set_pilot_mode_send(self.autopilot_mode)
-        if self.autopilot_mode:
-            self.uav.set_mode(0)
     
     def _update_mission_fired(self):
         """ This will fire when the update_mission button is clicked
@@ -559,9 +548,9 @@ class GCS(t.HasTraits):
             
 if __name__ == "__main__":
     gcs = GCS()
-   # gcs.setup_uav_link("COM9", 56700)
-   # gcs.poll_uav()
-#    gcs.setup_gcs_link("COM7", 115200)
+    gcs.setup_uav_link("/dev/tty.usbserial-DN008RZ5")
+    gcs.poll_uav()
+#    gcs.setup_gcs_link("COM7")
 #    gcs.poll_gcs()
     gcs.configure_traits()
 #    gcs.close()

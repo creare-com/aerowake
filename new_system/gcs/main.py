@@ -19,10 +19,10 @@ from dronekit import APIException, VehicleMode, connect, mavutil
 from reel.reel_main import reel_run
 
 
-# Autopilot Connection Path. UDP for local simulation. 
-autopilot_connect_path = 'udpin:0.0.0.0:14550'
-#autopilot_connect_path = '/dev/ttyAMA0' #also set baud=57600
-#autopilot_connect_path = '/dev/ttyUSB0'
+# gcs Connection Path. UDP for local simulation. 
+gcs_connect_path = 'udpin:0.0.0.0:14550'
+#gcs_connect_path = '/dev/ttyAMA0' #also set baud=57600
+#gcs_connect_path = '/dev/ttyUSB0'
 
 
 
@@ -126,7 +126,7 @@ logging.info("Waiting for Pixhawk")
 while True:
     try:
         #Note: connecting another GCS might mess up stream rates. Start mavproxy with --streamrate=-1 to leave stream params alone.
-        autopilot = connect(autopilot_connect_path, heartbeat_timeout=60, rate=20, wait_ready=True)
+        gcs = connect(gcs_connect_path, heartbeat_timeout=60, rate=20, wait_ready=True)
         break
     except OSError:
         logging.critical("Cannot find device, is the Pixhawk plugged in? Retrying...")
@@ -135,21 +135,21 @@ while True:
         logging.critical("Pixhawk connection timed out. Retrying...")
 logging.info("Pixhawk connected!")
 
-if(autopilot.parameters['ARMING_CHECK'] != 1):
-    logging.warning("Autopilot reports arming checks are not standard!")
+if(gcs.parameters['ARMING_CHECK'] != 1):
+    logging.warning("gcs reports arming checks are not standard!")
 
 
 #### System Time Setup ####
 
-# We need to get the time from the autopilot (which gets it via gps), because the raspi does not have a RTC
-autopilot_start_time = 0
+# We need to get the time from the gcs (which gets it via gps), because the raspi does not have a RTC
+gcs_start_time = 0
 rasp_start_time = 0
-@autopilot.on_message('SYSTEM_TIME')
-def autopilot_time_callback(self, attr_name, msg):
-    global autopilot_start_time
-    if(autopilot_start_time is 0 and msg.time_unix_usec > 0):
-        autopilot_start_time = msg.time_unix_usec/1000000
-        human_time = datetime.datetime.fromtimestamp(autopilot_start_time).strftime('%Y-%m-%d %H:%M:%S')
+@gcs.on_message('SYSTEM_TIME')
+def gcs_time_callback(self, attr_name, msg):
+    global gcs_start_time
+    if(gcs_start_time is 0 and msg.time_unix_usec > 0):
+        gcs_start_time = msg.time_unix_usec/1000000
+        human_time = datetime.datetime.fromtimestamp(gcs_start_time).strftime('%Y-%m-%d %H:%M:%S')
         logging.info("Got GPS lock at %s" % human_time)
         rasp_start_time = time.clock()
 
@@ -162,7 +162,7 @@ def autopilot_time_callback(self, attr_name, msg):
 #also log mode changes, and arm/disarm
 timed_out = False
 
-@autopilot.on_attribute('last_heartbeat')   
+@gcs.on_attribute('last_heartbeat')   
 def last_heartbeat_listener(self, attr_name, value):
     if(attr_name is 'last_heartbeat'):
         global timed_out
@@ -173,13 +173,13 @@ def last_heartbeat_listener(self, attr_name, value):
             timed_out = False;
             logging.info("Pixhawk connection restored.")
 
-@autopilot.on_attribute('armed')
+@gcs.on_attribute('armed')
 def arm_disarm_callback(self,attr_name, msg):
-    logging.info("Vehicle is now %sarmed " % ("" if autopilot.armed else "dis"))
+    logging.info("Vehicle is now %sarmed " % ("" if gcs.armed else "dis"))
 
-@autopilot.on_attribute('mode')
+@gcs.on_attribute('mode')
 def mode_callback(self,attr_name, mode):
-    logging.info("Autopilot mode changed to %s" % mode.name)
+    logging.info("gcs mode changed to %s" % mode.name)
 
 #####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Main System !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -193,15 +193,15 @@ Send a STATUSTEXT message. Since the message doesn't have a target_system field,
 it is a broadcast message and ardupilot should rebroadcast it to the GCS.
 '''
 def send_msg_to_gcs(message):
-    msg = autopilot.message_factory.statustext_encode(mavutil.mavlink.MAV_SEVERITY_CRITICAL, message)
-    autopilot.send_mavlink(msg)
-    autopilot.flush()
+    msg = gcs.message_factory.statustext_encode(mavutil.mavlink.MAV_SEVERITY_CRITICAL, message)
+    gcs.send_mavlink(msg)
+    gcs.flush()
 
 
 def abort_mission(reason):
     logging.critical('%s! Aborting mission.' % reason)
     send_msg_to_gcs(reason)
-    autopilot.mode = VehicleMode("ALTHOLD")
+    gcs.mode = VehicleMode("ALTHOLD")
     #TODO: TEST THIS OUT to make sure it doesnt lock us in whatever mode we specify. 
 
 logging.info("------------------SYSTEM IS READY!!------------------")
@@ -224,21 +224,15 @@ while True:
     ##########################################################################################
     # Populate GCS State information
 
-    gcs_coord = [autopilot.location.global_frame.lat, autopilot.location.global_frame.lon]   # GPS Coordinates of GCS [lat,lon] from pixhawk (DD.DDDDDD)
-    gcs_vel = [autopilot.velocity.x,autopilot.velocity.y,autopilot.velocity.x]      # GCS Velocity [x,y,z] from pixhawk (m/s)
-    gcs_alt = (autopilot.location.local_frame.down *-1           # GCS Altitude from pixhawk (m)
-    gcs_heading = autopilot.attitude.yaw        # GCS Heading (degrees)
     gcs_tether_l = reel_reading[0]       # GCS Tether Length (m)
     gcs_tether_tension = reel_reading[1] # GCS Tether Tension (newtons)
 
     # Transmit the GCS State information to the UAV:
-    send_state_to_uav([gcs_coord,gcs_vel,gcs_alt,gcs_heading,gcs_tether_l,gcs_tether_tension])
+    send_state_to_uav([gcs_tether_l,gcs_tether_tension])
 
 
     ##########################################################################################v
     # Determine flight mode and waypoints for the vehicle
-
-
 
     # Modes:
     # Take Off = Take the vehicle off with slight pitch up.

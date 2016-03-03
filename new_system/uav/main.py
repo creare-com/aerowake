@@ -19,6 +19,7 @@ from controller.pose_control import pose_control
 
 # Autopilot Connection Path. UDP for local simulation. 
 autopilot_connect_path = 'udpin:0.0.0.0:14550'
+gcs_connect_path = 'udpin:0.0.0.0:14550'
 #autopilot_connect_path = '/dev/ttyAMA0' #also set baud=57600
 #autopilot_connect_path = '/dev/ttyUSB0'
 
@@ -123,22 +124,37 @@ airporbe.start()
 
 ####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Pixhawk System Setup !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-#### Pixhawk Connection ####
-logging.info("Waiting for Pixhawk")
+#### Autopilot Connection ####
+logging.info("Waiting for Autopilot")
 while True:
     try:
         #Note: connecting another GCS might mess up stream rates. Start mavproxy with --streamrate=-1 to leave stream params alone.
         autopilot = connect(autopilot_connect_path, heartbeat_timeout=60, rate=20, wait_ready=True)
         break
     except OSError:
-        logging.critical("Cannot find device, is the Pixhawk plugged in? Retrying...")
+        logging.critical("Cannot find device, is the Autopilot plugged in? Retrying...")
         time.sleep(5)
     except APIException:
-        logging.critical("Pixhawk connection timed out. Retrying...")
-logging.info("Pixhawk connected!")
+        logging.critical("Autopilot connection timed out. Retrying...")
+logging.info("Autopilot connected!")
 
 if(autopilot.parameters['ARMING_CHECK'] != 1):
     logging.warning("Autopilot reports arming checks are not standard!")
+
+#### GCS Connection ####
+logging.info("Waiting for GCS")
+while TrueL
+    try:
+        gcs = connect(gcs_connect_path,heartbeat_timeout=60, rate=20, wait_ready=True)
+        break
+    except OSError:
+        logging.critical("Cannot find device, is the GCS connected? Retrying...")
+        time.sleep(5)
+    except APIException:
+        logging.critical("GCS connection timed out. Retrying...")
+logging.info("GCS Connected")
+if(gcs.parameters['ARMING_CHECK'] != 1):
+    logging.warning("GCS reports arming checks are not standard!")
 
 
 #### System Time Setup ####
@@ -231,8 +247,13 @@ while True:
     # State Information
     pose_controller.uav_coord = [autopilot.location.global_frame.lat, autopilot.location.global_frame.lon]     # GPS Coordinates of UAV [lat,lon] from pixhawk (DD.DDDDDDD)
     pose_controller.uav_vel = [autopilot.velocity.x,autopilot.velocity.y,autopilot.velocity.x]      # UAV velocity [x,y,z] from pixhawk (m/s)
-    pose_controller.uav_alt = (autopilot.location.local_frame.down *-1       # UAV Alt from pixhawk (m)
+    pose_controller.uav_alt = (autopilot.location.local_frame.down) *-1       # UAV Alt from pixhawk (m)
     pose_controller.uav_heading = autopilot.attitude.yaw        # UAV Heading (degrees)
+
+    pose_controller.gcs_coord = [gcs.location.global_frame.lat, gcs.location.global_frame.lon]       # GPS Coordinates of GCS [lat,lon] from pixhawk (DD.DDDDDD)
+    pose_controller.gcs_vel = [gcs.velocity.x, gcs.velocity.y, gcs.velocity.x]        # GCS Velocity [x,y,z] from pixhawk (m/s)
+    pose_controller.gcs_alt = (gcs.location.local_frame.down)*-1          # GCS Altitude from pixhawk (m)
+    pose_controller.gcs_heading = gcs.attitude.yaw       # GCS Heading (degrees)
 
     #Get AirProbe Info:
     try:
@@ -245,12 +266,9 @@ while True:
         gcs_state = DATA_FROM_GCS
     except Empty:
         pass
-    pose_controller.gcs_coord = gcs_state[0]      # GPS Coordinates of GCS [lat,lon] from pixhawk (DD.DDDDDD)
-    pose_controller.gcs_vel = gcs_state[1]      # GCS Velocity [x,y,z] from pixhawk (m/s)
-    pose_controller.gcs_alt = gcs_state[2]           # GCS Altitude from pixhawk (m)
-    pose_controller.gcs_heading = gcs_state[3]       # GCS Heading (degrees)
-    pose_controller.gcs_tether_l = gcs_state[4]      # GCS Tether Length (m)
-    pose_controller.gcs_tether_tension = gcs_state[5] # GCS Tether Tension (newtons)
+
+    pose_controller.gcs_tether_l = gcs_state[0]      # GCS Tether Length (m)
+    pose_controller.gcs_tether_tension = gcs_state[1] # GCS Tether Tension (newtons)
 
     # Get information from GCS regarding status-- Mode and Goal Location
     try:

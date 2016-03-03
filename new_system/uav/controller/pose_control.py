@@ -139,8 +139,8 @@ class pose_controller_class:
         phi = new_state[1]
         r = new_state[2]
 
-        print ">> Convensions: Theta, Phi, R"
-        print ">> Pose: %.2f, %.2f, %.2f" %(th*180/np.pi,phi*180/np.pi,r)
+        print ">> Convens: Theta, Phi, R"
+        print ">> Pose:     %.2f, %.2f, %.2f" %(th*180/np.pi,phi*180/np.pi,r)
 
         #### Forces to move #####
 
@@ -154,8 +154,8 @@ class pose_controller_class:
         self.e_th = r*(self.goal_pose[0] - th)
         self.e_r = self.goal_pose[2] - r
 
-        print ">> Goal:  %.2f, %.2f, %.2f" %(self.goal_pose[0]*180/np.pi,self.goal_pose[1]*180/np.pi,self.goal_pose[2])
-        print ">> Error: %.2f, %.2f, %.2f" %(self.e_th,self.e_phi,self.e_r)
+        print ">> Goal:     %.2f, %.2f, %.2f" %(self.goal_pose[0]*180/np.pi,self.goal_pose[1]*180/np.pi,self.goal_pose[2])
+        print ">> Error:    %.2f, %.2f, %.2f" %(self.e_th,self.e_phi,self.e_r)
 
 
         # error integration
@@ -171,13 +171,15 @@ class pose_controller_class:
         th_in = (self.k_th[0]*self.e_th) +  (self.k_th[1] * e_th_dot) + (self.k_th[2]*self.e_th_int)
         r_in = self.k_r[0]*self.e_r + self.k_r[1]*e_r_dot + self.gcs_tether_tension + self.ft
 
-        print ">> Inputs: %.2f, %.2f, %.2f" %(th_in,phi_in,r_in)
+        print ">> Inputs:   %.2f, %.2f, %.2f" %(th_in,phi_in,r_in)
 
 
         # Forces to move
-        fix = -phi_in*np.sin(phi) + th_in*np.cos(th)
-        fiy =  phi_in*np.cos(phi) + th_in*np.sin(th)
+        fix = -phi_in*np.sin(phi) + th_in*np.cos(th)*np.cos(phi)
+        fiy = phi_in*np.cos(phi) + th_in*np.cos(th)*np.sin(phi)
         fiz = -th_in*np.sin(th) 
+
+        print ">> Move:     %.2f, %.2f, %.2f" %(fix,fiy,fiz)
 
         # TODO: Saturate fix, fiy, fiz
 
@@ -185,7 +187,7 @@ class pose_controller_class:
 
         [fx,fy,fz] = self.get_tether_vector(th,phi,r_in)
 
-        print ">> Tether: %.2f, %.2f, %.2f" %(fx,fy,fz)
+        print ">> Tether:   %.2f, %.2f, %.2f" %(fx,fy,fz)
 
         #### Forces from Drag on Vehicle ####
 
@@ -195,6 +197,8 @@ class pose_controller_class:
         ftx = fix + fx + fdx
         fty = fiy + fy + fdy
         ftz = fiz + fz + fdz
+
+        print ">> Total:    %.2f, %.2f, %.2f" %(ftx,fty,ftz)
 
         #### Rotate Forces ####
         # This is to keep the front of the vehicle pointed at the ship

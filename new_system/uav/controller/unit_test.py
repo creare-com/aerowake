@@ -3,6 +3,19 @@
 import pose_control
 import numpy as np
 
+# phi_in= -1
+# th_in = 0
+
+# phi = 0  * np.pi/180
+# th = 45   * np.pi/180
+
+# fix = -phi_in*np.sin(phi) + th_in*np.cos(th)*np.cos(phi)
+# fiy = phi_in*np.cos(phi) + th_in*np.cos(th)*np.sin(phi)
+# fiz = -th_in*np.sin(th) 
+# print "\n \n"
+# print "%.2f  %.2f  %.2f"  %(fix,fiy,fiz)
+# print "\n \n"
+# exit()
 
 p = pose_control.pose_controller_class()
 
@@ -22,7 +35,7 @@ NW = [42.36,-71.081]
 SE = [42.359,-71.08]
 SW = [42.359,-71.081]
 
-p.uav_coord = SW
+p.uav_coord = SE
 p.uav_alt = 10
 p.uav_heading = 0
 
