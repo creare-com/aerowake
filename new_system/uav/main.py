@@ -14,14 +14,17 @@ from multiprocessing import Queue
 from Queue import Empty
 
 from dronekit import APIException, VehicleMode, connect, mavutil
+
 from airprobe.airprobe_main import airprobe_run
-from controller.pose_control import pose_control
+
+from controller.pose_control import pose_controller_class
 
 # Autopilot Connection Path. UDP for local simulation. 
-autopilot_connect_path = 'udpin:0.0.0.0:14550'
-gcs_connect_path = 'udpin:0.0.0.0:14550'
+autopilot_connect_path = 'udpin:0.0.0.0:14552'
+gcs_connect_path = 'udpin:0.0.0.0:14554'
 #autopilot_connect_path = '/dev/ttyAMA0' #also set baud=57600
 #autopilot_connect_path = '/dev/ttyUSB0'
+
 
 
 
@@ -66,39 +69,39 @@ logging.info("-------------------- UAV NODE --------------------")
 
 #### External Drive Setup ####
 
-path_prefix = "/media/pi/"
-path_options = []
-for s in glob.glob(path_prefix + "*"):
-    path_options.append(s)
-if(len(path_options) is 0):
-    logging.critical("No external drive detected. Aborting.") 
-    setup_abort()
-    #sys.exit(1)
-logging.info("External drive detected")
+# path_prefix = "/media/pi/"
+# path_options = []
+# for s in glob.glob(path_prefix + "*"):
+#     path_options.append(s)
+# if(len(path_options) is 0):
+#     logging.critical("No external drive detected. Aborting.") 
+#     setup_abort()
+#     #sys.exit(1)
+# logging.info("External drive detected")
 
-# Verify that the drive has 1GB min.
-path = path_options[0]
-statistics = os.statvfs(path)
-free_space = statistics.f_bavail*statistics.f_bsize / (1024**3) #in Gb
-if(free_space < 1):
-    logging.critical("External drive has only %i GB free -- Please swap or clear external drive. Aborting." % free_space)
-    setup_abort("External drive error")
-    #sys.exit(1)
-elif(free_space < 5):
-    logging.warning("External drive has only %i GB free." % free_space)
-else:
-    logging.info("External drive has %i GB free." % free_space)
+# # Verify that the drive has 1GB min.
+# path = path_options[0]
+# statistics = os.statvfs(path)
+# free_space = statistics.f_bavail*statistics.f_bsize / (1024**3) #in Gb
+# if(free_space < 1):
+#     logging.critical("External drive has only %i GB free -- Please swap or clear external drive. Aborting." % free_space)
+#     setup_abort("External drive error")
+#     #sys.exit(1)
+# elif(free_space < 5):
+#     logging.warning("External drive has only %i GB free." % free_space)
+# else:
+#     logging.info("External drive has %i GB free." % free_space)
 
-#### Create New Folder ####
+# #### Create New Folder ####
 
-flight_number = 1
-while os.path.exists(path +"/flight_" + str(flight_number)):
-    flight_number = flight_number + 1
-flight_save_path = path + "/flight_" + str(flight_number)
-os.makedirs(flight_save_path)
-logging.info("Created new flight folder at: " + flight_save_path)
-#### Start The CSV Log ####
-csvwriter = csv.writer(open(str(flight_save_path)+"flight_log_" +str(datetime.datetime.now()) +".csv", 'wb'))
+# flight_number = 1
+# while os.path.exists(path +"/flight_" + str(flight_number)):
+#     flight_number = flight_number + 1
+# flight_save_path = path + "/flight_" + str(flight_number)
+# os.makedirs(flight_save_path)
+# logging.info("Created new flight folder at: " + flight_save_path)
+# #### Start The CSV Log ####
+# csvwriter = csv.writer(open(str(flight_save_path)+"flight_log_" +str(datetime.datetime.now()) +".csv", 'wb'))
 
 
 
@@ -111,15 +114,15 @@ pose_controller = pose_controller_class()
 
 
 #### Start Air Probe Controller ####
-commands_to_airprobe = Queue()
-data_from_airprobe = Queue()
-try:
-    airprobe = airprobe_main(commands_to_airprobe, data_from_airprobe)
-except Exception:
-    logging.critical('Problem connection to airprobe. Aborting.')
-    setup_abort("Airprobe System Failure")
-    #sys.exit(1)
-airporbe.start()
+# commands_to_airprobe = Queue()
+# data_from_airprobe = Queue()
+# try:
+#     airprobe = airprobe_main(commands_to_airprobe, data_from_airprobe)
+# except Exception:
+#     logging.critical('Problem connection to airprobe. Aborting.')
+#     setup_abort("Airprobe System Failure")
+#     #sys.exit(1)
+# airporbe.start()
 
 
 ####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Pixhawk System Setup !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -143,7 +146,7 @@ if(autopilot.parameters['ARMING_CHECK'] != 1):
 
 #### GCS Connection ####
 logging.info("Waiting for GCS")
-while TrueL
+while True:
     try:
         gcs = connect(gcs_connect_path,heartbeat_timeout=60, rate=20, wait_ready=True)
         break
@@ -153,8 +156,7 @@ while TrueL
     except APIException:
         logging.critical("GCS connection timed out. Retrying...")
 logging.info("GCS Connected")
-if(gcs.parameters['ARMING_CHECK'] != 1):
-    logging.warning("GCS reports arming checks are not standard!")
+
 
 
 #### System Time Setup ####
@@ -243,73 +245,79 @@ G_TAKEOFF = 1
 G_LAND = 2
 
 while True:
-
+    time.sleep(.2)
     # State Information
     pose_controller.uav_coord = [autopilot.location.global_frame.lat, autopilot.location.global_frame.lon]     # GPS Coordinates of UAV [lat,lon] from pixhawk (DD.DDDDDDD)
-    pose_controller.uav_vel = [autopilot.velocity.x,autopilot.velocity.y,autopilot.velocity.x]      # UAV velocity [x,y,z] from pixhawk (m/s)
-    pose_controller.uav_alt = (autopilot.location.local_frame.down) *-1       # UAV Alt from pixhawk (m)
+    pose_controller.uav_vel = [autopilot.velocity[0],autopilot.velocity[1],autopilot.velocity[2]]      # UAV velocity [x,y,z] from pixhawk (m/s)
+    pose_controller.uav_alt = (autopilot.location.global_relative_frame.alt )       # UAV Alt from pixhawk (m)
     pose_controller.uav_heading = autopilot.attitude.yaw        # UAV Heading (degrees)
 
     pose_controller.gcs_coord = [gcs.location.global_frame.lat, gcs.location.global_frame.lon]       # GPS Coordinates of GCS [lat,lon] from pixhawk (DD.DDDDDD)
-    pose_controller.gcs_vel = [gcs.velocity.x, gcs.velocity.y, gcs.velocity.x]        # GCS Velocity [x,y,z] from pixhawk (m/s)
-    pose_controller.gcs_alt = (gcs.location.local_frame.down)*-1          # GCS Altitude from pixhawk (m)
+    pose_controller.gcs_vel = [gcs.velocity[0], gcs.velocity[1], gcs.velocity[2]]        # GCS Velocity [x,y,z] from pixhawk (m/s)
+    pose_controller.gcs_alt = (gcs.location.global_relative_frame.alt )         # GCS Altitude from pixhawk (m)
     pose_controller.gcs_heading = gcs.attitude.yaw       # GCS Heading (degrees)
 
-    #Get AirProbe Info:
-    try:
-        air_probe_reading = data_from_airprobe.get(False)
-    except Empty:
-        pass
+    print pose_controller.uav_coord
+    print pose_controller.gcs_coord
 
-    # Get information from GCS. Update controller state information. 
-    try:
-        gcs_state = DATA_FROM_GCS
-    except Empty:
-        pass
 
-    pose_controller.gcs_tether_l = gcs_state[0]      # GCS Tether Length (m)
-    pose_controller.gcs_tether_tension = gcs_state[1] # GCS Tether Tension (newtons)
 
-    # Get information from GCS regarding status-- Mode and Goal Location
-    try:
-        gcs_status = STATUS_FROM_GCS
-    except Empty:
-        pass
-    gcs_mode = gcs_status[0]
+
+    # #Get AirProbe Info:
+    # try:
+    #     air_probe_reading = data_from_airprobe.get(False)
+    # except Empty:
+    #     pass
+
+    # # Get information from GCS. Update controller state information. 
+    # try:
+    #     gcs_state = DATA_FROM_GCS
+    # except Empty:
+    #     pass
+
+    # pose_controller.gcs_tether_l = gcs_state[0]      # GCS Tether Length (m)
+    # pose_controller.gcs_tether_tension = gcs_state[1] # GCS Tether Tension (newtons)
+
+    # # Get information from GCS regarding status-- Mode and Goal Location
+    # try:
+    #     gcs_status = STATUS_FROM_GCS
+    # except Empty:
+    #     pass
+    # gcs_mode = gcs_status[0]
     
-    # Operational and Mode Change Logic
-    if gcs_mode==G_AUTO:
-        pose_controller.goal_pose = gcs_status[1]    # UAV Goal Position [theta,phi,r] (radians)
+    # # Operational and Mode Change Logic
+    # if gcs_mode==G_AUTO:
+    #     pose_controller.goal_pose = gcs_status[1]    # UAV Goal Position [theta,phi,r] (radians)
 
-    if gcs_mode==G_LAND:
-        pose_controller.goal_pose = gcs_status[1]
+    # if gcs_mode==G_LAND:
+    #     pose_controller.goal_pose = gcs_status[1]
 
-    if gcs_mode==G_TAKEOFF:
+    # if gcs_mode==G_TAKEOFF:
         
-        #here is the actual arm and takeoff commands
-        if gcs_mode_prev == None:
-            while not autopilot.is_armable:
-                print logging.info("Waiting for autopilot to be arm-able")
-                time.sleep(1)
-            autopilot.mode = VehicleMode("GUIDED")
-            autopilot.armed=True
-            while not autopilot.armed:
-                logging.info("Waiting for autopilot to arm")
-                time.sleep(.1)
-            logging.info("Autpilot is Armed!!!")
-        # Here is the takeoff sequence
-        pose_controller.goal_pose = gcs_status[1]
+    #     #here is the actual arm and takeoff commands
+    #     if gcs_mode_prev == None:
+    #         while not autopilot.is_armable:
+    #             print logging.info("Waiting for autopilot to be arm-able")
+    #             time.sleep(1)
+    #         autopilot.mode = VehicleMode("GUIDED")
+    #         autopilot.armed=True
+    #         while not autopilot.armed:
+    #             logging.info("Waiting for autopilot to arm")
+    #             time.sleep(.1)
+    #         logging.info("Autpilot is Armed!!!")
+    #     # Here is the takeoff sequence
+    #     pose_controller.goal_pose = gcs_status[1]
 
 
 
 
 
-    if gcs_mode==None:
-        #disarm vehicle. 
+    # if gcs_mode==None:
+    #     #disarm vehicle. 
 
-    gcs_mode_prev = gcs_mode
+    # gcs_mode_prev = gcs_mode
 
-    control_outputs = pose_controller.run_pose_controller()
+    # control_outputs = pose_controller.run_pose_controller()
 
 
 
