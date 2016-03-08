@@ -45,12 +45,13 @@ class pose_controller_class:
         # self.k_th  =[1,   2.0,  1.0]
         # self.k_r   =[.5,   3] 
 
-        self.k_phi =[.1, 0,  0] 
-        self.k_th  =[.1,   0,  0]
-        self.k_r   =[.1,  0] 
+        self.k_phi =[.01, 0,  0] 
+        self.k_th  =[.01,   0,  0]
+        self.k_r   =[.01,  0] 
 
-        self.ft    = 1 #Extra tension to add to tether. (newtons)
-        self.f_hover = 0
+        self.ft    = 3.3 #Extra tension to add to tether. (newtons)
+        self.weight_tether = 0
+        self.uav_weight = 20 #weight of the UAV in Newtons. 
 
 
 ##!!!!!!!!!!!!!!!!!!!!!!!!!! Helper Functions !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -111,7 +112,8 @@ class pose_controller_class:
 
     def thr_2_force(self,force):
         thr = force * 1
-        return int(self.saturate(thr,0,1))
+        return force
+        #return int(self.saturate(thr,0,1))
 
 ##!!!!!!!!!!!!!!!!!!!!!!!!!!!! Estimation Functions !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -119,9 +121,9 @@ class pose_controller_class:
         return [0,0,0]
 
     def get_tether_vector(self,th,phi,r_in):
-        fx = -(r_in)*np.cos(phi)*np.sin(th);
-        fy = -(r_in)*np.sin(phi)*np.sin(th);
-        fz = (r_in)*np.cos(th) + self.f_hover;
+        fx = (r_in)*np.cos(phi)*np.sin(th);
+        fy = (r_in)*np.sin(phi)*np.sin(th);
+        fz = (r_in)*np.cos(th) + self.weight_tether;
         return [fx,fy,fz]
 
 
@@ -177,7 +179,9 @@ class pose_controller_class:
         # Forces to move
         fix = -phi_in*np.sin(phi) + th_in*np.cos(th)*np.cos(phi)
         fiy = phi_in*np.cos(phi) + th_in*np.cos(th)*np.sin(phi)
-        fiz = -th_in*np.sin(th) 
+        fiz = -th_in*np.sin(th)
+
+        print ">> Conves: X, Y, Z" 
 
         print ">> Move:     %.2f, %.2f, %.2f" %(fix,fiy,fiz)
 
@@ -185,6 +189,7 @@ class pose_controller_class:
 
         #### Forces to balance ####
 
+        #These are the forces that the vehicle needs to exert to balance the tether tension
         [fx,fy,fz] = self.get_tether_vector(th,phi,r_in)
 
         print ">> Tether:   %.2f, %.2f, %.2f" %(fx,fy,fz)
@@ -196,7 +201,7 @@ class pose_controller_class:
         #### Total Forces for Output ####
         ftx = fix + fx + fdx
         fty = fiy + fy + fdy
-        ftz = fiz + fz + fdz
+        ftz = fiz + fz + fdz + self.uav_weight
 
         print ">> Total:    %.2f, %.2f, %.2f" %(ftx,fty,ftz)
 
@@ -205,10 +210,14 @@ class pose_controller_class:
         ftx = ftx*np.cos(phi) + fty*np.sin(phi)
         fty = -ftx*np.sin(phi) + fty*np.cos(phi)
 
+        print ">> Total Rotated:    %.2f, %.2f, %.2f" %(ftx,fty,ftz)
+
         f_total = (ftx*ftx+fty*fty+ftz*ftz)**0.5
         throttle = self.thr_2_force(f_total)
         pitch = np.arctan(ftx/ftz)
         roll = np.arctan(fty/ftz)
+
+        TODO: Test to make sure the total force is being correctly translated to the body coordinate system. 
 
         # Saturate
         ATT_MAX = .7
@@ -216,7 +225,7 @@ class pose_controller_class:
         pitch_cmd = self.saturate(pitch,-ATT_MAX,ATT_MAX)
         roll_cmd = self.saturate(roll,-ATT_MAX,ATT_MAX)
 
-        yaw_angle = 0
+        yaw_angle = self.get_bearing()*180/np.pi
 
         return [roll_cmd,pitch_cmd,throttle,yaw_angle]
 

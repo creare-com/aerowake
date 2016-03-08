@@ -290,6 +290,8 @@ G_AUTO = 0
 G_TAKEOFF = 1
 G_LAND = 2
 
+prev_yaw=0
+
 while True:
     time.sleep(.1)
     # State Information
@@ -303,17 +305,20 @@ while True:
     pose_controller.gcs_alt = (gcs.location.global_relative_frame.alt )         # GCS Altitude from pixhawk (m)
     pose_controller.gcs_heading = gcs.attitude.yaw       # GCS Heading (rad)
 
-    condition_yaw(pose_controller.get_bearing()*180/np.pi)
+    bearing = pose_controller.get_bearing()*180/np.pi
 
+    if np.abs(bearing - prev_yaw)>.5:
+        condition_yaw(bearing)
+        prev_yaw = (bearing)
 
     print "\n\n ================= "
     data = pose_controller.get_relative_angles()
     print "get angles    %.2f,  %.2f,  %.2f " %(data[0],data[1],data[2])
 
-    pose_controller.goal_pose = [data[0],data[1],data[2]]
+    pose_controller.goal_pose = [data[0],data[1],data[2]] # UAV Goal Position [theta,phi,r] (radians)
 
-    pose_controller.run_pose_controller()
-
+    output = pose_controller.run_pose_controller()
+    print "Outputs: %.2f,  %.2f,  %.2f,  %.2f" %(output[0],output[1],output[2],output[3])
 
 
     # #Get AirProbe Info:
