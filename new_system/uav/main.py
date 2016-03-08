@@ -12,6 +12,7 @@ import threading
 import time
 from multiprocessing import Queue
 from Queue import Empty
+import numpy as np
 
 from dronekit import APIException, VehicleMode, connect, mavutil
 
@@ -27,7 +28,7 @@ from controller.pose_control import pose_controller_class
 
 
 autopilot_connect_path = '127.0.0.1:14552'
-gcs_connect_path = '127.0.0.1:14559'
+gcs_connect_path = '127.0.0.1:14554'
 
 
 
@@ -204,10 +205,10 @@ def arm_disarm_callback(self,attr_name, msg):
 def mode_callback(self,attr_name, mode):
     logging.info("Autopilot mode changed to %s" % mode.name)
 
-@autopilot.on_message('NAV_CONTROLLER_OUTPUT')
-def message_callback(self,attr_name,mode):
-    print mode
-    print mode
+# @autopilot.on_message('NAV_CONTROLLER_OUTPUT')
+# def message_callback(self,attr_name,mode):
+#     print mode
+#     print mode
 
 #####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Main System !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -244,6 +245,43 @@ def set_attitude_target(quat):
     vehicle.send_mavlink(msg)
 
 
+def condition_yaw(heading, relative=False):
+
+    if heading<0:
+        heading+=360
+
+    if relative:
+        is_relative=1 #yaw relative to direction of travel
+    else:
+        is_relative=0 #yaw is an absolute angle
+    # create the CONDITION_YAW command using command_long_encode()
+    msg = autopilot.message_factory.command_long_encode(
+        0, 0,    # target system, target component
+        mavutil.mavlink.MAV_CMD_CONDITION_YAW, #command
+        0, #confirmation
+        heading,    # param 1, yaw in degrees
+        0,          # param 2, yaw speed deg/s
+        1,          # param 3, direction -1 ccw, 1 cw
+        is_relative, # param 4, relative offset 1, absolute angle 0
+        0, 0, 0)    # param 5 ~ 7 not used
+    # send command to vehicle
+    autopilot.send_mavlink(msg)
+
+def set_roi(location):
+    # create the MAV_CMD_DO_SET_ROI command
+    msg = autopilot.message_factory.command_long_encode(
+        0, 0,    # target system, target component
+        mavutil.mavlink.MAV_CMD_DO_SET_ROI, #command
+        0, #confirmation
+        0, 0, 0, 0, #params 1-4
+        location.lat,
+        location.lon,
+        location.alt
+        )
+    # send command to vehicle
+    autopilot.send_mavlink(msg)
+
+
 logging.info("------------------SYSTEM IS READY!!------------------")
 logging.info("-----------------------------------------------------")
 
@@ -253,7 +291,7 @@ G_TAKEOFF = 1
 G_LAND = 2
 
 while True:
-    time.sleep(1)
+    time.sleep(.1)
     # State Information
     pose_controller.uav_coord = [autopilot.location.global_frame.lat, autopilot.location.global_frame.lon]     # GPS Coordinates of UAV [lat,lon] from pixhawk (DD.DDDDDDD)
     pose_controller.uav_vel = [autopilot.velocity[0],autopilot.velocity[1],autopilot.velocity[2]]      # UAV velocity [x,y,z] from pixhawk (m/s)
@@ -263,12 +301,18 @@ while True:
     pose_controller.gcs_coord = [gcs.location.global_frame.lat, gcs.location.global_frame.lon]       # GPS Coordinates of GCS [lat,lon] from pixhawk (DD.DDDDDD)
     pose_controller.gcs_vel = [gcs.velocity[0], gcs.velocity[1], gcs.velocity[2]]        # GCS Velocity [x,y,z] from pixhawk (m/s)
     pose_controller.gcs_alt = (gcs.location.global_relative_frame.alt )         # GCS Altitude from pixhawk (m)
-    pose_controller.gcs_heading = gcs.attitude.yaw       # GCS Heading (degrees)
+    pose_controller.gcs_heading = gcs.attitude.yaw       # GCS Heading (rad)
 
-    print "GPS Locations:"
-    print pose_controller.uav_coord
-    print pose_controller.gcs_coord
+    condition_yaw(pose_controller.get_bearing()*180/np.pi)
 
+
+    print "\n\n ================= "
+    data = pose_controller.get_relative_angles()
+    print "get angles    %.2f,  %.2f,  %.2f " %(data[0],data[1],data[2])
+
+    pose_controller.goal_pose = [data[0],data[1],data[2]]
+
+    pose_controller.run_pose_controller()
 
 
 

@@ -2,7 +2,7 @@
 
 cd ../../../ardupilot/ArduCopter/
 
-sim_vehicle.sh -j4 -I 0 --out 127.0.0.1:14552
+sim_vehicle.sh -j4 -I 1 --map --console --out 127.0.0.1:14552
 
 
 #### Manually Enter These Commands

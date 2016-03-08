@@ -91,7 +91,7 @@ class pose_controller_class:
         g_rel_ang =  -np.arctan2( arg1, arg2)
         #if g_rel_ang<0:
         #    g_rel_ang=g_rel_ang+2*np.pi
-        bearing=g_rel_ang*180/np.pi
+        bearing=g_rel_ang
         return bearing#[degrees]
 
     def get_relative_angles(self): #Tested.
@@ -101,7 +101,7 @@ class pose_controller_class:
         theta = np.arctan2(xy_dist,z_dist)
         # Phi Calc
         phi=self.gcs_heading-self.get_bearing()
-        phi = phi*np.pi/180
+        phi = phi
         r = self.get_diagonal_distance()
         self.uav_pose=[theta,phi,r]
         return [theta,phi,r]
