@@ -20,11 +20,14 @@ from airprobe.airprobe_main import airprobe_run
 from controller.pose_control import pose_controller_class
 
 # Autopilot Connection Path. UDP for local simulation. 
-autopilot_connect_path = 'udpin:0.0.0.0:14552'
-gcs_connect_path = 'udpin:0.0.0.0:14554'
+#autopilot_connect_path = 'udpin:127.0.0.1:14550'
+#gcs_connect_path = 'udpin:127.0.0.1:14554'
 #autopilot_connect_path = '/dev/ttyAMA0' #also set baud=57600
 #autopilot_connect_path = '/dev/ttyUSB0'
 
+
+autopilot_connect_path = '127.0.0.1:14552'
+gcs_connect_path = '127.0.0.1:14559'
 
 
 
@@ -201,6 +204,11 @@ def arm_disarm_callback(self,attr_name, msg):
 def mode_callback(self,attr_name, mode):
     logging.info("Autopilot mode changed to %s" % mode.name)
 
+@autopilot.on_message('NAV_CONTROLLER_OUTPUT')
+def message_callback(self,attr_name,mode):
+    print mode
+    print mode
+
 #####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Main System !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -245,7 +253,7 @@ G_TAKEOFF = 1
 G_LAND = 2
 
 while True:
-    time.sleep(.2)
+    time.sleep(1)
     # State Information
     pose_controller.uav_coord = [autopilot.location.global_frame.lat, autopilot.location.global_frame.lon]     # GPS Coordinates of UAV [lat,lon] from pixhawk (DD.DDDDDDD)
     pose_controller.uav_vel = [autopilot.velocity[0],autopilot.velocity[1],autopilot.velocity[2]]      # UAV velocity [x,y,z] from pixhawk (m/s)
@@ -257,6 +265,7 @@ while True:
     pose_controller.gcs_alt = (gcs.location.global_relative_frame.alt )         # GCS Altitude from pixhawk (m)
     pose_controller.gcs_heading = gcs.attitude.yaw       # GCS Heading (degrees)
 
+    print "GPS Locations:"
     print pose_controller.uav_coord
     print pose_controller.gcs_coord
 

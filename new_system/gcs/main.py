@@ -20,7 +20,7 @@ from reel.reel_main import reel_run
 
 
 # gcs Connection Path. UDP for local simulation. 
-gcs_connect_path = 'udpin:0.0.0.0:14550'
+gcs_connect_path = '127.0.0.1:14556'
 #gcs_connect_path = '/dev/ttyAMA0' #also set baud=57600
 #gcs_connect_path = '/dev/ttyUSB0'
 
@@ -67,56 +67,20 @@ logging.info("-------------------- GCS NODE --------------------")
 time.sleep(2)
 #### External Drive Setup ####
 
-path_prefix = "/media/pi/"
-path_options = []
-for s in glob.glob(path_prefix + "*"):
-    path_options.append(s)
-if(len(path_options) is 0):
-    logging.critical("No external drive detected. Aborting.") 
-    setup_abort()
-    #sys.exit(1)
-logging.info("External drive detected")
-
-# Verify that the drive has 1GB min.
-path = path_options[0]
-statistics = os.statvfs(path)
-free_space = statistics.f_bavail*statistics.f_bsize / (1024**3) #in Gb
-if(free_space < 1):
-    logging.critical("External drive has only %i GB free -- Please swap or clear external drive. Aborting." % free_space)
-    setup_abort("External drive error")
-    #sys.exit(1)
-elif(free_space < 5):
-    logging.warning("External drive has only %i GB free." % free_space)
-else:
-    logging.info("External drive has %i GB free." % free_space)
-
-#### Create New Folder ####
-
-flight_number = 1
-while os.path.exists(path +"/flight_" + str(flight_number)):
-    flight_number = flight_number + 1
-flight_save_path = path + "/flight_" + str(flight_number)
-os.makedirs(flight_save_path)
-logging.info("Created new flight folder at: " + flight_save_path)
-#### Start The CSV Log ####
-csvwriter = csv.writer(open(str(flight_save_path)+"flight_log_" +str(datetime.datetime.now()) +".csv", 'wb'))
-
-
-
 
 ####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Multiprocessing System Setup !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
-#### Start Air Probe Controller ####
-commands_to_reel = Queue()
-data_from_reel = Queue()
-try:
-    reel = reel_controller(commands_to_airprobe, data_from_airprobe)
-except Exception:
-    logging.critical('Problem connection to reel. Aborting.')
-    setup_abort("Reel System Failure")
-    #sys.exit(1)
-airporbe.start()
+# #### Start Reel Controller ####
+# commands_to_reel = Queue()
+# data_from_reel = Queue()
+# try:
+#     reel = reel_controller(commands_to_airprobe, data_from_airprobe)
+# except Exception:
+#     logging.critical('Problem connection to reel. Aborting.')
+#     setup_abort("Reel System Failure")
+#     #sys.exit(1)
+# airporbe.start()
 
 
 ####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Pixhawk System Setup !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -132,11 +96,9 @@ while True:
         logging.critical("Cannot find device, is the Pixhawk plugged in? Retrying...")
         time.sleep(5)
     except APIException:
-        logging.critical("Pixhawk connection timed out. Retrying...")
+        logging.critical("GCS Pixhawk connection timed out. Retrying...")
 logging.info("Pixhawk connected!")
 
-if(gcs.parameters['ARMING_CHECK'] != 1):
-    logging.warning("gcs reports arming checks are not standard!")
 
 
 #### System Time Setup ####
@@ -181,6 +143,8 @@ def arm_disarm_callback(self,attr_name, msg):
 def mode_callback(self,attr_name, mode):
     logging.info("gcs mode changed to %s" % mode.name)
 
+#@gcs.on_message('')
+
 #####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Main System !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -204,6 +168,24 @@ def abort_mission(reason):
     gcs.mode = VehicleMode("ALTHOLD")
     #TODO: TEST THIS OUT to make sure it doesnt lock us in whatever mode we specify. 
 
+def send_ned_velocity(velocity_x, velocity_y, velocity_z):
+    """
+    Move vehicle in direction based on specified velocity vectors.
+    """
+    msg = gcs.message_factory.set_position_target_local_ned_encode(
+        0,       # time_boot_ms (not used)
+        0, 0,    # target system, target component
+        mavutil.mavlink.MAV_FRAME_LOCAL_NED, # frame
+        0b0000111111000111, # type_mask (only speeds enabled)
+        0, 0, 0, # x, y, z positions (not used)
+        velocity_x, velocity_y, velocity_z, # x, y, z velocity in m/s
+        0, 0, 0, # x, y, z acceleration (not supported yet, ignored in GCS_Mavlink)
+        0, 0)    # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink)
+    gcs.send_mavlink(msg)
+
+
+
+
 logging.info("------------------SYSTEM IS READY!!------------------")
 logging.info("-----------------------------------------------------")
 
@@ -214,50 +196,56 @@ G_TAKEOFF = 1
 G_LAND = 2
 
 while True:
+    
 
+    send_msg_to_gcs("99999999")
+    send_ned_velocity(9,9,9)
+
+    print " GCS Location:"
+    print [gcs.location.global_frame.lat, gcs.location.global_frame.lon]
     #Get Reel Info:
-    try:
-        reel_reading = data_from_airprobe.get(False)
-    except Empty:
-        pass
+    # try:
+    #     reel_reading = data_from_airprobe.get(False)
+    # except Empty:
+    #     pass
 
-    ##########################################################################################
-    # Populate GCS State information
+    # ##########################################################################################
+    # # Populate GCS State information
 
-    gcs_tether_l = reel_reading[0]       # GCS Tether Length (m)
-    gcs_tether_tension = reel_reading[1] # GCS Tether Tension (newtons)
+    # gcs_tether_l = reel_reading[0]       # GCS Tether Length (m)
+    # gcs_tether_tension = reel_reading[1] # GCS Tether Tension (newtons)
 
-    # Transmit the GCS State information to the UAV:
-    send_state_to_uav([gcs_tether_l,gcs_tether_tension])
+    # # Transmit the GCS State information to the UAV:
+    # send_state_to_uav([gcs_tether_l,gcs_tether_tension])
 
 
-    ##########################################################################################v
-    # Determine flight mode and waypoints for the vehicle
+    # ##########################################################################################v
+    # # Determine flight mode and waypoints for the vehicle
 
-    # Modes:
-    # Take Off = Take the vehicle off with slight pitch up.
-    # Auto = Position Control. Needs goal location. 
-    # Land = Landing vehicle: Maintain some throttle and reel the tether in.
-    # None = Do nothing. Initial state. Motors will be on safe, vehicle disarmed. 
+    # # Modes:
+    # # Take Off = Take the vehicle off with slight pitch up.
+    # # Auto = Position Control. Needs goal location. 
+    # # Land = Landing vehicle: Maintain some throttle and reel the tether in.
+    # # None = Do nothing. Initial state. Motors will be on safe, vehicle disarmed. 
 
-    if GCS_mode == G_AUTO:
-        goal_pose = [0,80,10] # phi, theta, R in degrees, meters
-        send_status_to_UAV([GCS_mode,goal_pose])
+    # if GCS_mode == G_AUTO:
+    #     goal_pose = [0,80,10] # phi, theta, R in degrees, meters
+    #     send_status_to_UAV([GCS_mode,goal_pose])
 
-    if GCS_mode == G_TAKEOFF:
-        r_set = reel_reading[0] # SEt the new goal to a stable location and let the tether wind out. 
-        initial_wp = [0,80,r_set]
-        send_status_to_UAV([GCS_mode, initial_wp])
-        #TODO: Command reel to let tether line out. 
+    # if GCS_mode == G_TAKEOFF:
+    #     r_set = reel_reading[0] # SEt the new goal to a stable location and let the tether wind out. 
+    #     initial_wp = [0,80,r_set]
+    #     send_status_to_UAV([GCS_mode, initial_wp])
+    #     #TODO: Command reel to let tether line out. 
 
-    if GCS_mode == G_LAND:
-        r_prev = reel_reading[0] #Set the new position to a stable location and keep setting the goal R = current reel length
-        final_wp = [0,70,r_prev]
-        send_status_to_UAV([GCS_mode, final_wp])
-        #TODO: Command reel to pull tether line in. 
+    # if GCS_mode == G_LAND:
+    #     r_prev = reel_reading[0] #Set the new position to a stable location and keep setting the goal R = current reel length
+    #     final_wp = [0,70,r_prev]
+    #     send_status_to_UAV([GCS_mode, final_wp])
+    #     #TODO: Command reel to pull tether line in. 
 
-    if GCS_mode == None:
-        send_status_to_UAV([GCS_mode,[0,0,0]])
+    # if GCS_mode == None:
+    #     send_status_to_UAV([GCS_mode,[0,0,0]])
 
 
 
