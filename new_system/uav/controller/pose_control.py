@@ -217,6 +217,8 @@ class pose_controller_class:
         pitch = np.arctan(ftx/ftz)
         roll = np.arctan(fty/ftz)
 
+
+
         TODO: Test to make sure the total force is being correctly translated to the body coordinate system. 
 
         # Saturate
