@@ -67,7 +67,7 @@ def setup_abort(abort_reason=None):
         time.sleep(1)
         t+=1
     sys.exit(1)
-
+print "\n\n\n\n"
 logging.info("------------ STARTING AEROWAKE SYSTEM ------------")
 logging.info("-------------------- UAV NODE --------------------")
 
@@ -297,13 +297,11 @@ while True:
     # State Information
     pose_controller.uav_coord = [autopilot.location.global_frame.lat, autopilot.location.global_frame.lon]     # GPS Coordinates of UAV [lat,lon] from pixhawk (DD.DDDDDDD)
     pose_controller.uav_vel = [autopilot.velocity[0],autopilot.velocity[1],autopilot.velocity[2]]      # UAV velocity [x,y,z] from pixhawk (m/s)
-    
     pose_controller.uav_alt = (autopilot.location.global_relative_frame.alt )       # UAV Alt from pixhawk (m)
     pose_controller.uav_heading = autopilot.attitude.yaw        # UAV Heading (degrees)
 
     pose_controller.gcs_coord = [gcs.location.global_frame.lat, gcs.location.global_frame.lon]       # GPS Coordinates of GCS [lat,lon] from pixhawk (DD.DDDDDD)
     pose_controller.gcs_vel = [gcs.velocity[0], gcs.velocity[1], gcs.velocity[2]]        # GCS Velocity [x,y,z] from pixhawk (m/s)
-
     pose_controller.gcs_alt = (gcs.location.global_relative_frame.alt )         # GCS Altitude from pixhawk (m)
     pose_controller.gcs_heading = gcs.attitude.yaw       # GCS Heading (rad)
 
@@ -317,7 +315,7 @@ while True:
     data = pose_controller.get_relative_angles()
     print "get angles    %.2f,  %.2f,  %.2f " %(data[0],data[1],data[2])
 
-    pose_controller.goal_pose = [data[0],data[1],data[2]] # UAV Goal Position [theta,phi,r] (radians)
+    pose_controller.goal_pose = [data[0],data[1]-.1,data[2]] # UAV Goal Position [theta,phi,r] (radians)
 
     output = pose_controller.run_pose_controller()
     print "Outputs: %.2f,  %.2f,  %.2f,  %.2f" %(output[0],output[1],output[2],output[3])

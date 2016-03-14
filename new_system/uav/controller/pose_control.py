@@ -45,11 +45,11 @@ class pose_controller_class:
         # self.k_th  =[1,   2.0,  1.0]
         # self.k_r   =[.5,   3] 
 
-        self.k_phi =[.01, 0,  0] 
-        self.k_th  =[.01,   0,  0]
+        self.k_phi =[.1, 0,  0] 
+        self.k_th  =[.1,   0,  0]
         self.k_r   =[.01,  0] 
 
-        self.ft    = 3.3 #Extra tension to add to tether. (newtons)
+        self.ft    = 0*3.3 #Extra tension to add to tether. (newtons)
         self.weight_tether = 0
         self.uav_weight = 20 #weight of the UAV in Newtons. 
 
@@ -210,7 +210,7 @@ class pose_controller_class:
         ftx = ftx*np.cos(phi) + fty*np.sin(phi)
         fty = -ftx*np.sin(phi) + fty*np.cos(phi)
 
-        print ">> Total Rotated:    %.2f, %.2f, %.2f" %(ftx,fty,ftz)
+        print ">> Total Rotated in BF:    %.2f, %.2f, %.2f" %(ftx,fty,ftz)
 
         f_total = (ftx*ftx+fty*fty+ftz*ftz)**0.5
         throttle = self.thr_2_force(f_total)
@@ -219,7 +219,7 @@ class pose_controller_class:
 
 
 
-        TODO: Test to make sure the total force is being correctly translated to the body coordinate system. 
+        #TODO: Test to make sure the total force is being correctly translated to the body coordinate system. 
 
         # Saturate
         ATT_MAX = .7
