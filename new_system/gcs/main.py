@@ -16,7 +16,8 @@ from multiprocessing import Queue
 from Queue import Empty
 
 from dronekit import APIException, VehicleMode, connect, mavutil
-from reel.reel_main import reel_run
+#from reel.reel_main import reel_run
+from interface.interface import interface_run
 
 
 # gcs Connection Path. UDP for local simulation. 
@@ -69,6 +70,17 @@ time.sleep(2)
 
 
 ####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Multiprocessing System Setup !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+commands_to_interface = Queue()
+data_from_interface = Queue()
+
+try:
+    ui = interface_run(commands_to_interface,data_from_interface)
+except Exception:
+    logging.critical('Problem connecting to UI')
+    setup_abort("UI Failure")
+ui.start()
 
 
 # #### Start Reel Controller ####
@@ -190,19 +202,18 @@ logging.info("------------------SYSTEM IS READY!!------------------")
 logging.info("-----------------------------------------------------")
 
 
-GCS_mode = None
-G_AUTO = 0
-G_TAKEOFF = 1
-G_LAND = 2
+GCS_cmd = None
+G_AUTO = 'AUTO_CMD'
+G_TAKEOFF = 'TAKEOFF_CMD'
+G_LAND = 'LAND_CMD'
 
 while True:
-    
+    time.sleep(.1)
 
-    send_msg_to_gcs("99999999")
-    send_ned_velocity(9,9,9)
 
-    print " GCS Location:"
-    print [gcs.location.global_frame.lat, gcs.location.global_frame.lon]
+
+    #print " GCS Location:"
+    #print [gcs.location.global_frame.lat, gcs.location.global_frame.lon]
     #Get Reel Info:
     # try:
     #     reel_reading = data_from_airprobe.get(False)
@@ -222,29 +233,43 @@ while True:
     # ##########################################################################################v
     # # Determine flight mode and waypoints for the vehicle
 
+
+    commands_to_interface.put(000)
+
+    try:
+        GCS_cmd = data_from_interface.get(False)
+    except Empty:
+        pass
+
     # # Modes:
     # # Take Off = Take the vehicle off with slight pitch up.
     # # Auto = Position Control. Needs goal location. 
     # # Land = Landing vehicle: Maintain some throttle and reel the tether in.
     # # None = Do nothing. Initial state. Motors will be on safe, vehicle disarmed. 
 
-    # if GCS_mode == G_AUTO:
+    if GCS_cmd == "ADV_CMD":
+        GCS_cmd = "AUTO_CMD"
+        print "Advance Goal Target"
+
+    print GCS_cmd
+
+    # if GCS_cmd == G_AUTO:
     #     goal_pose = [0,80,10] # phi, theta, R in degrees, meters
     #     send_status_to_UAV([GCS_mode,goal_pose])
 
-    # if GCS_mode == G_TAKEOFF:
+    # if GCS_cmd == G_TAKEOFF:
     #     r_set = reel_reading[0] # SEt the new goal to a stable location and let the tether wind out. 
     #     initial_wp = [0,80,r_set]
     #     send_status_to_UAV([GCS_mode, initial_wp])
     #     #TODO: Command reel to let tether line out. 
 
-    # if GCS_mode == G_LAND:
+    # if GCS_cmd == G_LAND:
     #     r_prev = reel_reading[0] #Set the new position to a stable location and keep setting the goal R = current reel length
     #     final_wp = [0,70,r_prev]
     #     send_status_to_UAV([GCS_mode, final_wp])
     #     #TODO: Command reel to pull tether line in. 
 
-    # if GCS_mode == None:
+    # if GCS_cmd == None:
     #     send_status_to_UAV([GCS_mode,[0,0,0]])
 
 

@@ -107,6 +107,21 @@ class pose_controller_class:
         self.uav_pose=[theta,phi,r]
         return [theta,phi,r]
 
+    def eul2quat(roll,pitch,yaw):
+        c1=np.cos(yaw)
+        c2=np.cos(pitch)
+        c3=np.cos(roll)
+
+        s1=np.sin(yaw)
+        s2=np.sin(pitch)
+        s3=np.sin(roll)
+
+        w = np.sqrt(1.0 + c1 * c2 + c1*c3 - s1 * s2 * s3 + c2*c3) / 2
+        x = (c2 * s3 + c1 * s3 + s1 * s2 * c3) / (4.0 * w) 
+        y = (s1 * c2 + s1 * c3 + c1 * s2 * s3) / (4.0 * w)
+        z = (-s1 * s3 + c1 * s2 * c3 + s2) /(4.0 * w) 
+        print [w,x,y,z]
+
 
 ##!!!!!!!!!!!!!!!!!!!!!!!!!! Mapping Functions !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -224,11 +239,14 @@ class pose_controller_class:
         # Saturate
         ATT_MAX = .7
 
-        pitch_cmd = self.saturate(pitch,-ATT_MAX,ATT_MAX)
-        roll_cmd = self.saturate(roll,-ATT_MAX,ATT_MAX)
+        pitch_cmd = self.saturate(pitch,-ATT_MAX,ATT_MAX)*180/np.pi
+        roll_cmd = self.saturate(roll,-ATT_MAX,ATT_MAX)*180/np.pi
+        yaw_cmd = self.get_bearing()*180/np.pi
 
-        yaw_angle = self.get_bearing()*180/np.pi
+        #return [roll_cmd,pitch_cmd,throttle,yaw_cmd]
 
-        return [roll_cmd,pitch_cmd,throttle,yaw_angle]
+        quat = eul2quat(roll_cmd,pitch_cmd,yaw_cmd)
+
+        return quat
 
 

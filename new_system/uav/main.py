@@ -126,7 +126,7 @@ pose_controller = pose_controller_class()
 #     logging.critical('Problem connection to airprobe. Aborting.')
 #     setup_abort("Airprobe System Failure")
 #     #sys.exit(1)
-# airporbe.start()
+# airprobe.start()
 
 
 ####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Pixhawk System Setup !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -305,22 +305,18 @@ while True:
     pose_controller.gcs_alt = (gcs.location.global_relative_frame.alt )         # GCS Altitude from pixhawk (m)
     pose_controller.gcs_heading = gcs.attitude.yaw       # GCS Heading (rad)
 
-    bearing = pose_controller.get_bearing()*180/np.pi
-
-    if np.abs(bearing - prev_yaw)>.5:
-        condition_yaw(bearing)
-        prev_yaw = (bearing)
-
     print "\n\n ================= "
     data = pose_controller.get_relative_angles()
     print "get angles    %.2f,  %.2f,  %.2f " %(data[0],data[1],data[2])
 
-    pose_controller.goal_pose = [data[0],data[1]-.1,data[2]] # UAV Goal Position [theta,phi,r] (radians)
+    #pose_controller.goal_pose = [data[0],data[1],data[2]] # UAV Goal Position [theta,phi,r] (radians)
+    pose_controller.goal_pose = [80*np.pi/180,0,135]
 
     output = pose_controller.run_pose_controller()
     print "Outputs: %.2f,  %.2f,  %.2f,  %.2f" %(output[0],output[1],output[2],output[3])
 
 
+    condition_yaw(output[3])
     # #Get AirProbe Info:
     # try:
     #     air_probe_reading = data_from_airprobe.get(False)
