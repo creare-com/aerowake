@@ -47,6 +47,8 @@ class interface_run (Process):
         frame = Frame(root)
         frame.pack()
 
+
+
         b1 = Button(frame, text="QUIT", fg="red",command=frame.quit)
         b1.pack(fill=X)
 
