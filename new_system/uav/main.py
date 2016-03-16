@@ -234,7 +234,7 @@ def abort_mission(reason):
     #TODO: TEST THIS OUT to make sure it doesnt lock us in whatever mode we specify. 
 
 def set_attitude_target(quat):
-    msg = vehicle.message_factory.set_attitude_target_encode(
+    msg = autopilot.message_factory.set_attitude_target_encode(
         0, 0,0,
         0b000000001,     # bitmask
         quat,    # quat
@@ -242,7 +242,7 @@ def set_attitude_target(quat):
         0,              #  pitch rate
         0,              # yaw speed deg/s
         .5)             # thrust
-    vehicle.send_mavlink(msg)
+    autopilot.send_mavlink(msg)
 
 
 def condition_yaw(heading, relative=False):
@@ -267,19 +267,41 @@ def condition_yaw(heading, relative=False):
     # send command to vehicle
     autopilot.send_mavlink(msg)
 
-def set_roi(location):
-    # create the MAV_CMD_DO_SET_ROI command
-    msg = autopilot.message_factory.command_long_encode(
-        0, 0,    # target system, target component
-        mavutil.mavlink.MAV_CMD_DO_SET_ROI, #command
-        0, #confirmation
-        0, 0, 0, 0, #params 1-4
-        location.lat,
-        location.lon,
-        location.alt
-        )
-    # send command to vehicle
-    autopilot.send_mavlink(msg)
+def download_mission():
+    """ Downloads the current mission and returns it in a list. """
+    missionlist=[]
+    cmds = gcs.commands
+    cmds.download()
+    cmds.wait_ready()
+    for cmd in cmds:
+        missionlist.append(cmd)
+        #print "I See A Waypoint!"
+    for cmd in cmds:
+        cmds.clear()
+        cmds.upload()
+        #print "I Cleared The Waypoint"
+
+    return missionlist
+
+def read_mission():
+
+    missionlist = download_mission()
+
+    data=[]
+    for cmd in missionlist:
+        #(cmd.seq,cmd.current,cmd.frame,cmd.command,cmd.param1,cmd.param2,cmd.param3,cmd.param4,cmd.x,cmd.y,cmd.z,cmd.autocontinue)
+        data.append(cmd.param1)
+        data.append(cmd.x)
+        data.append(cmd.y)
+        data.append(cmd.z)
+
+        print  data#"%.1f  %.1f  %.1f  %.1f  "  %(cmd.param1,cmd.x, cmd.y, cmd.z)
+
+    if data!=[]:
+        pose_controller.goal_pose = [data[1],data[2],data[3]] # [theta,phi,r] in radians
+        pose_controller.goal_mode = data[0]
+
+
 
 
 logging.info("------------------SYSTEM IS READY!!------------------")
@@ -292,8 +314,11 @@ G_LAND = 2
 
 prev_yaw=0
 
+prev_time = datetime.datetime.now()
+
+
 while True:
-    time.sleep(.1)
+    time.sleep(0.5)
     # State Information
     pose_controller.uav_coord = [autopilot.location.global_frame.lat, autopilot.location.global_frame.lon]     # GPS Coordinates of UAV [lat,lon] from pixhawk (DD.DDDDDDD)
     pose_controller.uav_vel = [autopilot.velocity[0],autopilot.velocity[1],autopilot.velocity[2]]      # UAV velocity [x,y,z] from pixhawk (m/s)
@@ -304,19 +329,40 @@ while True:
     pose_controller.gcs_vel = [gcs.velocity[0], gcs.velocity[1], gcs.velocity[2]]        # GCS Velocity [x,y,z] from pixhawk (m/s)
     pose_controller.gcs_alt = (gcs.location.global_relative_frame.alt )         # GCS Altitude from pixhawk (m)
     pose_controller.gcs_heading = gcs.attitude.yaw       # GCS Heading (rad)
+    print " ================= "
 
-    print "\n\n ================= "
-    data = pose_controller.get_relative_angles()
-    print "get angles    %.2f,  %.2f,  %.2f " %(data[0],data[1],data[2])
+    curr_time = datetime.datetime.now()
+    delta = (curr_time-prev_time).total_seconds()
+    if delta>2:
+        read_mission()
+        prev_time=curr_time
+        #print "tried to read mission"
+    
 
     #pose_controller.goal_pose = [data[0],data[1],data[2]] # UAV Goal Position [theta,phi,r] (radians)
-    pose_controller.goal_pose = [80*np.pi/180,0,135]
+
 
     output = pose_controller.run_pose_controller()
-    print "Outputs: %.2f,  %.2f,  %.2f,  %.2f" %(output[0],output[1],output[2],output[3])
+    print "Outputs: %.2f,  %.2f,  %.2f,  %.2f" %(output[0],output[1],output[2],0)
+    #condition_yaw(output[3])
+    
+    set_attitude_target(output)
 
 
-    condition_yaw(output[3])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     # #Get AirProbe Info:
     # try:
     #     air_probe_reading = data_from_airprobe.get(False)

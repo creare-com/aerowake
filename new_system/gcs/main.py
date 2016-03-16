@@ -15,7 +15,7 @@ import time
 from multiprocessing import Queue
 from Queue import Empty
 
-from dronekit import APIException, VehicleMode, connect, mavutil
+from dronekit import APIException, VehicleMode, connect, mavutil, Command
 #from reel.reel_main import reel_run
 from interface.interface import interface_run
 
@@ -62,7 +62,7 @@ def setup_abort(abort_reason=None):
         time.sleep(1)
         t+=1
     sys.exit(1)
-
+print "\n\n\n\n\n\n"
 logging.info("------------ STARTING AEROWAKE SYSTEM ------------")
 logging.info("-------------------- GCS NODE --------------------")
 time.sleep(2)
@@ -195,7 +195,48 @@ def send_ned_velocity(velocity_x, velocity_y, velocity_z):
         0, 0)    # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink)
     gcs.send_mavlink(msg)
 
+def download_mission():
+    """
+    Downloads the current mission and returns it in a list.
+    It is used in save_mission() to get the file information to save.
+    """
+    missionlist=[]
+    cmds = gcs.commands
+    cmds.download()
+    cmds.wait_ready()
+    for cmd in cmds:
+        missionlist.append(cmd)
+    return missionlist
 
+def set_waypoint(mode,theta,phi,R,tether_l=-1,tether_t=-1,extra=-1):
+    cmds = gcs.commands
+    cmds.download()
+    cmds.wait_ready()
+    cmds.clear()
+    cmd1=Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, 
+        mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, mode, 0, 0, 0, theta, phi, R)
+    cmd3=Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, 
+        mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 9,  0, 0, 0, tether_l, tether_t, extra)
+    cmds.add(cmd1)
+    cmds.add(cmd3)
+    cmds.upload()
+
+def print_mission():
+
+    missionlist = download_mission()
+    for cmd in missionlist:
+        #(cmd.seq,cmd.current,cmd.frame,cmd.command,cmd.param1,cmd.param2,cmd.param3,cmd.param4,cmd.x,cmd.y,cmd.z,cmd.autocontinue)
+        print cmd.param1
+        print cmd.x
+        print cmd.y
+        print cmd.z
+
+def clear_mission():
+    cmds =gcs.commands
+    cmds.download()
+    cmds.wait_ready()
+    cmds.clear()
+    cmds.upload()
 
 
 logging.info("------------------SYSTEM IS READY!!------------------")
@@ -203,14 +244,14 @@ logging.info("-----------------------------------------------------")
 
 
 GCS_cmd = None
-G_AUTO = 'AUTO_CMD'
-G_TAKEOFF = 'TAKEOFF_CMD'
-G_LAND = 'LAND_CMD'
+G_AUTO = 0
+G_TAKEOFF = 1
+G_LAND = 2
+
+i=0
 
 while True:
     time.sleep(.1)
-
-
 
     #print " GCS Location:"
     #print [gcs.location.global_frame.lat, gcs.location.global_frame.lon]
@@ -238,8 +279,10 @@ while True:
 
     try:
         GCS_cmd = data_from_interface.get(False)
+        print GCS_cmd
     except Empty:
         pass
+
 
     # # Modes:
     # # Take Off = Take the vehicle off with slight pitch up.
@@ -247,11 +290,49 @@ while True:
     # # Land = Landing vehicle: Maintain some throttle and reel the tether in.
     # # None = Do nothing. Initial state. Motors will be on safe, vehicle disarmed. 
 
+    if GCS_cmd == "AUTO_CMD":
+        phi = i
+        theta = 1.5-i
+        R = 20
+        mode = G_AUTO
+        set_waypoint(mode,theta,phi,R)
+        print "Auto Mode"
+        print_mission()
+
     if GCS_cmd == "ADV_CMD":
+        i+=10
+        phi = i
+        theta = 1.5-i
+        R = 20
+        mode = G_AUTO
+        set_waypoint(mode,theta,phi,R)
         GCS_cmd = "AUTO_CMD"
         print "Advance Goal Target"
+        print_mission()
 
-    print GCS_cmd
+
+    if GCS_cmd == "TAKEOFF_CMD":
+        phi = 0
+        theta = 80
+        R = 10
+        mode = G_TAKEOFF
+        set_waypoint(mode,theta,phi,R)
+        print "Takeoff Waypoint Set"
+        print_mission()
+
+    if GCS_cmd == "LAND_CMD":
+        phi = 0
+        theta = 80
+        R = 10
+        mode = G_LAND
+        set_waypoint(mode,theta,phi,R)
+        print "Land Waypoint Set"
+        print_mission()
+
+
+
+    GCS_cmd=None
+
 
     # if GCS_cmd == G_AUTO:
     #     goal_pose = [0,80,10] # phi, theta, R in degrees, meters

@@ -25,6 +25,7 @@ class pose_controller_class:
 
         # Inputs 
         self.goal_pose = [0,0,0]	# UAV Goal Position [theta,phi,r] (radians)
+        self.goal_mode = None       # G_AUTO=0,  G_TAKEOFF=1,  G_LAND=2
 
         # Outputs
         self.goal_attitude = [0,0] 	# UAV Goal attitude [roll, pitch] (radians)
@@ -93,7 +94,8 @@ class pose_controller_class:
         #if g_rel_ang<0:
         #    g_rel_ang=g_rel_ang+2*np.pi
         bearing=g_rel_ang
-        return bearing#[degrees]
+
+        return bearing#[radians, somehow]
 
     def get_relative_angles(self): #Tested.
         # Theta First:
@@ -107,20 +109,36 @@ class pose_controller_class:
         self.uav_pose=[theta,phi,r]
         return [theta,phi,r]
 
-    def eul2quat(roll,pitch,yaw):
-        c1=np.cos(yaw)
-        c2=np.cos(pitch)
-        c3=np.cos(roll)
+    def eul2quat(self,roll,pitch,yaw):
 
-        s1=np.sin(yaw)
-        s2=np.sin(pitch)
-        s3=np.sin(roll)
+        cr2 = np.cos(roll*0.5);
+        cp2 = np.cos(pitch*0.5);
+        cy2 = np.cos(yaw*0.5);
+        sr2 = np.sin(roll*0.5);
+        sp2 = np.sin(pitch*0.5);
+        sy2 = np.sin(yaw*0.5);
 
-        w = np.sqrt(1.0 + c1 * c2 + c1*c3 - s1 * s2 * s3 + c2*c3) / 2
-        x = (c2 * s3 + c1 * s3 + s1 * s2 * c3) / (4.0 * w) 
-        y = (s1 * c2 + s1 * c3 + c1 * s2 * s3) / (4.0 * w)
-        z = (-s1 * s3 + c1 * s2 * c3 + s2) /(4.0 * w) 
-        print [w,x,y,z]
+        q1 = cr2*cp2*cy2 + sr2*sp2*sy2;
+        q2 = sr2*cp2*cy2 - cr2*sp2*sy2;
+        q3 = cr2*sp2*cy2 + sr2*cp2*sy2;
+        q4 = cr2*cp2*sy2 - sr2*sp2*cy2;
+
+        return [q1,q2,q3,q4]
+        # c1=np.cos(yaw)
+        # c2=np.cos(pitch)
+        # c3=np.cos(roll)
+
+        # s1=np.sin(yaw)
+        # s2=np.sin(pitch)
+        # s3=np.sin(roll)
+
+        # w = np.sqrt(1.0 + c1 * c2 + c1*c3 - s1 * s2 * s3 + c2*c3) / 2
+        # x = (c2 * s3 + c1 * s3 + s1 * s2 * c3) / (4.0 * w) 
+        # y = (s1 * c2 + s1 * c3 + c1 * s2 * s3) / (4.0 * w)
+        # z = (-s1 * s3 + c1 * s2 * c3 + s2) /(4.0 * w) 
+        
+
+
 
 
 ##!!!!!!!!!!!!!!!!!!!!!!!!!! Mapping Functions !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -239,13 +257,17 @@ class pose_controller_class:
         # Saturate
         ATT_MAX = .7
 
-        pitch_cmd = self.saturate(pitch,-ATT_MAX,ATT_MAX)*180/np.pi
-        roll_cmd = self.saturate(roll,-ATT_MAX,ATT_MAX)*180/np.pi
-        yaw_cmd = self.get_bearing()*180/np.pi
+        pitch_cmd = self.saturate(pitch,-ATT_MAX,ATT_MAX)
+        roll_cmd = self.saturate(roll,-ATT_MAX,ATT_MAX)
+        yaw_cmd = self.get_bearing()  # positive is right bearing. this sets the target.
 
-        #return [roll_cmd,pitch_cmd,throttle,yaw_cmd]
 
-        quat = eul2quat(roll_cmd,pitch_cmd,yaw_cmd)
+        roll_cmd = 0.9 # positive is a roll right. 
+        pitch_cmd = 0.2 # positive is pitch up
+         
+        throttle = .5
+        quat = self.eul2quat(roll_cmd,pitch_cmd,yaw_cmd)
+
 
         return quat
 
