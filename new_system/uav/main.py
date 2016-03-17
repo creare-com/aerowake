@@ -340,12 +340,9 @@ while True:
     
 
     #pose_controller.goal_pose = [data[0],data[1],data[2]] # UAV Goal Position [theta,phi,r] (radians)
-
+    pose_controller.goal_pose = [1.5,.3*0,200]
 
     output = pose_controller.run_pose_controller()
-    print "Outputs: %.2f,  %.2f,  %.2f,  %.2f" %(output[0],output[1],output[2],0)
-    #condition_yaw(output[3])
-    
     set_attitude_target(output)
 
 

@@ -46,9 +46,9 @@ class pose_controller_class:
         # self.k_th  =[1,   2.0,  1.0]
         # self.k_r   =[.5,   3] 
 
-        self.k_phi =[.1, 0,  0] 
-        self.k_th  =[.1,   0,  0]
-        self.k_r   =[.01,  0] 
+        self.k_phi =[1, 0,  0] 
+        self.k_th  =[1,   0,  0]
+        self.k_r   =[.1,  0] 
 
         self.ft    = 0*3.3 #Extra tension to add to tether. (newtons)
         self.weight_tether = 0
@@ -261,9 +261,10 @@ class pose_controller_class:
         roll_cmd = self.saturate(roll,-ATT_MAX,ATT_MAX)
         yaw_cmd = self.get_bearing()  # positive is right bearing. this sets the target.
 
+        print ">> Attitude Commands:  %.1f,  %.1f,  %.1f" %(roll_cmd,pitch_cmd,yaw_cmd)
 
-        roll_cmd = 0.9 # positive is a roll right. 
-        pitch_cmd = 0.2 # positive is pitch up
+        #roll_cmd = 0.0 # positive is a roll right. 
+        #pitch_cmd = 0.0 # positive is pitch up
          
         throttle = .5
         quat = self.eul2quat(roll_cmd,pitch_cmd,yaw_cmd)
