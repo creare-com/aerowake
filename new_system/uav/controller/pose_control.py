@@ -24,7 +24,7 @@ class pose_controller_class:
         self.gcs_tether_tension = 0 # GCS Tether Tension (newtons)
 
         # Inputs 
-        self.goal_pose = [0,0,0]	# UAV Goal Position [theta,phi,r] (radians)
+        self.goal_pose = [1.57,0,10]	# UAV Goal Position [theta,phi,r] (radians)
         self.goal_mode = None       # G_AUTO=0,  G_TAKEOFF=1,  G_LAND=2
 
         # Outputs
@@ -124,29 +124,7 @@ class pose_controller_class:
         q4 = cr2*cp2*sy2 - sr2*sp2*cy2;
 
         return [q1,q2,q3,q4]
-        # c1=np.cos(yaw)
-        # c2=np.cos(pitch)
-        # c3=np.cos(roll)
-
-        # s1=np.sin(yaw)
-        # s2=np.sin(pitch)
-        # s3=np.sin(roll)
-
-        # w = np.sqrt(1.0 + c1 * c2 + c1*c3 - s1 * s2 * s3 + c2*c3) / 2
-        # x = (c2 * s3 + c1 * s3 + s1 * s2 * c3) / (4.0 * w) 
-        # y = (s1 * c2 + s1 * c3 + c1 * s2 * s3) / (4.0 * w)
-        # z = (-s1 * s3 + c1 * s2 * c3 + s2) /(4.0 * w) 
-        
-
-
-
-
-##!!!!!!!!!!!!!!!!!!!!!!!!!! Mapping Functions !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-    def thr_2_force(self,force):
-        thr = force * 1
-        return force
-        #return int(self.saturate(thr,0,1))
+   
 
 ##!!!!!!!!!!!!!!!!!!!!!!!!!!!! Estimation Functions !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -158,9 +136,6 @@ class pose_controller_class:
         fy = (r_in)*np.sin(phi)*np.sin(th);
         fz = (r_in)*np.cos(th) + self.weight_tether;
         return [fx,fy,fz]
-
-
-
 
 ##!!!!!!!!!!!!!!!!!!!!!!!!!!!! Run Controller Function !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -201,10 +176,12 @@ class pose_controller_class:
         self.e_phi_int = self.saturate(self.e_phi_int,-5,5)
         self.e_th_int = self.saturate(self.e_th,-5,5)
 
+
+        GCS_TETHER_T_GAIN =0
         #PID magic
         phi_in = (self.k_phi[0]*self.e_phi) +  (self.k_phi[1]*e_phi_dot) + (self.k_phi[2]*self.e_phi_int)
         th_in = (self.k_th[0]*self.e_th) +  (self.k_th[1] * e_th_dot) + (self.k_th[2]*self.e_th_int)
-        r_in = self.k_r[0]*self.e_r + self.k_r[1]*e_r_dot + self.gcs_tether_tension + self.ft
+        r_in = self.k_r[0]*self.e_r + self.k_r[1]*e_r_dot + self.gcs_tether_tension*GCS_TETHER_T_GAIN + self.ft
 
         print ">> Inputs:   %.2f, %.2f, %.2f" %(th_in,phi_in,r_in)
 
@@ -243,33 +220,38 @@ class pose_controller_class:
         ftx = ftx*np.cos(phi) + fty*np.sin(phi)
         fty = -ftx*np.sin(phi) + fty*np.cos(phi)
 
-        print ">> Total Rotated in BF:    %.2f, %.2f, %.2f" %(ftx,fty,ftz)
+        FORCE_MAX = 15
+
+        print ">> Total Rotated in BF:    %.2f, %.2f, %.2f" %(ftx,fty,ftz-self.uav_weight)
 
         f_total = (ftx*ftx+fty*fty+ftz*ftz)**0.5
-        throttle = self.thr_2_force(f_total)
         pitch = np.arctan(ftx/ftz)
         roll = np.arctan(fty/ftz)
 
-
-
-        #TODO: Test to make sure the total force is being correctly translated to the body coordinate system. 
+        print ">> Roll, Pitch:     %.2f,   %.2f" %(roll*180/np.pi, pitch*180/np.pi)
 
         # Saturate
-        ATT_MAX = .7
+        ATT_MAX = .5
 
         pitch_cmd = self.saturate(pitch,-ATT_MAX,ATT_MAX)
         roll_cmd = self.saturate(roll,-ATT_MAX,ATT_MAX)
-        yaw_cmd = self.get_bearing()  # positive is right bearing. this sets the target.
+        yaw_cmd = self.get_bearing()
 
-        print ">> Attitude Commands:  %.1f,  %.1f,  %.1f" %(roll_cmd,pitch_cmd,yaw_cmd)
+        K_THROTTLE = .05
+        thr_cmd = ((ftz-self.uav_weight)*K_THROTTLE)+.5
+
+        thr_cmd = self.saturate(thr_cmd,0,1)
+
+
+        print ">> Output Commands:  %.1f,  %.1f,  %.1f,  %.1f" %(roll_cmd,pitch_cmd,yaw_cmd,thr_cmd)
 
         #roll_cmd = 0.0 # positive is a roll right. 
         #pitch_cmd = 0.0 # positive is pitch up
          
-        throttle = .5
         quat = self.eul2quat(roll_cmd,pitch_cmd,yaw_cmd)
+        #thr_cmd = .5
 
 
-        return quat
+        return [quat[0],quat[1],quat[2],quat[3],thr_cmd]
 
 

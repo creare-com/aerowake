@@ -19,12 +19,6 @@ def eul2quat(roll,pitch,yaw):
 
     return [q1,q2,q3,q4]
 
-print eul2quat(0,45*np.pi/180,45*np.pi/180)
-
-
-
-
-
 
 
 # roll = 0

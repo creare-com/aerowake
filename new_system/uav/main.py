@@ -233,7 +233,9 @@ def abort_mission(reason):
     autopilot.mode = VehicleMode("ALTHOLD")
     #TODO: TEST THIS OUT to make sure it doesnt lock us in whatever mode we specify. 
 
-def set_attitude_target(quat):
+def set_attitude_target(data_in):
+    quat = data_in[0:4]
+    thr = data_in[4]
     msg = autopilot.message_factory.set_attitude_target_encode(
         0, 0,0,
         0b000000001,     # bitmask
@@ -241,7 +243,7 @@ def set_attitude_target(quat):
         0,              #roll rate
         0,              #  pitch rate
         0,              # yaw speed deg/s
-        .5)             # thrust
+        thr)             # thrust
     autopilot.send_mavlink(msg)
 
 
@@ -295,11 +297,13 @@ def read_mission():
         data.append(cmd.y)
         data.append(cmd.z)
 
-        print  data#"%.1f  %.1f  %.1f  %.1f  "  %(cmd.param1,cmd.x, cmd.y, cmd.z)
-
     if data!=[]:
+        print  data
         pose_controller.goal_pose = [data[1],data[2],data[3]] # [theta,phi,r] in radians
         pose_controller.goal_mode = data[0]
+        if len(data)>5:
+            pose_controller.gcs_tether_l = data[5]
+            pose_controller.gcs_tether_tension = data[6]
 
 
 
@@ -340,10 +344,24 @@ while True:
     
 
     #pose_controller.goal_pose = [data[0],data[1],data[2]] # UAV Goal Position [theta,phi,r] (radians)
-    pose_controller.goal_pose = [1.5,.3*0,200]
+    # pose_controller.goal_pose = [1.5,0,50]
+    # output = pose_controller.run_pose_controller()
+    # set_attitude_target(output)
 
-    output = pose_controller.run_pose_controller()
-    set_attitude_target(output)
+###### CONTROLLER MANAGEMENT
+
+    if pose_controller.goal_mode ==G_AUTO:
+        output = pose_controller.run_pose_controller()
+        set_attitude_target(output)
+
+    if pose_controller.goal_mode ==G_TAKEOFF:
+        set_attitude_target([1,0,0,pose_controller.get_bearing(),.5])
+
+    if pose_controller.goal_mode ==G_LAND:
+        set_attitude_target([1,0,0,pose_controller.get_bearing(),.5])
+
+    if pose_controller.goal_mode ==None:
+        set_attitude_target([1,0,0,pose_controller.get_bearing(),.5])
 
 
 

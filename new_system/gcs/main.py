@@ -216,7 +216,7 @@ def set_waypoint(mode,theta,phi,R,tether_l=-1,tether_t=-1,extra=-1):
     cmd1=Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, 
         mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, mode, 0, 0, 0, theta, phi, R)
     cmd3=Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, 
-        mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 9,  0, 0, 0, tether_l, tether_t, extra)
+        mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, -1,  0, 0, 0, tether_l, tether_t, extra)
     cmds.add(cmd1)
     cmds.add(cmd3)
     cmds.upload()
@@ -247,14 +247,16 @@ GCS_cmd = None
 G_AUTO = 0
 G_TAKEOFF = 1
 G_LAND = 2
-
+mode=None
 i=0
+
+MISSION_TH  = [1.5, 1.5, 1.5, 1.5,  1.3, 1.3, 1.3, 1.3]
+MISSION_PHI = [  0,  .5,   0, -.5,  -.5,   0,  .5,   0]
+MISSION_R   = [ 50,  50,  50,  60,   60,  70,  70, 100] 
 
 while True:
     time.sleep(.1)
 
-    #print " GCS Location:"
-    #print [gcs.location.global_frame.lat, gcs.location.global_frame.lon]
     #Get Reel Info:
     # try:
     #     reel_reading = data_from_airprobe.get(False)
@@ -284,6 +286,9 @@ while True:
         pass
 
 
+
+    print "Mode: ",mode," Theta: %.1f  Phi: %.1f  R: %.1f" %(MISSION_TH[i],MISSION_PHI[i],MISSION_R[i])
+
     # # Modes:
     # # Take Off = Take the vehicle off with slight pitch up.
     # # Auto = Position Control. Needs goal location. 
@@ -291,19 +296,22 @@ while True:
     # # None = Do nothing. Initial state. Motors will be on safe, vehicle disarmed. 
 
     if GCS_cmd == "AUTO_CMD":
-        phi = i
-        theta = 1.5-i
-        R = 20
+        phi = MISSION_PHI[i]
+        theta = MISSION_TH[i]
+        R = MISSION_R[i]
         mode = G_AUTO
         set_waypoint(mode,theta,phi,R)
         print "Auto Mode"
         print_mission()
 
     if GCS_cmd == "ADV_CMD":
-        i+=10
-        phi = i
-        theta = 1.5-i
-        R = 20
+        i+=1
+        if i==len(MISSION_TH):
+            i=0
+
+        phi = MISSION_PHI[i]
+        theta = MISSION_TH[i]
+        R = MISSION_R[i]
         mode = G_AUTO
         set_waypoint(mode,theta,phi,R)
         GCS_cmd = "AUTO_CMD"
@@ -313,8 +321,8 @@ while True:
 
     if GCS_cmd == "TAKEOFF_CMD":
         phi = 0
-        theta = 80
-        R = 10
+        theta = 1.5
+        R = 20
         mode = G_TAKEOFF
         set_waypoint(mode,theta,phi,R)
         print "Takeoff Waypoint Set"
@@ -322,8 +330,8 @@ while True:
 
     if GCS_cmd == "LAND_CMD":
         phi = 0
-        theta = 80
-        R = 10
+        theta = 1.5
+        R = 20
         mode = G_LAND
         set_waypoint(mode,theta,phi,R)
         print "Land Waypoint Set"
@@ -331,27 +339,8 @@ while True:
 
 
 
-    GCS_cmd=None
-
-
-    # if GCS_cmd == G_AUTO:
-    #     goal_pose = [0,80,10] # phi, theta, R in degrees, meters
-    #     send_status_to_UAV([GCS_mode,goal_pose])
-
-    # if GCS_cmd == G_TAKEOFF:
-    #     r_set = reel_reading[0] # SEt the new goal to a stable location and let the tether wind out. 
-    #     initial_wp = [0,80,r_set]
-    #     send_status_to_UAV([GCS_mode, initial_wp])
-    #     #TODO: Command reel to let tether line out. 
-
-    # if GCS_cmd == G_LAND:
-    #     r_prev = reel_reading[0] #Set the new position to a stable location and keep setting the goal R = current reel length
-    #     final_wp = [0,70,r_prev]
-    #     send_status_to_UAV([GCS_mode, final_wp])
-    #     #TODO: Command reel to pull tether line in. 
-
-    # if GCS_cmd == None:
-    #     send_status_to_UAV([GCS_mode,[0,0,0]])
+    GCS_cmd="Waiting"
+    
 
 
 

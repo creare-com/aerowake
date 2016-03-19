@@ -1032,3 +1032,354 @@
 2406.04615211,INFO: ------------------SYSTEM IS READY!!------------------
 2406.15916252,INFO: -----------------------------------------------------
 2421.37813568,INFO: Got GPS lock at 2016-03-17 09:51:08
+90.6529426575,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+91.8669700623,INFO: -------------------- UAV NODE --------------------
+91.9978618622,INFO: Waiting for Autopilot
+1494.85397339,INFO: Autopilot connected!
+1495.04685402,INFO: Waiting for GCS
+2296.86594009,INFO: GCS Connected
+2297.05095291,INFO: ------------------SYSTEM IS READY!!------------------
+2297.1329689,INFO: -----------------------------------------------------
+2328.70292664,INFO: Got GPS lock at 2016-03-19 11:44:34
+69.9961185455,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+70.1270103455,INFO: -------------------- UAV NODE --------------------
+70.2140331268,INFO: Waiting for Autopilot
+1072.84522057,INFO: Autopilot connected!
+1072.99900055,INFO: Waiting for GCS
+1974.90620613,INFO: GCS Connected
+1975.04615784,INFO: ------------------SYSTEM IS READY!!------------------
+1975.10313988,INFO: -----------------------------------------------------
+2009.05108452,INFO: Got GPS lock at 2016-03-19 11:48:55
+76.2848854065,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+76.388835907,INFO: -------------------- UAV NODE --------------------
+76.4479637146,INFO: Waiting for Autopilot
+1278.83887291,INFO: Autopilot connected!
+1279.03795242,INFO: Waiting for GCS
+2080.96599579,INFO: GCS Connected
+2081.12597466,INFO: ------------------SYSTEM IS READY!!------------------
+2081.17985725,INFO: -----------------------------------------------------
+2106.80699348,INFO: Got GPS lock at 2016-03-19 11:49:13
+73.0319023132,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+73.1370449066,INFO: -------------------- UAV NODE --------------------
+73.2009410858,INFO: Waiting for Autopilot
+1375.51403046,INFO: Autopilot connected!
+1375.69594383,INFO: Waiting for GCS
+2177.74796486,INFO: GCS Connected
+2178.20286751,INFO: ------------------SYSTEM IS READY!!------------------
+2178.58505249,INFO: -----------------------------------------------------
+2209.77497101,INFO: Got GPS lock at 2016-03-19 11:49:28
+71.6550350189,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+71.7580318451,INFO: -------------------- UAV NODE --------------------
+71.8419551849,INFO: Waiting for Autopilot
+1374.32909012,INFO: Autopilot connected!
+1374.53699112,INFO: Waiting for GCS
+2176.56612396,INFO: GCS Connected
+2176.73301697,INFO: ------------------SYSTEM IS READY!!------------------
+2176.78904533,INFO: -----------------------------------------------------
+2204.48994637,INFO: Got GPS lock at 2016-03-19 11:50:38
+74.8488903046,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+74.9731063843,INFO: -------------------- UAV NODE --------------------
+75.0410556793,INFO: Waiting for Autopilot
+1077.13508606,INFO: Autopilot connected!
+1077.26812363,INFO: Waiting for GCS
+1979.37107086,INFO: GCS Connected
+1979.50792313,INFO: ------------------SYSTEM IS READY!!------------------
+1979.56705093,INFO: -----------------------------------------------------
+2019.40107346,INFO: Got GPS lock at 2016-03-19 11:52:15
+79.3762207031,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+79.4792175293,INFO: -------------------- UAV NODE --------------------
+79.537153244,INFO: Waiting for Autopilot
+1181.74910545,INFO: Autopilot connected!
+1181.8921566,INFO: Waiting for GCS
+2083.88018608,INFO: GCS Connected
+2084.03801918,INFO: ------------------SYSTEM IS READY!!------------------
+2084.25211906,INFO: -----------------------------------------------------
+2117.01202393,INFO: Got GPS lock at 2016-03-19 11:54:38
+68.9678192139,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+69.0720081329,INFO: -------------------- UAV NODE --------------------
+69.1328048706,INFO: Waiting for Autopilot
+670.691013336,INFO: Autopilot connected!
+670.867919922,INFO: Waiting for GCS
+1472.69701958,INFO: GCS Connected
+1472.84197807,INFO: ------------------SYSTEM IS READY!!------------------
+1472.89800644,INFO: -----------------------------------------------------
+1501.71279907,INFO: Got GPS lock at 2016-03-19 11:55:17
+80.9168815613,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+81.0289382935,INFO: -------------------- UAV NODE --------------------
+81.0940265656,INFO: Waiting for Autopilot
+1383.29291344,INFO: Autopilot connected!
+1383.42404366,INFO: Waiting for GCS
+2185.14990807,INFO: GCS Connected
+2185.3158474,INFO: ------------------SYSTEM IS READY!!------------------
+2185.39500237,INFO: -----------------------------------------------------
+2216.7198658,INFO: Got GPS lock at 2016-03-19 11:55:39
+81.6860198975,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+81.7971229553,INFO: -------------------- UAV NODE --------------------
+81.8619728088,INFO: Waiting for Autopilot
+983.861923218,INFO: Autopilot connected!
+984.009981155,INFO: Waiting for GCS
+1785.87603569,INFO: GCS Connected
+1786.01813316,INFO: ------------------SYSTEM IS READY!!------------------
+1786.07296944,INFO: -----------------------------------------------------
+1867.21396446,INFO: Got GPS lock at 2016-03-19 11:56:07
+69.6108341217,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+69.7867870331,INFO: -------------------- UAV NODE --------------------
+69.8778629303,INFO: Waiting for Autopilot
+671.660900116,INFO: Autopilot connected!
+671.839952469,INFO: Waiting for GCS
+1473.87290001,INFO: GCS Connected
+1474.02787209,INFO: ------------------SYSTEM IS READY!!------------------
+1474.08485413,INFO: -----------------------------------------------------
+1512.50886917,INFO: Got GPS lock at 2016-03-19 12:02:33
+69.4348812103,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+69.5838928223,INFO: -------------------- UAV NODE --------------------
+69.6740150452,INFO: Waiting for Autopilot
+671.384096146,INFO: Autopilot connected!
+671.544075012,INFO: Waiting for GCS
+1473.45709801,INFO: GCS Connected
+1473.61803055,INFO: ------------------SYSTEM IS READY!!------------------
+1473.68907928,INFO: -----------------------------------------------------
+1496.76609039,INFO: Got GPS lock at 2016-03-19 12:03:27
+88.2000923157,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+88.3131027222,INFO: -------------------- UAV NODE --------------------
+88.3731842041,INFO: Waiting for Autopilot
+790.084123611,INFO: Autopilot connected!
+790.250062943,INFO: Waiting for GCS
+1592.40698814,INFO: GCS Connected
+1592.82302856,INFO: ------------------SYSTEM IS READY!!------------------
+1593.08314323,INFO: -----------------------------------------------------
+1619.08006668,INFO: Got GPS lock at 2016-03-19 12:03:56
+243.7479496,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+243.990898132,INFO: -------------------- UAV NODE --------------------
+244.08197403,INFO: Waiting for Autopilot
+1146.22282982,INFO: Autopilot connected!
+1146.39592171,INFO: Waiting for GCS
+1848.27804565,INFO: GCS Connected
+1848.42085838,INFO: ------------------SYSTEM IS READY!!------------------
+1848.47688675,INFO: -----------------------------------------------------
+1871.08802795,INFO: Got GPS lock at 2016-03-19 12:27:26
+78.7570476532,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+78.8960456848,INFO: -------------------- UAV NODE --------------------
+78.9999961853,INFO: Waiting for Autopilot
+1281.57711029,INFO: Autopilot connected!
+1281.72802925,INFO: Waiting for GCS
+2083.80413055,INFO: GCS Connected
+2084.12909508,INFO: ------------------SYSTEM IS READY!!------------------
+2084.35702324,INFO: -----------------------------------------------------
+2117.54202843,INFO: Got GPS lock at 2016-03-19 12:29:44
+70.5749988556,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+70.7459449768,INFO: -------------------- UAV NODE --------------------
+70.8079338074,INFO: Waiting for Autopilot
+1173.01297188,INFO: Autopilot connected!
+1173.17295074,INFO: Waiting for GCS
+2075.22106171,INFO: GCS Connected
+2075.36196709,INFO: ------------------SYSTEM IS READY!!------------------
+2075.42204857,INFO: -----------------------------------------------------
+2173.11406136,INFO: Got GPS lock at 2016-03-19 12:31:54
+109.209060669,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+109.328985214,INFO: -------------------- UAV NODE --------------------
+109.395980835,INFO: Waiting for Autopilot
+1312.36004829,INFO: Autopilot connected!
+1312.52193451,INFO: Waiting for GCS
+2114.30883408,INFO: GCS Connected
+2114.49289322,INFO: ------------------SYSTEM IS READY!!------------------
+2114.56203461,INFO: -----------------------------------------------------
+2148.8199234,INFO: Got GPS lock at 2016-03-19 12:32:22
+88.1111621857,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+88.2730484009,INFO: -------------------- UAV NODE --------------------
+88.3519649506,INFO: Waiting for Autopilot
+1390.95711708,INFO: Autopilot connected!
+1391.14904404,INFO: Waiting for GCS
+2092.93413162,INFO: GCS Connected
+2093.0981636,INFO: ------------------SYSTEM IS READY!!------------------
+2093.15896034,INFO: -----------------------------------------------------
+2124.85599518,INFO: Got GPS lock at 2016-03-19 12:33:11
+78.1328678131,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+78.2389640808,INFO: -------------------- UAV NODE --------------------
+78.2999992371,INFO: Waiting for Autopilot
+1480.8678627,INFO: Autopilot connected!
+1481.02784157,INFO: Waiting for GCS
+2282.96399117,INFO: GCS Connected
+2283.26201439,INFO: ------------------SYSTEM IS READY!!------------------
+2283.42199326,INFO: -----------------------------------------------------
+2315.40894508,INFO: Got GPS lock at 2016-03-19 12:34:03
+75.5360126495,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+75.6402015686,INFO: -------------------- UAV NODE --------------------
+75.6981372833,INFO: Waiting for Autopilot
+1077.63409615,INFO: Autopilot connected!
+1077.81100273,INFO: Waiting for GCS
+1983.0532074,INFO: GCS Connected
+1983.21604729,INFO: ------------------SYSTEM IS READY!!------------------
+1983.29019547,INFO: -----------------------------------------------------
+2017.56215096,INFO: Got GPS lock at 2016-03-19 12:38:24
+70.592880249,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+70.7619190216,INFO: -------------------- UAV NODE --------------------
+70.8611011505,INFO: Waiting for Autopilot
+1072.97801971,INFO: Autopilot connected!
+1073.10891151,INFO: Waiting for GCS
+1774.78003502,INFO: GCS Connected
+1774.97506142,INFO: ------------------SYSTEM IS READY!!------------------
+1775.03395081,INFO: -----------------------------------------------------
+1805.69291115,INFO: Got GPS lock at 2016-03-19 12:38:47
+91.5458202362,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+91.6810035706,INFO: -------------------- UAV NODE --------------------
+91.7680263519,INFO: Waiting for Autopilot
+1494.54283714,INFO: Autopilot connected!
+1494.68994141,INFO: Waiting for GCS
+2296.58102989,INFO: GCS Connected
+2296.74482346,INFO: ------------------SYSTEM IS READY!!------------------
+2296.82993889,INFO: -----------------------------------------------------
+2329.23102379,INFO: Got GPS lock at 2016-03-19 12:39:37
+87.5577926636,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+87.6820087433,INFO: -------------------- UAV NODE --------------------
+87.7439975739,INFO: Waiting for Autopilot
+1089.83588219,INFO: Autopilot connected!
+1089.99896049,INFO: Waiting for GCS
+1892.79079437,INFO: GCS Connected
+1892.97485352,INFO: ------------------SYSTEM IS READY!!------------------
+1893.06879044,INFO: -----------------------------------------------------
+1916.72587395,INFO: Got GPS lock at 2016-03-19 12:40:42
+93.8038825989,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+93.9428806305,INFO: -------------------- UAV NODE --------------------
+94.0179824829,INFO: Waiting for Autopilot
+896.157979965,INFO: Autopilot connected!
+896.425962448,INFO: Waiting for GCS
+1598.8638401,INFO: GCS Connected
+1599.0459919,INFO: ------------------SYSTEM IS READY!!------------------
+1599.10702705,INFO: -----------------------------------------------------
+1646.66390419,INFO: Got GPS lock at 2016-03-19 12:47:10
+110.847949982,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+111.001968384,INFO: -------------------- UAV NODE --------------------
+111.083984375,INFO: Waiting for Autopilot
+1113.54994774,INFO: Autopilot connected!
+1113.80696297,INFO: Waiting for GCS
+1816.19095802,INFO: GCS Connected
+1816.41983986,INFO: ------------------SYSTEM IS READY!!------------------
+1816.58291817,INFO: -----------------------------------------------------
+1852.92983055,INFO: Got GPS lock at 2016-03-19 12:50:33
+88.830947876,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+88.9749526978,INFO: -------------------- UAV NODE --------------------
+89.0738964081,INFO: Waiting for Autopilot
+1091.5749073,INFO: Autopilot connected!
+1091.77494049,INFO: Waiting for GCS
+1793.98989677,INFO: GCS Connected
+1794.1968441,INFO: ------------------SYSTEM IS READY!!------------------
+1794.29197311,INFO: -----------------------------------------------------
+1845.46399117,INFO: Got GPS lock at 2016-03-19 12:53:55
+127.013921738,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+127.14600563,INFO: -------------------- UAV NODE --------------------
+127.22492218,INFO: Waiting for Autopilot
+829.632997513,INFO: Autopilot connected!
+829.879045486,INFO: Waiting for GCS
+1431.85591698,INFO: GCS Connected
+1432.07001686,INFO: ------------------SYSTEM IS READY!!------------------
+1432.15990067,INFO: -----------------------------------------------------
+1583.06407928,INFO: Got GPS lock at 2016-03-19 12:55:00
+106.137037277,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+106.302022934,INFO: -------------------- UAV NODE --------------------
+106.400966644,INFO: Waiting for Autopilot
+908.625841141,INFO: Autopilot connected!
+908.804893494,INFO: Waiting for GCS
+1711.90094948,INFO: GCS Connected
+1712.29982376,INFO: ------------------SYSTEM IS READY!!------------------
+1712.50987053,INFO: -----------------------------------------------------
+1713.21201324,INFO: Got GPS lock at 2016-03-19 12:55:29
+110.375881195,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+110.592842102,INFO: -------------------- UAV NODE --------------------
+110.731840134,INFO: Waiting for Autopilot
+713.107824326,INFO: Autopilot connected!
+713.293790817,INFO: Waiting for GCS
+1415.62891006,INFO: GCS Connected
+1415.86399078,INFO: ------------------SYSTEM IS READY!!------------------
+1415.95983505,INFO: -----------------------------------------------------
+1439.76783752,INFO: Got GPS lock at 2016-03-19 12:58:43
+113.190174103,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+113.372087479,INFO: -------------------- UAV NODE --------------------
+113.46912384,INFO: Waiting for Autopilot
+1015.97309113,INFO: Autopilot connected!
+1016.18504524,INFO: Waiting for GCS
+1520.82204819,INFO: GCS Connected
+1521.0211277,INFO: ------------------SYSTEM IS READY!!------------------
+1521.1122036,INFO: -----------------------------------------------------
+1566.90716743,INFO: Got GPS lock at 2016-03-19 13:00:07
+81.7499160767,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+81.8560123444,INFO: -------------------- UAV NODE --------------------
+81.9158554077,INFO: Waiting for Autopilot
+1184.28897858,INFO: Autopilot connected!
+1184.49306488,INFO: Waiting for GCS
+1886.68298721,INFO: GCS Connected
+1886.8560791,INFO: ------------------SYSTEM IS READY!!------------------
+1886.91997528,INFO: -----------------------------------------------------
+1902.94289589,INFO: Got GPS lock at 2016-03-19 13:07:39
+119.377851486,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+119.519948959,INFO: -------------------- UAV NODE --------------------
+119.608879089,INFO: Waiting for Autopilot
+923.162937164,INFO: Autopilot connected!
+923.401832581,INFO: Waiting for GCS
+1725.5179882,INFO: GCS Connected
+1725.71396828,INFO: ------------------SYSTEM IS READY!!------------------
+1725.79598427,INFO: -----------------------------------------------------
+1734.4429493,INFO: Got GPS lock at 2016-03-19 13:08:40
+106.80603981,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+106.939077377,INFO: -------------------- UAV NODE --------------------
+107.019901276,INFO: Waiting for Autopilot
+909.497976303,INFO: Autopilot connected!
+909.821987152,INFO: Waiting for GCS
+1523.81205559,INFO: GCS Connected
+1524.00588989,INFO: ------------------SYSTEM IS READY!!------------------
+1524.1060257,INFO: -----------------------------------------------------
+1566.20407104,INFO: Got GPS lock at 2016-03-19 13:10:12
+95.4759120941,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+95.6017971039,INFO: -------------------- UAV NODE --------------------
+95.6737995148,INFO: Waiting for Autopilot
+1398.56696129,INFO: Autopilot connected!
+1398.77796173,INFO: Waiting for GCS
+2000.83994865,INFO: GCS Connected
+2001.01900101,INFO: ------------------SYSTEM IS READY!!------------------
+2001.11579895,INFO: -----------------------------------------------------
+2019.9368,INFO: Got GPS lock at 2016-03-19 13:12:18
+65.4540061951,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+65.5589103699,INFO: -------------------- UAV NODE --------------------
+65.6199455261,INFO: Waiting for Autopilot
+767.474889755,INFO: Autopilot connected!
+767.682790756,INFO: Waiting for GCS
+1269.44994926,INFO: GCS Connected
+1269.63591576,INFO: ------------------SYSTEM IS READY!!------------------
+1269.69099045,INFO: -----------------------------------------------------
+1311.68293953,INFO: Got GPS lock at 2016-03-19 13:17:23
+106.329917908,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+106.481075287,INFO: -------------------- UAV NODE --------------------
+106.560945511,INFO: Waiting for Autopilot
+909.789085388,INFO: Autopilot connected!
+910.022974014,INFO: Waiting for GCS
+1612.8180027,INFO: GCS Connected
+1613.05093765,INFO: ------------------SYSTEM IS READY!!------------------
+1613.11292648,INFO: -----------------------------------------------------
+1650.73490143,INFO: Got GPS lock at 2016-03-19 13:18:19
+97.6121425629,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+97.7299213409,INFO: -------------------- UAV NODE --------------------
+97.8000164032,INFO: Waiting for Autopilot
+1300.33898354,INFO: Autopilot connected!
+1300.51612854,INFO: Waiting for GCS
+1902.49204636,INFO: GCS Connected
+1902.66394615,INFO: ------------------SYSTEM IS READY!!------------------
+1902.74810791,INFO: -----------------------------------------------------
+1953.10807228,INFO: Got GPS lock at 2016-03-19 13:19:38
+107.634067535,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+107.788085938,INFO: -------------------- UAV NODE --------------------
+107.913017273,INFO: Waiting for Autopilot
+1412.19496727,INFO: Autopilot connected!
+1412.50109673,INFO: Waiting for GCS
+2015.28000832,INFO: GCS Connected
+2015.43092728,INFO: ------------------SYSTEM IS READY!!------------------
+2015.48910141,INFO: -----------------------------------------------------
+2057.62600899,INFO: Got GPS lock at 2016-03-19 13:21:49
+67.330121994,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+67.4691200256,INFO: -------------------- UAV NODE --------------------
+67.5530433655,INFO: Waiting for Autopilot
+1370.07808685,INFO: Autopilot connected!
+1370.23997307,INFO: Waiting for GCS
+2772.9101181,INFO: GCS Connected
+2773.10800552,INFO: ------------------SYSTEM IS READY!!------------------
+2773.22411537,INFO: -----------------------------------------------------
+2787.67514229,INFO: Got GPS lock at 2016-03-19 13:31:02
