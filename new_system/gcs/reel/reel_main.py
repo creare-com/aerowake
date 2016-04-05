@@ -22,5 +22,5 @@ class reel_run:
         reel_data = [0,0,0,0,0]        
         #log data
 
-        return airprobe_data
+        return reel_data
 
