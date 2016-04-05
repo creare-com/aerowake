@@ -15,6 +15,7 @@ private:
     double max_payout_velocity_mps; // meters per second
 
     long motor_position_from_tether_length(double tether_length_m); // in pulses
+    double tether_length_from_motor_position(int motor_position); // in meters
     unsigned int motor_rpm_from_tether_mps(double tether_mps);
     void init();
 public:
@@ -25,6 +26,7 @@ public:
     // Tether operations
     void tetherIsHome(); // consider the tether length to be 0, we're fully reeled in.
     void setTetherLength(double desired_length_m); // pays out or reels in the tether to this length
+    double getTetherLength();
 };
 
 #endif // REEL_CONTROLLER_H

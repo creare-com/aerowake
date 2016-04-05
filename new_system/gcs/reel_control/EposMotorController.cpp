@@ -17,6 +17,21 @@ void EposMotorController::open()
 {
     unsigned int error_code = 0;
     
+    // For testing
+    char *port_name[256];
+    bool end_of_selection;
+    VCS_GetPortNameSelection (
+        (char*)"EPOS2",
+        (char*)"MAXON SERIAL V2",
+        (char*)"USB",
+        true, // StartOfSelection
+        256, // memory size of port_name
+        port_name,
+        &end_of_selection,
+        &error_code);
+    std::cout << "Port available: " << port_name << " Port requested: " << portName << endl;
+    
+    
     deviceHandle = VCS_OpenDevice (
         (char*)"EPOS2",
         (char*)"MAXON SERIAL V2",
@@ -168,6 +183,14 @@ void EposMotorController::moveToPosition(long position) {
         ss << "Cannot move to a position unless in a positioning mode.  Currently in mode " << curOpMode << ".";
         fail(ss.str(), true);
     }
+}
+
+int EposMotorController::getPosition() {
+    unsigned int error_code = 0;
+    int position = 0;
+    if(VCS_GetPositionIs(deviceHandle, NODE_ID, &position, &error_code) == 0)
+    { fail("Failed to set maximum velocity", error_code, true); }
+    return position;
 }
 
 void EposMotorController::setMaxVelocity(unsigned int velocity) {

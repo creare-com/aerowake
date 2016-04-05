@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
         }
     }
     
-    cout << "Starting" << endl;
+    cout << "Starting.  Using port: " << port << endl;
     try {
         ReelController rc(port);
         rc.test(); 
