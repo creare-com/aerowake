@@ -6,6 +6,7 @@
 #include <iostream>
 #include <string>
 #include <math.h>
+#include <unistd.h>
 #include "EposMotorController.hpp"
 
 class ReelController {
