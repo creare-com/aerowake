@@ -18,19 +18,54 @@ void EposMotorController::open()
     unsigned int error_code = 0;
     
     // For testing
-    char *port_name[256];
-    bool end_of_selection;
-    VCS_GetPortNameSelection (
-        (char*)"EPOS2",
-        (char*)"MAXON SERIAL V2",
-        (char*)"USB",
+    char device_name[256] = "<unset>";
+    char protocol_name[256] = "<unset>";
+    char intf_name[256] = "<unset>";
+    char port_name[256] = "<unset>";
+    int end_of_selection = -3;
+    VCS_GetDeviceNameSelection (
         true, // StartOfSelection
-        256, // memory size of port_name
-        port_name,
+        device_name,
+        256, // memory size of device_name
         &end_of_selection,
         &error_code);
-    std::cout << "Port available: " << port_name << " Port requested: " << portName << endl;
-    
+    std::cout << "Device available: " << device_name 
+        << " End of selection: " << end_of_selection
+        << " Error: " << error_code << std::endl;
+    VCS_GetProtocolStackNameSelection (
+        device_name,
+        true, // StartOfSelection
+        protocol_name,
+        256, // memory size of device_name
+        &end_of_selection,
+        &error_code);
+    std::cout << "Protocol available: " << protocol_name 
+        << " End of selection: " << end_of_selection
+        << " Error: " << error_code << std::endl;
+    VCS_GetInterfaceNameSelection (
+        device_name,
+        protocol_name,
+        true, // StartOfSelection
+        intf_name,
+        256, // memory size of device_name
+        &end_of_selection,
+        &error_code);
+    std::cout << "Interface available: " << intf_name 
+        << " End of selection: " << end_of_selection
+        << " Error: " << error_code << std::endl;
+    end_of_selection = -3;
+    VCS_GetPortNameSelection (
+        device_name,
+        protocol_name,
+        intf_name,
+        true, // StartOfSelection
+        port_name,
+        256, // memory size of port_name
+        &end_of_selection,
+        &error_code);
+    std::cout << "Port available: " << port_name << " Port requested: " << portName
+        << " End of selection: " << end_of_selection
+        << " Error: " << error_code << std::endl;    
     
     deviceHandle = VCS_OpenDevice (
         (char*)"EPOS2",
