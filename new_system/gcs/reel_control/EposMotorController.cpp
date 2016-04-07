@@ -17,56 +17,6 @@ void EposMotorController::open()
 {
     unsigned int error_code = 0;
     
-    // For testing
-    char device_name[256] = "<unset>";
-    char protocol_name[256] = "<unset>";
-    char intf_name[256] = "<unset>";
-    char port_name[256] = "<unset>";
-    int end_of_selection = -3;
-    VCS_GetDeviceNameSelection (
-        true, // StartOfSelection
-        device_name,
-        256, // memory size of device_name
-        &end_of_selection,
-        &error_code);
-    std::cout << "Device available: " << device_name 
-        << " End of selection: " << end_of_selection
-        << " Error: " << error_code << std::endl;
-    VCS_GetProtocolStackNameSelection (
-        device_name,
-        true, // StartOfSelection
-        protocol_name,
-        256, // memory size of device_name
-        &end_of_selection,
-        &error_code);
-    std::cout << "Protocol available: " << protocol_name 
-        << " End of selection: " << end_of_selection
-        << " Error: " << error_code << std::endl;
-    VCS_GetInterfaceNameSelection (
-        device_name,
-        protocol_name,
-        true, // StartOfSelection
-        intf_name,
-        256, // memory size of device_name
-        &end_of_selection,
-        &error_code);
-    std::cout << "Interface available: " << intf_name 
-        << " End of selection: " << end_of_selection
-        << " Error: " << error_code << std::endl;
-    end_of_selection = -3;
-    VCS_GetPortNameSelection (
-        device_name,
-        protocol_name,
-        intf_name,
-        true, // StartOfSelection
-        port_name,
-        256, // memory size of port_name
-        &end_of_selection,
-        &error_code);
-    std::cout << "Port available: " << port_name << " Port requested: " << portName
-        << " End of selection: " << end_of_selection
-        << " Error: " << error_code << std::endl;    
-    
     deviceHandle = VCS_OpenDevice (
         (char*)"EPOS2",
         (char*)"MAXON SERIAL V2",
@@ -160,6 +110,7 @@ void EposMotorController::setOperatingMode(OperatingMode mode) {
         case EPOS_OPMODE_PROFILE_POSITION_MODE:
             if(VCS_ActivateProfilePositionMode(deviceHandle, NODE_ID, &error_code) == 0)
             { fail("Failed to activate Profile Positioning Mode", error_code, true); }
+            else { std::cout << "Activated Profile Position mode" << std::endl; }
             break;
         case EPOS_OPMODE_UNKNOWN:
         default:
@@ -213,6 +164,7 @@ void EposMotorController::moveToPosition(long position) {
             1, // cancel the last one = TRUE
             &error_code) == 0)
         { fail("Failed to command movement to position", error_code, true); }
+        else { std::cout << "Successfully commanded movement." << std::endl; }
     } else {
         std::stringstream ss;
         ss << "Cannot move to a position unless in a positioning mode.  Currently in mode " << curOpMode << ".";
