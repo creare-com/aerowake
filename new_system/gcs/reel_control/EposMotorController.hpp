@@ -29,7 +29,7 @@ private:
 public:
     static const unsigned short NODE_ID; // This would matter much more in a CAN network
     
-    EposMotorController(std::string port = "/dev/ttyS0", unsigned int baudRate=1000000);
+    EposMotorController(std::string port = "USB0", unsigned int baudRate=1000000);
     ~EposMotorController();
     
     // Open/close the specified port. (throw an exception on failure)

@@ -14,7 +14,7 @@ void my_signal_handler(int s) {
 }
 
 int main(int argc, char* argv[]) {
-    string port = "/dev/ttyS0";
+    string port = "USB0";
     g_interrupted = false;
     
     signal(SIGINT,  my_signal_handler); // ctrl-c
