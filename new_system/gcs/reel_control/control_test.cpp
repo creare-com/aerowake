@@ -4,6 +4,7 @@
 #include <string>
 #include <getopt.h>
 #include <signal.h>
+#include <unistd.h>
 #include "ReelController.hpp"
 using namespace std;
 
@@ -53,7 +54,11 @@ int main(int argc, char* argv[]) {
         
         
         cout << "Waiting for interrupt." << endl;
-        while(!g_interrupted);
+        while(!g_interrupted) {
+            double len = rc.getTetherLength();
+            cout << "Tether length = " << len << endl;
+            sleep(0.1);
+        }
         cout << "Cleaning up." << endl;
     } catch (exception e) {
         cout << "Caught exception! " << e.what() << endl;

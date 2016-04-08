@@ -21,7 +21,7 @@ private:
     void init();
 public:
     static const unsigned int PULSES_PER_TURN;
-    ReelController(std::string port = "USB0", double reel_diam_cm=10.0);
+    ReelController(std::string port = "USB0", double reel_diam_cm=12.7); // 12.7cm = 5"
     void test();
     
     // Tether operations

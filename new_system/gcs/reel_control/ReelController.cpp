@@ -12,13 +12,13 @@ ReelController::ReelController(std::string port, double reel_diam_cm) :
 }
 
 long ReelController::motor_position_from_tether_length(double tether_length_m) {
-    // return PULSES_PER_TURN * (tether_length_m / (M_PI * reel_diameter_m));
-    return tether_length_m * 10270.0; // Anecdotal pulses/meter
+    return PULSES_PER_TURN * (tether_length_m / (M_PI * reel_diameter_m));
+    // return tether_length_m * 10270.0; // Anecdotal pulses/meter
 }
 
 double ReelController::tether_length_from_motor_position(int motor_position) {
-    // return ((double)motor_position / PULSES_PER_TURN) * (M_PI * reel_diameter_m);
-    return motor_position / 10270.0; // Anecdotal pulses/meter
+    return ((double)motor_position / PULSES_PER_TURN) * (M_PI * reel_diameter_m);
+    // return motor_position / 10270.0; // Anecdotal pulses/meter
 }
 
 unsigned int ReelController::motor_rpm_from_tether_mps(double tether_mps) {
@@ -27,8 +27,8 @@ unsigned int ReelController::motor_rpm_from_tether_mps(double tether_mps) {
 
 void ReelController::init() {
     if(motor_controller.isOpen()) {
-        // motor_controller.setSensorType(ST_INC_ENCODER_3CHANNEL);
-        // motor_controller.setEncoderSettings(PULSES_PER_TURN, false);
+        motor_controller.setSensorType(ST_INC_ENCODER_3CHANNEL);
+        motor_controller.setEncoderSettings(PULSES_PER_TURN, false);
         // motor_controller.setMaxVelocity(1);
         motor_controller.setOperatingMode(EposMotorController::EPOS_OPMODE_PROFILE_POSITION_MODE);
         motor_controller.clearFaultAndEnable();
