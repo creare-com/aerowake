@@ -49,14 +49,13 @@ int main(int argc, char* argv[]) {
     try {
         ReelController rc(port);
         rc.test(); 
+        cout << "Done!" << endl;
+        
+        
+        cout << "Waiting for interrupt." << endl;
+        while(!g_interrupted);
+        cout << "Cleaning up." << endl;
     } catch (exception e) {
         cout << "Caught exception! " << e.what() << endl;
     }
-    
-    cout << "Done!" << endl;
-    
-    
-    cout << "Waiting for interrupt." << endl;
-    while(!g_interrupted);
-    cout << "Cleaning up." << endl;
 }
