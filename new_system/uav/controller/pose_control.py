@@ -4,7 +4,8 @@
 import numpy as np
 import imp
 import datetime
-
+from feedforward import feed_forward
+from referencecommand import reference_command
 
 class pose_controller_class:
     def __init__(self):
@@ -20,7 +21,7 @@ class pose_controller_class:
         self.gcs_vel = [0,0,0]		# GCS Velocity [x,y,z] from pixhawk (m/s)
         self.gcs_alt = 0			# GCS Altitude from pixhawk (m)
         self.gcs_heading = 0		# GCS Heading (degrees)
-        self.gcs_tether_l = 0		# GCS Tether Length (m)
+        self.L = 0		            # GCS Tether Length (m)
         self.gcs_tether_tension = 0 # GCS Tether Tension (newtons)
 
         # Inputs 
@@ -124,7 +125,16 @@ class pose_controller_class:
         q4 = cr2*cp2*sy2 - sr2*sp2*cy2;
 
         return [q1,q2,q3,q4]
-   
+
+
+    def set_goal(self,g_th,g_phi,L):
+        data_out = reference_command(g_th,g_phi,L)
+
+        self.goal_pose = [g_th,g_phi,data_out[2]]
+
+        return None
+
+
 
 ##!!!!!!!!!!!!!!!!!!!!!!!!!!!! Estimation Functions !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -136,6 +146,16 @@ class pose_controller_class:
         fy = (r_in)*np.sin(phi)*np.sin(th);
         fz = (r_in)*np.cos(th) + self.weight_tether;
         return [fx,fy,fz]
+
+    def get_tether_ff(self,th,phi,r,r_ref,L):
+
+        data_out = feed_forward(phi,th,r,r_ref,L)
+
+        Fx = data_out[0]
+        Fy = data_out[1]
+        Fz = data_out[2]
+
+        return [Fx,Fy,Fz]
 
 ##!!!!!!!!!!!!!!!!!!!!!!!!!!!! Run Controller Function !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -153,11 +173,10 @@ class pose_controller_class:
         print ">> Pose:     %.2f, %.2f, %.2f" %(th*180/np.pi,phi*180/np.pi,r)
 
         #### Forces to move #####
-
         # error_dot
         e_phi_dot =  (r*(self.goal_pose[1]-phi) - self.e_phi)/control_dt
         e_th_dot =   (r*(self.goal_pose[0]-th) - self.e_th)/control_dt
-        e_r_dot =    (  (self.goal_pose[2]-r) - self.e_r)/control_dt
+        e_r_dot =    ( (self.goal_pose[2]-r) - self.e_r)/control_dt
 
         # error
         self.e_phi = r*(self.goal_pose[1] - phi)
@@ -181,10 +200,9 @@ class pose_controller_class:
         #PID magic
         phi_in = (self.k_phi[0]*self.e_phi) +  (self.k_phi[1]*e_phi_dot) + (self.k_phi[2]*self.e_phi_int)
         th_in = (self.k_th[0]*self.e_th) +  (self.k_th[1] * e_th_dot) + (self.k_th[2]*self.e_th_int)
-        r_in = self.k_r[0]*self.e_r + self.k_r[1]*e_r_dot + self.gcs_tether_tension*GCS_TETHER_T_GAIN + self.ft
+        r_in = self.k_r[0]*self.e_r + self.k_r[1]*e_r_dot 
 
-        print ">> Inputs:   %.2f, %.2f, %.2f" %(th_in,phi_in,r_in)
-
+        print ">> PID Inputs:   %.2f, %.2f, %.2f" %(th_in,phi_in,r_in)
 
         # Forces to move
         fix = -phi_in*np.sin(phi) + th_in*np.cos(th)*np.cos(phi)
@@ -197,9 +215,11 @@ class pose_controller_class:
 
         # TODO: Saturate fix, fiy, fiz
 
-        #### Forces to balance ####
+        #### Feed Forward Tether Model ####
 
         #These are the forces that the vehicle needs to exert to balance the tether tension
+        #[fx,fy,fz] = self.get_tether_vector(th,phi,r_in)
+        [fx,fy,fz] = self.get_tether_ff(th,phi,r,self.goal_r,self.L)
         [fx,fy,fz] = self.get_tether_vector(th,phi,r_in)
 
         print ">> Tether:   %.2f, %.2f, %.2f" %(fx,fy,fz)
@@ -249,8 +269,6 @@ class pose_controller_class:
         #pitch_cmd = 0.0 # positive is pitch up
          
         quat = self.eul2quat(roll_cmd,pitch_cmd,yaw_cmd)
-        #thr_cmd = .5
-
 
         return [quat[0],quat[1],quat[2],quat[3],thr_cmd]
 

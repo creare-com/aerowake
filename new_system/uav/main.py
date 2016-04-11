@@ -299,7 +299,8 @@ def read_mission():
 
     if data!=[]:
         print  data
-        pose_controller.goal_pose = [data[1],data[2],data[3]] # [theta,phi,r] in radians
+        #pose_controller.goal_pose = [data[1],data[2],data[3]] # [theta,phi,r] in radians
+        pose_controller.set_goal([data[1],data[2],data[5]])
         pose_controller.goal_mode = data[0]
         if len(data)>5:
             pose_controller.gcs_tether_l = data[5]
