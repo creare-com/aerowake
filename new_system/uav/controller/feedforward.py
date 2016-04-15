@@ -2,32 +2,30 @@ import numpy as np
 
 def feed_forward(phi,theta,R,R_ref,L):
     
-    linear_density =  .04/3 
+    linear_density =  .001 
     n_max = 500
     e_thres = 0.01
     g = 9.81
     a = 1
     b = 0
 
+    # #Check to make sure the reference command is inside L
+    # if R_ref>(0.99999*L):
+    #     print "Reference Broken: R_ref=",R_ref
+    #     R_ref=.98*L
+
+    #If R is outside reference, feed forward the force to stay at R_ref
+    if R>R_ref:
+        R=R*R_ref/R;
+
+    scale = 10.0/R
+    R = R*scale
+    L = L*scale
+
     Xin = R*np.sin(theta)*np.cos(phi)
     Yin = R*np.sin(theta)*np.sin(phi)
     Z = R*np.cos(theta)
-    
-    #Check to make sure the reference command is inside L
-    if R_ref>(0.99999*L):
-        print "Reference Broken: R_ref=",R_ref
-        R_ref=.98*L
-        
-    
-    #If R is outside reference, feed forward the force to stay at R_ref
-    if R>R_ref:
-        Xin=Xin*R_ref/R;
-        Yin=Yin*R_ref/R;
-        Z=  Z*R_ref/R;
 
-		
-        
-        
     x = np.sqrt(Xin**2 + Yin**2)
     X=x
 
@@ -54,11 +52,13 @@ def feed_forward(phi,theta,R,R_ref,L):
             a_out = a
             b_out = b
             break
-     
+    
+
     xc = -b
     l_total =  a *(np.sqrt(1+np.sinh((b+X)/a)**2)* np.tanh((b+X)/a)-np.sqrt(1+np.sinh((b+xc)/a)**2) * np.tanh((b+xc)/a))
+    l_total = l_total/scale
+
     m_total = l_total*linear_density
-    
     alpha = np.arctan(np.sinh((b+X)/a) )
     
     Ft = m_total*g/np.sin(alpha)
@@ -67,7 +67,7 @@ def feed_forward(phi,theta,R,R_ref,L):
     Fx = Ft*np.cos(alpha)*np.cos(gamm)
     Fy = Ft*np.cos(alpha)*np.sin(gamm)
                     
-    return [-Fx,-Fy,Fz]
+    return [Fx,Fy,Fz]
             
             
             

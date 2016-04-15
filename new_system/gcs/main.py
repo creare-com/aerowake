@@ -208,15 +208,15 @@ def download_mission():
         missionlist.append(cmd)
     return missionlist
 
-def set_waypoint(mode,theta,phi,R,tether_l=-1,tether_t=-1,extra=-1):
+def set_waypoint(mode,theta,phi,L,extra1=-1,tether_t=-1,extra2=-1):
     cmds = gcs.commands
     cmds.download()
     cmds.wait_ready()
     cmds.clear()
     cmd1=Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, 
-        mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, mode, 0, 0, 0, theta, phi, R)
+        mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, mode, 0, 0, 0, theta, phi, L)
     cmd3=Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, 
-        mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, -1,  0, 0, 0, tether_l, tether_t, extra)
+        mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, -1,  0, 0, 0, extra1, tether_t, extra2)
     cmds.add(cmd1)
     cmds.add(cmd3)
     cmds.upload()
@@ -239,6 +239,17 @@ def clear_mission():
     cmds.upload()
 
 
+if not gcs.armed:
+    while not gcs.is_armable:
+        print "GCS Not Armable"
+        time.sleep(.5)
+    gcs.armed = True
+    while not gcs.armed:
+        print 'Waiting for GCS to arm: ',gcs.armed
+        time.sleep(1)
+gcs.mode = VehicleMode("GUIDED")
+
+
 logging.info("------------------SYSTEM IS READY!!------------------")
 logging.info("-----------------------------------------------------")
 
@@ -250,12 +261,12 @@ G_LAND = 2
 mode=None
 i=0
 
-MISSION_TH  = [1.5, 1.5, 1.5, 1.5,  1.3, 1.3, 1.3, 1.3]
+MISSION_TH  = [1.2, 1.2, 1.4, 1.2,  1.3, 1.3, 1.3, 1.3]
 MISSION_PHI = [  0,  .5,   0, -.5,  -.5,   0,  .5,   0]
-MISSION_R   = [ 50,  50,  50,  60,   60,  70,  70, 100] 
+MISSION_L   = [ 50,  50,  50,  60,   60,  70,  70, 100] 
 
 while True:
-    time.sleep(.1)
+    time.sleep(.2)
 
     #Get Reel Info:
     # try:
@@ -276,72 +287,73 @@ while True:
     # ##########################################################################################v
     # # Determine flight mode and waypoints for the vehicle
 
+    if gcs.armed:
+        commands_to_interface.put(001)
 
-    commands_to_interface.put(000)
+        try:
+            GCS_cmd = data_from_interface.get(False)
+            print GCS_cmd
+        except Empty:
+            pass
 
-    try:
-        GCS_cmd = data_from_interface.get(False)
-        print GCS_cmd
-    except Empty:
-        pass
-
-
-
-    print "Mode: ",mode," Theta: %.1f  Phi: %.1f  R: %.1f" %(MISSION_TH[i],MISSION_PHI[i],MISSION_R[i])
-
-    # # Modes:
-    # # Take Off = Take the vehicle off with slight pitch up.
-    # # Auto = Position Control. Needs goal location. 
-    # # Land = Landing vehicle: Maintain some throttle and reel the tether in.
-    # # None = Do nothing. Initial state. Motors will be on safe, vehicle disarmed. 
-
-    if GCS_cmd == "AUTO_CMD":
-        phi = MISSION_PHI[i]
-        theta = MISSION_TH[i]
-        R = MISSION_R[i]
-        mode = G_AUTO
-        set_waypoint(mode,theta,phi,R)
-        print "Auto Mode"
-        print_mission()
-
-    if GCS_cmd == "ADV_CMD":
-        i+=1
-        if i==len(MISSION_TH):
+        # # Modes:
+        # # Take Off = Take the vehicle off with slight pitch up.
+        # # Auto = Position Control. Needs goal location. 
+        # # Land = Landing vehicle: Maintain some throttle and reel the tether in.
+        # # None = Do nothing. Initial state. Motors will be on safe, vehicle disarmed. 
+        if GCS_cmd == "AUTO_CMD":
             i=0
+            phi = MISSION_PHI[i]
+            theta = MISSION_TH[i]
+            L = MISSION_L[i]
+            mode = G_AUTO
+            set_waypoint(mode,theta,phi,L)
+            print "Auto Mode"
+            print "Mode: ",mode," Theta: %.1f  Phi: %.1f  L: %.1f" %(MISSION_TH[i],MISSION_PHI[i],MISSION_L[i])
+            print_mission()
 
-        phi = MISSION_PHI[i]
-        theta = MISSION_TH[i]
-        R = MISSION_R[i]
-        mode = G_AUTO
-        set_waypoint(mode,theta,phi,R)
-        GCS_cmd = "AUTO_CMD"
-        print "Advance Goal Target"
-        print_mission()
+        if GCS_cmd == "ADV_CMD":
+            i+=1
+            if i==len(MISSION_TH):
+                i=0
 
-
-    if GCS_cmd == "TAKEOFF_CMD":
-        phi = 0
-        theta = 1.5
-        R = 20
-        mode = G_TAKEOFF
-        set_waypoint(mode,theta,phi,R)
-        print "Takeoff Waypoint Set"
-        print_mission()
-
-    if GCS_cmd == "LAND_CMD":
-        phi = 0
-        theta = 1.5
-        R = 20
-        mode = G_LAND
-        set_waypoint(mode,theta,phi,R)
-        print "Land Waypoint Set"
-        print_mission()
+            phi = MISSION_PHI[i]
+            theta = MISSION_TH[i]
+            L = MISSION_L[i]
+            mode = G_AUTO
+            set_waypoint(mode,theta,phi,L)
+            GCS_cmd = "AUTO_CMD"
+            print "Advance Goal Target"
+            print "Mode: ",mode," Theta: %.1f  Phi: %.1f  L: %.1f" %(MISSION_TH[i],MISSION_PHI[i],MISSION_L[i])
+            print_mission()
 
 
+        if GCS_cmd == "TAKEOFF_CMD":
+            phi = 0
+            theta = 1.5
+            L = 20
+            mode = G_TAKEOFF
+            set_waypoint(mode,theta,phi,L)
+            print "Takeoff Waypoint Set"
+            print "Mode: ",mode
+            print_mission()
 
-    GCS_cmd="Waiting"
-    
+        if GCS_cmd == "LAND_CMD":
+            phi = 0
+            theta = 1.5
+            L = 20
+            mode = G_LAND
+            set_waypoint(mode,theta,phi,L)
+            print "Land Waypoint Set"
+            print "Mode: ",mode
+            print_mission()
 
+
+
+        GCS_cmd="WAITING"
+
+    else:
+        print "GCS Not Armed"
 
 
 

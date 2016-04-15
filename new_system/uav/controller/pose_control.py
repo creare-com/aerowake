@@ -4,8 +4,9 @@
 import numpy as np
 import imp
 import datetime
-from feedforward import feed_forward
-from referencecommand import reference_command
+from feedforward import feed_forward # Tether feed forward model. Might have robustness issues? 
+from referencecommand import reference_command # Tether reference location calculator
+from tetherforce import tether_force # Dumb tether model, but robust
 
 class pose_controller_class:
     def __init__(self):
@@ -42,18 +43,18 @@ class pose_controller_class:
         self.e_phi_int = 0
         self.e_th_int = 0 
 
-        # Controller Gains
+        # Controller Gains P D I
         # self.k_phi =[1.2, 2.0,  1.0] 
         # self.k_th  =[1,   2.0,  1.0]
         # self.k_r   =[.5,   3] 
 
-        self.k_phi =[1, 0,  0] 
-        self.k_th  =[1,   0,  0]
-        self.k_r   =[.1,  0] 
+        self.k_phi =[1., .1,  0] 
+        self.k_th  =[1.,   .1,  0]
+        self.k_r   =[.5,  .1] 
 
-        self.ft    = 0*3.3 #Extra tension to add to tether. (newtons)
-        self.weight_tether = 0
-        self.uav_weight = 20 #weight of the UAV in Newtons. 
+        self.SMART_TETHER = True
+
+        self.uav_weight = 2*9.81 #weight of the UAV in Newtons. 
 
 
 ##!!!!!!!!!!!!!!!!!!!!!!!!!! Helper Functions !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -105,34 +106,49 @@ class pose_controller_class:
         theta = np.arctan2(xy_dist,z_dist)
         # Phi Calc
         phi=self.gcs_heading-self.get_bearing()
-        phi = phi
+        if phi>np.pi:
+            phi=phi-2*np.pi
         r = self.get_diagonal_distance()
         self.uav_pose=[theta,phi,r]
         return [theta,phi,r]
 
+    def sph_to_cart(self,th,phi,r):
+        x = r*np.sin(th)*np.cos(phi)
+        y = r*np.sin(th)*np.sin(phi)
+        z = r*cos(phi)
+        return [x,y,z]
+
     def eul2quat(self,roll,pitch,yaw):
 
-        cr2 = np.cos(roll*0.5);
-        cp2 = np.cos(pitch*0.5);
-        cy2 = np.cos(yaw*0.5);
-        sr2 = np.sin(roll*0.5);
-        sp2 = np.sin(pitch*0.5);
-        sy2 = np.sin(yaw*0.5);
+        cr2 = np.cos(roll*0.5)
+        cp2 = np.cos(pitch*0.5)
+        cy2 = np.cos(yaw*0.5)
+        sr2 = np.sin(roll*0.5)
+        sp2 = np.sin(pitch*0.5)
+        sy2 = np.sin(yaw*0.5)
 
-        q1 = cr2*cp2*cy2 + sr2*sp2*sy2;
-        q2 = sr2*cp2*cy2 - cr2*sp2*sy2;
-        q3 = cr2*sp2*cy2 + sr2*cp2*sy2;
-        q4 = cr2*cp2*sy2 - sr2*sp2*cy2;
+        q1 = cr2*cp2*cy2 + sr2*sp2*sy2
+        q2 = sr2*cp2*cy2 - cr2*sp2*sy2
+        q3 = cr2*sp2*cy2 + sr2*cp2*sy2
+        q4 = cr2*cp2*sy2 - sr2*sp2*cy2
 
         return [q1,q2,q3,q4]
 
 
     def set_goal(self,g_th,g_phi,L):
-        data_out = reference_command(g_th,g_phi,L)
-
-        self.goal_pose = [g_th,g_phi,data_out[2]]
+        
+        self.L = L
+        if self.SMART_TETHER:
+            data_out = reference_command(g_th,g_phi,L)
+            self.goal_pose = [g_th,g_phi,data_out[2]] # Theta, Phi, R_ref and sets self.L 
+        if not self.SMART_TETHER:
+            self.goal_pose = [g_th,g_phi,L]
 
         return None
+
+    def zero_att_yaw_control(self,thr_cmd,roll=0,pitch=0): # Returns quaternion for proper yaw but zero roll/pitch. 
+        quat = self.eul2quat(roll,pitch,self.get_bearing())
+        return [quat[0],quat[1],quat[2],quat[3],thr_cmd]       
 
 
 
@@ -141,25 +157,32 @@ class pose_controller_class:
     def get_drag_vector(self):
         return [0,0,0]
 
-    def get_tether_vector(self,th,phi,r_in):
-        fx = (r_in)*np.cos(phi)*np.sin(th);
-        fy = (r_in)*np.sin(phi)*np.sin(th);
-        fz = (r_in)*np.cos(th) + self.weight_tether;
-        return [fx,fy,fz]
+    # def get_tether_vector(self,th,phi,r_in):
+    #     fx = (r_in)*np.cos(phi)*np.sin(th)
+    #     fy = (r_in)*np.sin(phi)*np.sin(th)
+    #     fz = (r_in)*np.cos(th) + self.weight_tether
+    #     return [fx,fy,fz]
 
-    def get_tether_ff(self,th,phi,r,r_ref,L):
-
+    def smart_tether_ff(self,th,phi,r,r_ref,L):
         data_out = feed_forward(phi,th,r,r_ref,L)
-
         Fx = data_out[0]
         Fy = data_out[1]
         Fz = data_out[2]
+        return [Fx,Fy,Fz]
 
+    def dumb_tether_ff(self,th,phi,L):
+        data_out = tether_force(phi,th,L)    
+        Fx = data_out[0]
+        Fy = data_out[1]
+        Fz = data_out[2]
         return [Fx,Fy,Fz]
 
 ##!!!!!!!!!!!!!!!!!!!!!!!!!!!! Run Controller Function !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     def run_pose_controller(self):
+
+
+
         self.control_c +=1
 
         control_dt = .1
@@ -170,7 +193,7 @@ class pose_controller_class:
         r = new_state[2]
 
         print ">> Convens: Theta, Phi, R"
-        print ">> Pose:     %.2f, %.2f, %.2f" %(th*180/np.pi,phi*180/np.pi,r)
+        print ">> Pose:     %.2f, %.2f, %.2f, %.2f" %(th*180/np.pi,phi*180/np.pi,r,self.L)
 
         #### Forces to move #####
         # error_dot
@@ -196,7 +219,6 @@ class pose_controller_class:
         self.e_th_int = self.saturate(self.e_th,-5,5)
 
 
-        GCS_TETHER_T_GAIN =0
         #PID magic
         phi_in = (self.k_phi[0]*self.e_phi) +  (self.k_phi[1]*e_phi_dot) + (self.k_phi[2]*self.e_phi_int)
         th_in = (self.k_th[0]*self.e_th) +  (self.k_th[1] * e_th_dot) + (self.k_th[2]*self.e_th_int)
@@ -205,9 +227,13 @@ class pose_controller_class:
         print ">> PID Inputs:   %.2f, %.2f, %.2f" %(th_in,phi_in,r_in)
 
         # Forces to move
-        fix = -phi_in*np.sin(phi) + th_in*np.cos(th)*np.cos(phi)
-        fiy = phi_in*np.cos(phi) + th_in*np.cos(th)*np.sin(phi)
-        fiz = -th_in*np.sin(th)
+        fix = -phi_in*np.sin(phi)*np.sin(th) + th_in*np.cos(th)*np.cos(phi) + (r_in)*np.cos(phi)*np.sin(th)
+        fiy = phi_in*np.cos(phi)*np.sin(th) + th_in*np.cos(th)*np.sin(phi) + (r_in)*np.sin(phi)*np.sin(th)
+        fiz = -th_in*np.sin(th) + (r_in)*np.cos(th)
+
+        #fx = (r_in)*np.cos(phi)*np.sin(th)
+        #fy = (r_in)*np.sin(phi)*np.sin(th)
+        #fz = (r_in)*np.cos(th) + self.weight_tether
 
         print ">> Conves: X, Y, Z" 
 
@@ -219,11 +245,14 @@ class pose_controller_class:
 
         #These are the forces that the vehicle needs to exert to balance the tether tension
         #[fx,fy,fz] = self.get_tether_vector(th,phi,r_in)
-        [fx,fy,fz] = self.get_tether_ff(th,phi,r,self.goal_r,self.L)
-        [fx,fy,fz] = self.get_tether_vector(th,phi,r_in)
+        [fx,fy,fz] = self.smart_tether_ff(th,phi,r,self.goal_pose[2],self.L)
 
-        print ">> Tether:   %.2f, %.2f, %.2f" %(fx,fy,fz)
-
+        print ">> Smart Tether:   %.2f, %.2f, %.2f" %(fx,fy,fz)
+        [fx,fy,fz] = self.dumb_tether_ff(th,phi,self.L)
+        print ">>  Dumb Tether:   %.2f, %.2f, %.2f" %(fx,fy,fz)
+        [fx,fy,fz] = [0,0,0]
+        if self.SMART_TETHER:
+            print "TODO: Need to Select Tether Model"
         #### Forces from Drag on Vehicle ####
 
         [fdx, fdy, fdz] = self.get_drag_vector()

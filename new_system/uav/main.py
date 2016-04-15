@@ -299,12 +299,14 @@ def read_mission():
 
     if data!=[]:
         print  data
-        #pose_controller.goal_pose = [data[1],data[2],data[3]] # [theta,phi,r] in radians
-        pose_controller.set_goal([data[1],data[2],data[5]])
+        #pose_controller.goal_pose = [] # [theta,phi,L] in radians
+        pose_controller.set_goal(data[1],data[2],data[3])# [theta,phi,L] in radians
         pose_controller.goal_mode = data[0]
         if len(data)>5:
-            pose_controller.gcs_tether_l = data[5]
+            extra1 = data[5]
             pose_controller.gcs_tether_tension = data[6]
+            extra2 = data[7]
+
 
 
 
@@ -350,20 +352,27 @@ while True:
     # set_attitude_target(output)
 
 ###### CONTROLLER MANAGEMENT
+    if autopilot.mode.name=='GUIDED' and autopilot.armed and gcs.armed:
+        if pose_controller.goal_mode ==G_AUTO:
+            output = pose_controller.run_pose_controller()
+            set_attitude_target(output)
 
-    if pose_controller.goal_mode ==G_AUTO:
-        output = pose_controller.run_pose_controller()
-        set_attitude_target(output)
+        if pose_controller.goal_mode ==G_TAKEOFF:
+            output = pose_controller.zero_att_yaw_control(.55)
+            set_attitude_target(output)
+            print 'Take Off Mode.'
 
-    if pose_controller.goal_mode ==G_TAKEOFF:
-        set_attitude_target([1,0,0,pose_controller.get_bearing(),.5])
+        if pose_controller.goal_mode ==G_LAND:
+            output = pose_controller.zero_att_yaw_control(.5)
+            set_attitude_target(output)
+            print 'Land Mode. '
 
-    if pose_controller.goal_mode ==G_LAND:
-        set_attitude_target([1,0,0,pose_controller.get_bearing(),.5])
-
-    if pose_controller.goal_mode ==None:
-        set_attitude_target([1,0,0,pose_controller.get_bearing(),.5])
-
+        if pose_controller.goal_mode ==None:
+            output = pose_controller.zero_att_yaw_control(.5)
+            set_attitude_target(output)
+            print 'No Mode.'
+    else:
+        print "Mode Not Guided: Manual Control"
 
 
 
