@@ -28,8 +28,12 @@ from controller.pose_control import pose_controller_class
 
 
 autopilot_connect_path = '127.0.0.1:14552'
-gcs_connect_path = '127.0.0.1:14554'
+#autopilot_connect_path = '/dev/ttyAMA0'
+#uav_baud = 115200
 
+gcs_connect_path = '127.0.0.1:14554'
+#gcs_connect_path = '/dev/ttyUSB0'
+#gcs_baud = 57600
 
 
 #####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -71,47 +75,12 @@ print "\n\n\n\n"
 logging.info("------------ STARTING AEROWAKE SYSTEM ------------")
 logging.info("-------------------- UAV NODE --------------------")
 
-#### External Drive Setup ####
-
-# path_prefix = "/media/pi/"
-# path_options = []
-# for s in glob.glob(path_prefix + "*"):
-#     path_options.append(s)
-# if(len(path_options) is 0):
-#     logging.critical("No external drive detected. Aborting.") 
-#     setup_abort()
-#     #sys.exit(1)
-# logging.info("External drive detected")
-
-# # Verify that the drive has 1GB min.
-# path = path_options[0]
-# statistics = os.statvfs(path)
-# free_space = statistics.f_bavail*statistics.f_bsize / (1024**3) #in Gb
-# if(free_space < 1):
-#     logging.critical("External drive has only %i GB free -- Please swap or clear external drive. Aborting." % free_space)
-#     setup_abort("External drive error")
-#     #sys.exit(1)
-# elif(free_space < 5):
-#     logging.warning("External drive has only %i GB free." % free_space)
-# else:
-#     logging.info("External drive has %i GB free." % free_space)
-
-# #### Create New Folder ####
-
-# flight_number = 1
-# while os.path.exists(path +"/flight_" + str(flight_number)):
-#     flight_number = flight_number + 1
-# flight_save_path = path + "/flight_" + str(flight_number)
-# os.makedirs(flight_save_path)
-# logging.info("Created new flight folder at: " + flight_save_path)
-# #### Start The CSV Log ####
-# csvwriter = csv.writer(open(str(flight_save_path)+"flight_log_" +str(datetime.datetime.now()) +".csv", 'wb'))
-
-
 
 #### !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Start Position Controller !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-pose_controller = pose_controller_class()
+CONTROL_DT = .1
+
+pose_controller = pose_controller_class(CONTROL_DT)
 
 
 ####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Multiprocessing System Setup !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -233,6 +202,8 @@ def abort_mission(reason):
     autopilot.mode = VehicleMode("ALTHOLD")
     #TODO: TEST THIS OUT to make sure it doesnt lock us in whatever mode we specify. 
 
+
+# This function is used to set the attitude of the vehicle. The bitmask is set here to take in a quaternion and throttle setting from 0-1. This throttle setting is that same as altitude hold mode. 
 def set_attitude_target(data_in):
     quat = data_in[0:4]
     thr = data_in[4]
@@ -247,28 +218,28 @@ def set_attitude_target(data_in):
     autopilot.send_mavlink(msg)
 
 
-def condition_yaw(heading, relative=False):
+# def condition_yaw(heading, relative=False):
+#     if heading<0:
+#         heading+=360
 
-    if heading<0:
-        heading+=360
+#     if relative:
+#         is_relative=1 #yaw relative to direction of travel
+#     else:
+#         is_relative=0 #yaw is an absolute angle
+#     # create the CONDITION_YAW command using command_long_encode()
+#     msg = autopilot.message_factory.command_long_encode(
+#         0, 0,    # target system, target component
+#         mavutil.mavlink.MAV_CMD_CONDITION_YAW, #command
+#         0, #confirmation
+#         heading,    # param 1, yaw in degrees
+#         0,          # param 2, yaw speed deg/s
+#         1,          # param 3, direction -1 ccw, 1 cw
+#         is_relative, # param 4, relative offset 1, absolute angle 0
+#         0, 0, 0)    # param 5 ~ 7 not used
+#     # send command to vehicle
+#     autopilot.send_mavlink(msg)
 
-    if relative:
-        is_relative=1 #yaw relative to direction of travel
-    else:
-        is_relative=0 #yaw is an absolute angle
-    # create the CONDITION_YAW command using command_long_encode()
-    msg = autopilot.message_factory.command_long_encode(
-        0, 0,    # target system, target component
-        mavutil.mavlink.MAV_CMD_CONDITION_YAW, #command
-        0, #confirmation
-        heading,    # param 1, yaw in degrees
-        0,          # param 2, yaw speed deg/s
-        1,          # param 3, direction -1 ccw, 1 cw
-        is_relative, # param 4, relative offset 1, absolute angle 0
-        0, 0, 0)    # param 5 ~ 7 not used
-    # send command to vehicle
-    autopilot.send_mavlink(msg)
-
+# This function downloads all of the current waypoints from the GCS pixhawk (if there are any), clears the GCS pixhawk, and returns to mission information. 
 def download_mission():
     """ Downloads the current mission and returns it in a list. """
     missionlist=[]
@@ -282,9 +253,11 @@ def download_mission():
         cmds.clear()
         cmds.upload()
         #print "I Cleared The Waypoint"
-
     return missionlist
 
+# This function takes the mission list from the  GCS pixhawk, and parses it into a command. This system uses 2 waypoints to specify a command from the ground station. 
+# First waypoint holds goal and mode information.
+# Second waypoint holds tether information, and there is room for two extra parameters. 
 def read_mission():
 
     missionlist = download_mission()
@@ -299,7 +272,6 @@ def read_mission():
 
     if data!=[]:
         print  data
-        #pose_controller.goal_pose = [] # [theta,phi,L] in radians
         pose_controller.set_goal(data[1],data[2],data[3])# [theta,phi,L] in radians
         pose_controller.goal_mode = data[0]
         if len(data)>5:
@@ -307,26 +279,26 @@ def read_mission():
             pose_controller.gcs_tether_tension = data[6]
             extra2 = data[7]
 
+# Variable Initializations:
+prev_yaw=0
+prev_time = datetime.datetime.now()
 
-
-
-
-logging.info("------------------SYSTEM IS READY!!------------------")
-logging.info("-----------------------------------------------------")
-
+# Modes that can be sent up by the GCS
 GCS_mode = None
 G_AUTO = 0
 G_TAKEOFF = 1
 G_LAND = 2
 
-prev_yaw=0
-
-prev_time = datetime.datetime.now()
-
+# Start the main loop
+logging.info("------------------SYSTEM IS READY!!------------------")
+logging.info("-----------------------------------------------------")
 
 while True:
-    time.sleep(0.5)
-    # State Information
+
+    t0= datetime.datetime.now()
+
+
+    # Update State Information
     pose_controller.uav_coord = [autopilot.location.global_frame.lat, autopilot.location.global_frame.lon]     # GPS Coordinates of UAV [lat,lon] from pixhawk (DD.DDDDDDD)
     pose_controller.uav_vel = [autopilot.velocity[0],autopilot.velocity[1],autopilot.velocity[2]]      # UAV velocity [x,y,z] from pixhawk (m/s)
     pose_controller.uav_alt = (autopilot.location.global_relative_frame.alt )       # UAV Alt from pixhawk (m)
@@ -336,7 +308,8 @@ while True:
     pose_controller.gcs_vel = [gcs.velocity[0], gcs.velocity[1], gcs.velocity[2]]        # GCS Velocity [x,y,z] from pixhawk (m/s)
     pose_controller.gcs_alt = (gcs.location.global_relative_frame.alt )         # GCS Altitude from pixhawk (m)
     pose_controller.gcs_heading = gcs.attitude.yaw       # GCS Heading (rad)
-    print " ================= "
+    
+    print " ======== State Updated ========= "
 
     curr_time = datetime.datetime.now()
     delta = (curr_time-prev_time).total_seconds()
@@ -352,25 +325,40 @@ while True:
     # set_attitude_target(output)
 
 ###### CONTROLLER MANAGEMENT
+# This set will only allow the control system to have control when both pixhawks are armed, and the UAV pixhawk is in GUIDED mode. 
+# If the operator needs to recover the vehicle, he should change to ALTHOLD mode, and he will have full control of the vehicle. 
     if autopilot.mode.name=='GUIDED' and autopilot.armed and gcs.armed:
+
         if pose_controller.goal_mode ==G_AUTO:
-            output = pose_controller.run_pose_controller()
+            output = pose_controller.run_sphpose_controller()
             set_attitude_target(output)
 
-        if pose_controller.goal_mode ==G_TAKEOFF:
-            output = pose_controller.zero_att_yaw_control(.55)
+        if pose_controller.goal_mode ==G_TAKEOFF: 
+            #Special condition for takoff. Positive pitch is pitch up
+            roll = 0
+            pitch = 0
+            thr = .55
+            output = pose_controller.special_att_control(roll,pitch,thr)
             set_attitude_target(output)
-            print 'Take Off Mode.'
+            print 'Take Off Mode. Roll: %.2f  Pitch: %.2f   Thr: %.2f'%(roll,pitch,thr)
 
         if pose_controller.goal_mode ==G_LAND:
-            output = pose_controller.zero_att_yaw_control(.5)
+            #Special condition for Landing. Positive pitch is pitch up
+            roll = 0
+            pitch = 0
+            thr = .5
+            output = pose_controller.special_att_control(roll,pitch,thr)
             set_attitude_target(output)
-            print 'Land Mode. '
+            print 'Land Mode. Roll: %.2f  Pitch: %.2f   Thr: %.2f'%(roll,pitch,thr)
 
         if pose_controller.goal_mode ==None:
-            output = pose_controller.zero_att_yaw_control(.5)
+            #Special condition for takoff. Positive pitch is pitch up
+            roll = 0
+            pitch = 0
+            thr = .5
+            output = pose_controller.special_att_control(roll,pitch,thr)
             set_attitude_target(output)
-            print 'No Mode.'
+            print 'No Mode. Roll: %.2f  Pitch: %.2f   Thr: %.2f'%(roll,pitch,thr)
     else:
         print "Mode Not Guided: Manual Control"
 
@@ -379,9 +367,13 @@ while True:
 
 
 
-
-
-
+    #Timing system to keep the control around CONTROL_DT
+    t1 = datetime.datetime.now()
+    dtc = (t1-t0).total_seconds()
+    if dtc>0:
+        time.sleep(CONTROL_DT-dtc)
+    else:
+        print "Control Too Slow: ",dtc
 
 
 

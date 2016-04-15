@@ -1,15 +1,14 @@
 #!/usr/bin/env python2
 
-
 import numpy as np
 import imp
 import datetime
 from feedforward import feed_forward # Tether feed forward model. Might have robustness issues? 
 from referencecommand import reference_command # Tether reference location calculator
-from tetherforce import tether_force # Dumb tether model, but robust
+from tetherforce import tether_force # Basic tether model, but robust
 
 class pose_controller_class:
-    def __init__(self):
+    def __init__(self,dt):
 
         # State Information
         self.uav_coord = [0,0]  	# GPS Coordinates of UAV [lat,lon] from pixhawk (DD.DDDDDDD)
@@ -36,6 +35,7 @@ class pose_controller_class:
 
         # Memory Items for Control
         self.control_c = 0
+        self.dt = dt
 
         self.e_phi = 0
         self.e_th = 0
@@ -68,7 +68,8 @@ class pose_controller_class:
 
 ##!!!!!!!!!!!!!!!!!!!!!!!! Geometry Functions !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-    def get_distance(self): #Tested. Gives the 2D GPS position distance from the ship to UAV
+    #Gives the 2D GPS position distance from the ship to UAV-- distance along the ground. 
+    def get_distance(self): #Tested. 
         act1 = self.uav_coord
         act2 = self.gcs_coord
         #act1 =  [42.3578720 ,-71.0979608 ]
@@ -80,13 +81,15 @@ class pose_controller_class:
         distance = R *2 * np.arctan2(np.sqrt(a),np.sqrt(1-a))
         return distance #[meters]
 
-    def get_diagonal_distance(self): #Tested. #Gives the ideal taut-tether length from the ship to the UAV. 
+    # Gives the ideal taut-tether length from the ship to the UAV. 
+    def get_diagonal_distance(self): #Tested. 
         xy_dist = self.get_distance()
         z_dist = self.uav_alt-self.gcs_alt
         diag_dist = ( xy_dist**2 + z_dist**2 )**0.5
         return diag_dist #[meters]
 
-    def get_bearing(self): #Tested. Gives the bearing angle from North from the uav to ship. 
+    # Gives the bearing angle from North from the uav to ship. 
+    def get_bearing(self): #Tested. 
         act1 = self.uav_coord #uav first
         act2 = self.gcs_coord #gcs second
         dlon=act1[1]-act2[1] #ship - uav
@@ -143,25 +146,17 @@ class pose_controller_class:
             self.goal_pose = [g_th,g_phi,data_out[2]] # Theta, Phi, R_ref and sets self.L 
         if not self.SMART_TETHER:
             self.goal_pose = [g_th,g_phi,L]
-
         return None
 
-    def zero_att_yaw_control(self,thr_cmd,roll=0,pitch=0): # Returns quaternion for proper yaw but zero roll/pitch. 
+    def special_att_control(self,roll,pitch,thr_cmd): # Returns quaternion for proper yaw but zero roll/pitch. 
         quat = self.eul2quat(roll,pitch,self.get_bearing())
         return [quat[0],quat[1],quat[2],quat[3],thr_cmd]       
-
 
 
 ##!!!!!!!!!!!!!!!!!!!!!!!!!!!! Estimation Functions !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     def get_drag_vector(self):
         return [0,0,0]
-
-    # def get_tether_vector(self,th,phi,r_in):
-    #     fx = (r_in)*np.cos(phi)*np.sin(th)
-    #     fy = (r_in)*np.sin(phi)*np.sin(th)
-    #     fz = (r_in)*np.cos(th) + self.weight_tether
-    #     return [fx,fy,fz]
 
     def smart_tether_ff(self,th,phi,r,r_ref,L):
         data_out = feed_forward(phi,th,r,r_ref,L)
@@ -170,7 +165,7 @@ class pose_controller_class:
         Fz = data_out[2]
         return [Fx,Fy,Fz]
 
-    def dumb_tether_ff(self,th,phi,L):
+    def basic_tether_ff(self,th,phi,L):
         data_out = tether_force(phi,th,L)    
         Fx = data_out[0]
         Fy = data_out[1]
@@ -179,13 +174,12 @@ class pose_controller_class:
 
 ##!!!!!!!!!!!!!!!!!!!!!!!!!!!! Run Controller Function !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-    def run_pose_controller(self):
-
+    def run_sph_pose_controller(self):
 
 
         self.control_c +=1
 
-        control_dt = .1
+        control_dt = self.dt
 
         new_state = self.get_relative_angles()
         th = new_state[0]
@@ -194,8 +188,9 @@ class pose_controller_class:
 
         print ">> Convens: Theta, Phi, R"
         print ">> Pose:     %.2f, %.2f, %.2f, %.2f" %(th*180/np.pi,phi*180/np.pi,r,self.L)
-
-        #### Forces to move #####
+        print ">> Goal:     %.2f, %.2f, %.2f" %(self.goal_pose[0]*180/np.pi,self.goal_pose[1]*180/np.pi,self.goal_pose[2])
+        
+        #### START OF SPHERICAL POSITION CONTROLLER #####
         # error_dot
         e_phi_dot =  (r*(self.goal_pose[1]-phi) - self.e_phi)/control_dt
         e_th_dot =   (r*(self.goal_pose[0]-th) - self.e_th)/control_dt
@@ -205,10 +200,8 @@ class pose_controller_class:
         self.e_phi = r*(self.goal_pose[1] - phi)
         self.e_th = r*(self.goal_pose[0] - th)
         self.e_r = self.goal_pose[2] - r
-
-        print ">> Goal:     %.2f, %.2f, %.2f" %(self.goal_pose[0]*180/np.pi,self.goal_pose[1]*180/np.pi,self.goal_pose[2])
+        
         print ">> Error:    %.2f, %.2f, %.2f" %(self.e_th,self.e_phi,self.e_r)
-
 
         # error integration
         self.e_phi_int += self.e_phi*control_dt
@@ -218,49 +211,52 @@ class pose_controller_class:
         self.e_phi_int = self.saturate(self.e_phi_int,-5,5)
         self.e_th_int = self.saturate(self.e_th,-5,5)
 
-
-        #PID magic
+        #PID control
         phi_in = (self.k_phi[0]*self.e_phi) +  (self.k_phi[1]*e_phi_dot) + (self.k_phi[2]*self.e_phi_int)
         th_in = (self.k_th[0]*self.e_th) +  (self.k_th[1] * e_th_dot) + (self.k_th[2]*self.e_th_int)
         r_in = self.k_r[0]*self.e_r + self.k_r[1]*e_r_dot 
 
         print ">> PID Inputs:   %.2f, %.2f, %.2f" %(th_in,phi_in,r_in)
 
-        # Forces to move
+        # Convert spherical PID control to forces in XYZ
         fix = -phi_in*np.sin(phi)*np.sin(th) + th_in*np.cos(th)*np.cos(phi) + (r_in)*np.cos(phi)*np.sin(th)
         fiy = phi_in*np.cos(phi)*np.sin(th) + th_in*np.cos(th)*np.sin(phi) + (r_in)*np.sin(phi)*np.sin(th)
         fiz = -th_in*np.sin(th) + (r_in)*np.cos(th)
-
-        #fx = (r_in)*np.cos(phi)*np.sin(th)
-        #fy = (r_in)*np.sin(phi)*np.sin(th)
-        #fz = (r_in)*np.cos(th) + self.weight_tether
+        #TODO: Saturate fix, fiy, fiz
 
         print ">> Conves: X, Y, Z" 
-
-        print ">> Move:     %.2f, %.2f, %.2f" %(fix,fiy,fiz)
-
-        # TODO: Saturate fix, fiy, fiz
+        print ">> PID Forces:     %.2f, %.2f, %.2f" %(fix,fiy,fiz)
 
         #### Feed Forward Tether Model ####
 
         #These are the forces that the vehicle needs to exert to balance the tether tension
-        #[fx,fy,fz] = self.get_tether_vector(th,phi,r_in)
-        [fx,fy,fz] = self.smart_tether_ff(th,phi,r,self.goal_pose[2],self.L)
-
+        # Smart Tether FF uses the tether dynamics to figure out the forces.
+        # It is a numerical solution, and not tested on outdoor conditions yet. 
+        [ffx,ffy,ffz] = self.smart_tether_ff(th,phi,r,self.goal_pose[2],self.L)
         print ">> Smart Tether:   %.2f, %.2f, %.2f" %(fx,fy,fz)
-        [fx,fy,fz] = self.dumb_tether_ff(th,phi,self.L)
-        print ">>  Dumb Tether:   %.2f, %.2f, %.2f" %(fx,fy,fz)
+
+        # Basic tether model uses the weight of the tether and position to determine forces. 
+        # It uses trig, and not the ideal tether conditions, but should be more robust than the FF. 
+        [fbx,fby,fbz] = self.basic_tether_ff(th,phi,self.L)
+        print ">>  Basic Tether:   %.2f, %.2f, %.2f" %(fx,fy,fz)
+
+        #Set to zero for simulation
         [fx,fy,fz] = [0,0,0]
+
+        #TODO: Saturate tether model forces. 
+
         if self.SMART_TETHER:
             print "TODO: Need to Select Tether Model"
-        #### Forces from Drag on Vehicle ####
 
+
+        #### Forces from Drag on Vehicle ####
         [fdx, fdy, fdz] = self.get_drag_vector()
+
 
         #### Total Forces for Output ####
         ftx = fix + fx + fdx
         fty = fiy + fy + fdy
-        ftz = fiz + fz + fdz + self.uav_weight
+        ftz = fiz + fz + fdz + self.uav_weight #weight needs to be in newtons
 
         print ">> Total:    %.2f, %.2f, %.2f" %(ftx,fty,ftz)
 
@@ -268,8 +264,6 @@ class pose_controller_class:
         # This is to keep the front of the vehicle pointed at the ship
         ftx = ftx*np.cos(phi) + fty*np.sin(phi)
         fty = -ftx*np.sin(phi) + fty*np.cos(phi)
-
-        FORCE_MAX = 15
 
         print ">> Total Rotated in BF:    %.2f, %.2f, %.2f" %(ftx,fty,ftz-self.uav_weight)
 
@@ -280,7 +274,9 @@ class pose_controller_class:
         print ">> Roll, Pitch:     %.2f,   %.2f" %(roll*180/np.pi, pitch*180/np.pi)
 
         # Saturate
-        ATT_MAX = .5
+        ATT_MAX = 30*np.pi/180
+
+        #Outputs
 
         pitch_cmd = self.saturate(pitch,-ATT_MAX,ATT_MAX)
         roll_cmd = self.saturate(roll,-ATT_MAX,ATT_MAX)
@@ -288,7 +284,6 @@ class pose_controller_class:
 
         K_THROTTLE = .05
         thr_cmd = ((ftz-self.uav_weight)*K_THROTTLE)+.5
-
         thr_cmd = self.saturate(thr_cmd,0,1)
 
 

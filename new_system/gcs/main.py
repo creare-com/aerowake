@@ -22,7 +22,7 @@ from interface.interface import interface_run
 
 # gcs Connection Path. UDP for local simulation. 
 gcs_connect_path = '127.0.0.1:14556'
-#gcs_connect_path = '/dev/ttyAMA0' #also set baud=57600
+#gcs_connect_path = '/dev/ttyAMA0' #also set baud=115200
 #gcs_connect_path = '/dev/ttyUSB0'
 
 
