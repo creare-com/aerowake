@@ -233,12 +233,12 @@ class pose_controller_class:
         # Smart Tether FF uses the tether dynamics to figure out the forces.
         # It is a numerical solution, and not tested on outdoor conditions yet. 
         [ffx,ffy,ffz] = self.smart_tether_ff(th,phi,r,self.goal_pose[2],self.L)
-        print ">> Smart Tether:   %.2f, %.2f, %.2f" %(fx,fy,fz)
+        print ">> Smart Tether:   %.2f, %.2f, %.2f" %(ffx,ffy,ffz)
 
         # Basic tether model uses the weight of the tether and position to determine forces. 
         # It uses trig, and not the ideal tether conditions, but should be more robust than the FF. 
         [fbx,fby,fbz] = self.basic_tether_ff(th,phi,self.L)
-        print ">>  Basic Tether:   %.2f, %.2f, %.2f" %(fx,fy,fz)
+        print ">> Basic Tether:   %.2f, %.2f, %.2f" %(fbx,fby,fbz)
 
         #Set to zero for simulation
         [fx,fy,fz] = [0,0,0]

@@ -218,26 +218,26 @@ def set_attitude_target(data_in):
     autopilot.send_mavlink(msg)
 
 
-# def condition_yaw(heading, relative=False):
-#     if heading<0:
-#         heading+=360
+def condition_yaw(heading, relative=False):
+    if heading<0:
+        heading+=360
 
-#     if relative:
-#         is_relative=1 #yaw relative to direction of travel
-#     else:
-#         is_relative=0 #yaw is an absolute angle
-#     # create the CONDITION_YAW command using command_long_encode()
-#     msg = autopilot.message_factory.command_long_encode(
-#         0, 0,    # target system, target component
-#         mavutil.mavlink.MAV_CMD_CONDITION_YAW, #command
-#         0, #confirmation
-#         heading,    # param 1, yaw in degrees
-#         0,          # param 2, yaw speed deg/s
-#         1,          # param 3, direction -1 ccw, 1 cw
-#         is_relative, # param 4, relative offset 1, absolute angle 0
-#         0, 0, 0)    # param 5 ~ 7 not used
-#     # send command to vehicle
-#     autopilot.send_mavlink(msg)
+    if relative:
+        is_relative=1 #yaw relative to direction of travel
+    else:
+        is_relative=0 #yaw is an absolute angle
+    # create the CONDITION_YAW command using command_long_encode()
+    msg = autopilot.message_factory.command_long_encode(
+        0, 0,    # target system, target component
+        mavutil.mavlink.MAV_CMD_CONDITION_YAW, #command
+        0, #confirmation
+        heading,    # param 1, yaw in degrees
+        0,          # param 2, yaw speed deg/s
+        1,          # param 3, direction -1 ccw, 1 cw
+        is_relative, # param 4, relative offset 1, absolute angle 0
+        0, 0, 0)    # param 5 ~ 7 not used
+    # send command to vehicle
+    autopilot.send_mavlink(msg)
 
 # This function downloads all of the current waypoints from the GCS pixhawk (if there are any), clears the GCS pixhawk, and returns to mission information. 
 def download_mission():
@@ -245,7 +245,7 @@ def download_mission():
     missionlist=[]
     cmds = gcs.commands
     cmds.download()
-    cmds.wait_ready()
+    #cmds.wait_ready()
     for cmd in cmds:
         missionlist.append(cmd)
         #print "I See A Waypoint!"
@@ -278,6 +278,7 @@ def read_mission():
             extra1 = data[5]
             pose_controller.gcs_tether_tension = data[6]
             extra2 = data[7]
+    return None
 
 # Variable Initializations:
 prev_yaw=0
@@ -330,8 +331,9 @@ while True:
     if autopilot.mode.name=='GUIDED' and autopilot.armed and gcs.armed:
 
         if pose_controller.goal_mode ==G_AUTO:
-            output = pose_controller.run_sphpose_controller()
+            output = pose_controller.run_sph_pose_controller()
             set_attitude_target(output)
+            condition_yaw(.5)
 
         if pose_controller.goal_mode ==G_TAKEOFF: 
             #Special condition for takoff. Positive pitch is pitch up
@@ -370,7 +372,7 @@ while True:
     #Timing system to keep the control around CONTROL_DT
     t1 = datetime.datetime.now()
     dtc = (t1-t0).total_seconds()
-    if dtc>0:
+    if dtc<CONTROL_DT:
         time.sleep(CONTROL_DT-dtc)
     else:
         print "Control Too Slow: ",dtc
