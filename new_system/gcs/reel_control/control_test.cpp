@@ -5,6 +5,7 @@
 #include <getopt.h>
 #include <signal.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include "ReelController.hpp"
 using namespace std;
 
@@ -16,6 +17,7 @@ void my_signal_handler(int s) {
 
 int main(int argc, char* argv[]) {
     string port = "USB0";
+    int cm_to_retract = 10;
     g_interrupted = false;
     
     signal(SIGINT,  my_signal_handler); // ctrl-c
@@ -24,11 +26,11 @@ int main(int argc, char* argv[]) {
     // Parse command line options
     opterr = 0;
     char opt ;
-    while ( (opt = getopt(argc, argv, "h::p::")) != (char)(-1) )
+    while ( (opt = getopt(argc, argv, "h::p::l::")) != (char)(-1) )
     {
         switch ( opt ) {
             case 'h':
-                cout << "Usage: ./control_test [-p/dev/ttyUSB0]" << endl;
+                cout << "Usage: ./control_test [-pUSB0] [-l10]" << endl;
                 break;
             case 'p':
             {
@@ -36,6 +38,16 @@ int main(int argc, char* argv[]) {
                     cout << "Couldn't parse port (did you put a space after -p?)." << endl;
                 } else {
                     port = (string)optarg;
+                }
+                break;
+            }
+            case 'l':
+            {
+                if(optarg == NULL) {
+                    cout << "Couldn't parse length (did you put a space after -l?)." << endl;
+                } else {
+                    string len = (string)optarg;
+                    cm_to_retract = atoi(len.c_str());
                 }
                 break;
             }
@@ -49,9 +61,12 @@ int main(int argc, char* argv[]) {
     cout << "Starting.  Using port: " << port << endl;
     try {
         ReelController rc(port);
-        rc.test(); 
+        double len = rc.getTetherLength();
+        cout << "Paid out length = " << len << "m" << endl;
+        len -= cm_to_retract / 10.0;
+        cout << "Retracting to " << len << "m" << endl;
+        rc.setTetherLength(len);
         cout << "Done!" << endl;
-        
         
         cout << "Waiting for interrupt." << endl;
         while(!g_interrupted) {
