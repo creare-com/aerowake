@@ -1,0 +1,5 @@
+/*.pyc
+/build/
+/dialects/.*\.py
+/dialects/.*\.xml
+/*mav.tlog*
