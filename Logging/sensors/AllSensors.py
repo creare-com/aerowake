@@ -94,7 +94,7 @@ class PressureSensor(I2cSensor):
             if not b:
                 raise Exception('No data to parse!  Make sure to call retrieve_p() or supply a value to parse.')
         p_word = self._two_bytes_to_one_word(b) & 0x3FFF
-        return (p_word - 1.0 * self.OSdig) / (2 **14) * self.FSS
+        return 1.25 * (p_word - 1.0 * self.OSdig) / (2 **14) * self.FSS
 
     def parse_t(self, b = None):
         if not b:
