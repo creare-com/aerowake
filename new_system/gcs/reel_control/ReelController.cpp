@@ -7,7 +7,7 @@ const unsigned int ReelController::GEARBOX_MAX_INPUT_RPM = 8000;
 
 ReelController::ReelController(std::string port, double reel_diam_cm) :
     motor_controller(port), reel_diameter_m(reel_diam_cm / 100.0), gear_ratio(26),
-    profile_accel_mpss(0.6), profile_decel_mpss(0.6)
+    profile_accel_mpss(0.6), profile_decel_mpss(0.6), last_commanded_tether_length_m(nan(""))
 {
     std::cout << "Initializing with port: " << port << " reel diameter:" 
         << reel_diameter_m << "m and qc/rev: " << QC_PER_TURN << std::endl;
@@ -45,8 +45,13 @@ void ReelController::init() {
     }
 }
 
+void ReelController::setTetherToHome() {
+    last_commanded_tether_length_m = 0;
+}
+
 void ReelController::setTetherLength(double desired_length_m) {
     // TBD: add offsets
+    last_commanded_tether_length_m = desired_length_m;
     double desired_motor_position = motor_position_from_tether_length(desired_length_m);
     std::cout << "Moving motor to " << desired_motor_position << std::endl;
     motor_controller.moveToPosition((long)desired_motor_position);
@@ -72,6 +77,9 @@ void ReelController::setTetherSpeed(double tether_mps)
     std::cout << "Setting profile to /" << tether_accel_rpms
               << " -" << tether_rpm << " \\" << tether_decel_rpms << std::endl;
     motor_controller.setPositionProfile(tether_rpm, tether_accel_rpms, tether_decel_rpms);
+    if(!isnan(last_commanded_tether_length_m)) {
+        setTetherLength(last_commanded_tether_length_m);
+    }
 }
 
 void ReelController::setTetherAccelDecel(double accel_mpss, double decel_mpss)

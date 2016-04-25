@@ -69,12 +69,13 @@ int main(int argc, char* argv[]) {
         rc.setTetherAccelDecel(1.5, 1.5);
         rc.setTetherSpeed(0.1);
         rc.setTetherLength(len);
+        // rc.setTetherSpeed(0.1);
         cout << "Done!" << endl;
         cout << "Waiting a second... " << endl;
         sleep(1);
         cout << "Turning the speed up." << endl;
         rc.setTetherSpeed(1);
-        rc.setTetherLength(len);
+        // rc.setTetherLength(len);
         cout << "Waiting for interrupt." << endl;
         while(!g_interrupted) {
             double len = rc.getTetherLength();

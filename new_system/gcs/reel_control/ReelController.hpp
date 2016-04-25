@@ -16,6 +16,7 @@ private:
     double gear_ratio; // Ratio here is motor:output - for instance, 26:1 = 26 would indicate 26 turns on the motor corresponding to 1 turn on the reel.
     double profile_accel_mpss; // The rate at which the tether will accelerate, in m/s^2
     double profile_decel_mpss; // The rate at which the tether will decelerate, in m/s^2 
+    double last_commanded_tether_length_m; // The last time someone called setTetherLength or setTetherToHome, this is the value they commanded.  NaN if they haven't commanded anything yet.
     
     long motor_position_from_tether_length(double tether_length_m); // in pulses
     double tether_length_from_motor_position(int motor_position); // in meters
@@ -32,7 +33,7 @@ public:
     void setTetherToHome(); // consider the tether length to be 0, we're fully reeled in.
     void setTetherLength(double desired_length_m); // pays out or reels in the tether to this length
     double setMaxTetherSpeed(double max_tether_mps); // Returns the actual payout rate set.  Will cap based on the motor & gearbox capabilities.
-    void setTetherSpeed(double tether_mps);
+    void setTetherSpeed(double tether_mps); // Also re-commands the latest commanded length
     void setTetherAccelDecel(double accel_mpss, double decel_mpss); // Only takes effect when you update the speed.  In meters/s^2
     double getTetherLength();
 };
