@@ -2,27 +2,29 @@
 // Copyright Creare 2016
 #include "ReelController.hpp"
 const unsigned int ReelController::QC_PER_TURN = 1024*4;
+const unsigned int ReelController::MOTOR_MAX_RPM = 10000;
+const unsigned int ReelController::GEARBOX_MAX_INPUT_RPM = 8000;
 
 ReelController::ReelController(std::string port, double reel_diam_cm) :
-    motor_controller(port), reel_diameter_m(reel_diam_cm / 100.0), 
-    max_payout_velocity_mps(0.10)
+    motor_controller(port), reel_diameter_m(reel_diam_cm / 100.0), gear_ratio(26),
+    profile_accel_mpss(100), profile_decel_mpss(100)
 {
+    std::cout << "Initializing with port: " << port << " reel diameter:" 
+        << reel_diameter_m << "m and qc/rev: " << QC_PER_TURN << std::endl;
     motor_controller.open();
     init();
 }
 
 long ReelController::motor_position_from_tether_length(double tether_length_m) {
     return QC_PER_TURN * (tether_length_m / (M_PI * reel_diameter_m));
-    // return tether_length_m * 10270.0; // Anecdotal pulses/meter
 }
 
 double ReelController::tether_length_from_motor_position(int motor_position) {
     return ((double)motor_position / QC_PER_TURN) * (M_PI * reel_diameter_m);
-    // return motor_position / 10270.0; // Anecdotal pulses/meter
 }
 
 unsigned int ReelController::motor_rpm_from_tether_mps(double tether_mps) {
-    return tether_mps / (M_PI * reel_diameter_m);
+    return (60.0 * tether_mps / (M_PI * reel_diameter_m));
 }
 
 void ReelController::init() {
@@ -32,8 +34,10 @@ void ReelController::init() {
         // This is because we have a working set of settings, and because EPOS Studio provides
         // a more informative explanation of a lot of the settings, so it's harder to lose track
         // of, for example, which sensor you're configuring.
-        
-        // motor_controller.setMaxVelocity(1);
+        int num = motor_controller.getGearRatioNumerator();
+        int den = motor_controller.getGearRatioDenominator();
+        gear_ratio = (double)num / (double)den;
+        std::cout << "Got gear ratio - " << num << ":" << den << " = " << gear_ratio << std::endl;
         motor_controller.setOperatingMode(EposMotorController::EPOS_OPMODE_PROFILE_POSITION_MODE);
         motor_controller.clearFaultAndEnable();
     } else {
@@ -41,27 +45,35 @@ void ReelController::init() {
     }
 }
 
-void ReelController::test() {
-    double len = getTetherLength();
-    std::cout << "Tether length=" << len << std::endl;
-    len += 0.1;
-    std::cout << "Motor controller is " << (motor_controller.isEnabled()? "" : "not ") << "enabled." << std::endl;
-    std::cout << "Motor controller is " << (motor_controller.isFaulted()? "" : "not ") << "faulted." << std::endl;
-    std::cout << "Setting length to " << len << std::endl;
-    setTetherLength(len);
-    std::cout << "Motor controller is " << (motor_controller.isEnabled()? "" : "not ") << "enabled." << std::endl;
-    std::cout << "Motor controller is " << (motor_controller.isFaulted()? "" : "not ") << "faulted." << std::endl;
-    // std::cout << "Disabling..." << std::endl;
-    // motor_controller.disable();
-    // std::cout << "Motor controller is " << (motor_controller.isEnabled()? "" : "not ") << "enabled." << std::endl;
-    // std::cout << "Motor controller is " << (motor_controller.isFaulted()? "" : "not ") << "faulted." << std::endl;
-}
-
 void ReelController::setTetherLength(double desired_length_m) {
     // TBD: add offsets
     double desired_motor_position = motor_position_from_tether_length(desired_length_m);
     std::cout << "Moving motor to " << desired_motor_position << std::endl;
     motor_controller.moveToPosition((long)desired_motor_position);
+}
+
+double ReelController::setMaxTetherSpeed(double max_payout_mps)
+{
+    unsigned int max_payout_rpm = motor_rpm_from_tether_mps(max_payout_mps);
+    if(max_payout_rpm * gear_ratio > MOTOR_MAX_RPM)
+    { std::cout << "Limiting max RPM to motor max" << std::endl; max_payout_rpm = MOTOR_MAX_RPM / gear_ratio; }
+    if(max_payout_rpm * gear_ratio > GEARBOX_MAX_INPUT_RPM)
+    { std::cout << "Limiting max RPM to gearbox max" << std::endl;  max_payout_rpm = GEARBOX_MAX_INPUT_RPM / gear_ratio; }
+    std::cout << "Setting max payout velocity to " << max_payout_mps << "mps = " << max_payout_rpm << "RPM." << std::endl;
+    motor_controller.setMaxVelocity(max_payout_rpm);
+    return max_payout_rpm;
+}
+
+void ReelController::setTetherSpeed(double max_payout_mps)
+{
+    
+}
+
+void ReelController::setTetherAccelDecel(double accel_mpss, double decel_mpss)
+{
+    // Store these for later
+    profile_accel_mpss = accel_mpss;
+    profile_decel_mpss = decel_mpss;
 }
 
 double ReelController::getTetherLength() {

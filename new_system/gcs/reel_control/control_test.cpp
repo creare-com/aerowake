@@ -63,8 +63,9 @@ int main(int argc, char* argv[]) {
         ReelController rc(port);
         double len = rc.getTetherLength();
         cout << "Paid out length = " << len << "m" << endl;
-        len -= cm_to_retract / 10.0;
+        len += cm_to_retract / 100.0;
         cout << "Retracting to " << len << "m" << endl;
+        rc.setMaxTetherSpeed(100);
         rc.setTetherLength(len);
         cout << "Done!" << endl;
         
@@ -72,7 +73,7 @@ int main(int argc, char* argv[]) {
         while(!g_interrupted) {
             double len = rc.getTetherLength();
             cout << "Tether length = " << len << endl;
-            sleep(0.1);
+            sleep(1);
         }
         cout << "Cleaning up." << endl;
     } catch (exception e) {

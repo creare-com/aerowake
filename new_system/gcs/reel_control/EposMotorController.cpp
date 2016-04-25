@@ -2,6 +2,7 @@
 // Copyright Creare 2016
 #include "EposMotorController.hpp"
 const unsigned short EposMotorController::NODE_ID = 1;// This would matter much more in a CAN network
+const unsigned short EposMotorController::GEAR_RATIO_INDEX = 0x2230;// The Object Index of the Gear Configuration object in EPOS memory
 
 EposMotorController::EposMotorController(std::string port, unsigned int baudRate) :
     portName(port), baudRate(baudRate), curOpMode(EPOS_OPMODE_UNKNOWN)
@@ -38,12 +39,12 @@ void EposMotorController::open()
                     } else {
                         std::stringstream ss;
                         ss << "Tried to set port rate to " << baudRate << " but instead got " << actual_baud_rate << std::endl;
-                        fail(ss.str(), error_code);
+                        failWithCode(ss.str(), error_code);
                     }
-                } else { fail("Failed to confirm port settings", error_code, true); }
-            } else { fail("Failed to write port settings", error_code, true); }
-        } else { fail("Failed to read port settings", error_code, true); }
-    } else { fail("Failed to open motor controller", error_code, true); }
+                } else { failWithCode("Failed to confirm port settings", error_code); }
+            } else { failWithCode("Failed to write port settings", error_code); }
+        } else { failWithCode("Failed to read port settings", error_code); }
+    } else { failWithCode("Failed to open motor controller", error_code); }
 }
 /************************************
              Open/close
@@ -53,7 +54,7 @@ void EposMotorController::close() {
     setOperatingMode(EPOS_OPMODE_UNKNOWN);
     unsigned int error_code = 0;
     if(VCS_CloseDevice(deviceHandle, &error_code) == 0)
-    { fail("Failed to close motor controller", error_code, false); }
+    { failWithCode("Failed to close motor controller", error_code, false); }
 }
 void EposMotorController::clearFaultAndEnable() {
     if (isFaulted()) { clearFault(); }
@@ -66,19 +67,19 @@ void EposMotorController::clearFaultAndEnable() {
 void EposMotorController::clearFault() {
     unsigned int error_code = 0;
     if(VCS_ClearFault(deviceHandle, NODE_ID, &error_code) == 0)
-    { fail("Failed to clear fault", error_code, true); }
+    { failWithCode("Failed to clear fault", error_code); }
 }
 
 void EposMotorController::enable() {
     unsigned int error_code = 0;
     if(VCS_SetEnableState(deviceHandle, NODE_ID, &error_code) == 0)
-    { fail("Failed to set enabled state", error_code, true); }
+    { failWithCode("Failed to set enabled state", error_code); }
 }
 
 void EposMotorController::disable() {
     unsigned int error_code = 0;
     if(VCS_SetDisableState(deviceHandle, NODE_ID, &error_code) == 0)
-    { fail("Failed to set disabled state", error_code, false); }
+    { failWithCode("Failed to set disabled state", error_code, false); }
 }
 
 bool EposMotorController::isEnabled() {
@@ -88,7 +89,7 @@ bool EposMotorController::isEnabled() {
     {
         if(enabled) { return true; }
         else        { return false; }    
-    } else { fail("Failed to read fault state", error_code, true); return false; }
+    } else { failWithCode("Failed to read fault state", error_code); return false; }
 }
 
 bool EposMotorController::isFaulted() {
@@ -98,7 +99,7 @@ bool EposMotorController::isFaulted() {
     {
         if(faulted) { return true; }
         else        { return false; }
-    } else { fail("Failed to read fault state", error_code, true); return false; }
+    } else { failWithCode("Failed to read fault state", error_code); return false; }
 }
 
 /************************************
@@ -109,7 +110,7 @@ void EposMotorController::setOperatingMode(OperatingMode mode) {
     switch(mode) {
         case EPOS_OPMODE_PROFILE_POSITION_MODE:
             if(VCS_ActivateProfilePositionMode(deviceHandle, NODE_ID, &error_code) == 0)
-            { fail("Failed to activate Profile Positioning Mode", error_code, true); }
+            { failWithCode("Failed to activate Profile Positioning Mode", error_code); }
             else { std::cout << "Activated Profile Position mode" << std::endl; }
             break;
         case EPOS_OPMODE_UNKNOWN:
@@ -132,14 +133,14 @@ void EposMotorController::setSensorType(unsigned short type) {
         {
             unsigned int error_code = 0;
             if(VCS_SetSensorType(deviceHandle, NODE_ID, type, &error_code) == 0)
-            { fail("Failed to set sensor type", error_code, true); }
+            { failWithCode("Failed to set sensor type", error_code); }
             break;
         }
         default:
         {
             std::stringstream ss; 
             ss << "Cannot set sensor type " << type << "; not a valid type.";
-            fail(ss.str(), true);
+            fail(ss.str());
             break;
         }
     }
@@ -148,8 +149,32 @@ void EposMotorController::setSensorType(unsigned short type) {
 void EposMotorController::setEncoderSettings(unsigned int pulses_per_turn, bool invert_polarity) {
     unsigned int error_code = 0;
     if(VCS_SetIncEncoderParameter(deviceHandle, NODE_ID, pulses_per_turn, invert_polarity, &error_code) == 0)
-    { fail("Failed to set encoder parameters", error_code, false); }
+    { failWithCode("Failed to set encoder parameters", error_code); }
 }
+
+unsigned short EposMotorController::getGearRatioNumerator()
+{
+    unsigned int error_code = 0;
+    unsigned char NUMERATOR_SUB_INDEX = 0x01;
+    unsigned short numerator = -1;
+    unsigned int bytes_read = -1;
+    if(VCS_GetObject(deviceHandle, NODE_ID, GEAR_RATIO_INDEX, NUMERATOR_SUB_INDEX, 
+        &numerator, sizeof(numerator), &bytes_read, &error_code) == 0)
+    { failWithCode("Failed to get gear ratio numerator", error_code); }
+    return numerator;
+}
+unsigned short EposMotorController::getGearRatioDenominator()
+{
+    unsigned int error_code = 0;
+    unsigned char DENOMINATOR_SUB_INDEX = 0x02;
+    unsigned short denominator = -1;
+    unsigned int bytes_read = -1;
+    if(VCS_GetObject(deviceHandle, NODE_ID, GEAR_RATIO_INDEX, DENOMINATOR_SUB_INDEX, 
+        &denominator, sizeof(denominator), &bytes_read, &error_code) == 0)
+    { failWithCode("Failed to get gear ratio denominator", error_code); }
+    return denominator;
+}
+
 
 /************************************
              Movement
@@ -163,12 +188,12 @@ void EposMotorController::moveToPosition(long position) {
             1, // absolute = TRUE
             1, // cancel the last one = TRUE
             &error_code) == 0)
-        { fail("Failed to command movement to position", error_code, true); }
+        { failWithCode("Failed to command movement to position", error_code, true); }
         else { std::cout << "Successfully commanded movement." << std::endl; }
     } else {
         std::stringstream ss;
         ss << "Cannot move to a position unless in a positioning mode.  Currently in mode " << curOpMode << ".";
-        fail(ss.str(), true);
+        fail(ss.str());
     }
 }
 
@@ -176,14 +201,20 @@ int EposMotorController::getPosition() {
     unsigned int error_code = 0;
     int position = 0;
     if(VCS_GetPositionIs(deviceHandle, NODE_ID, &position, &error_code) == 0)
-    { fail("Failed to set maximum velocity", error_code, true); }
+    { failWithCode("Failed to get position", error_code); }
     return position;
 }
 
 void EposMotorController::setMaxVelocity(unsigned int velocity) {
     unsigned int error_code = 0;
     if(VCS_SetMaxProfileVelocity(deviceHandle, NODE_ID, velocity, &error_code) == 0)
-    { fail("Failed to set maximum velocity", error_code, true); }
+    { failWithCode("Failed to set maximum velocity", error_code); }
+}
+
+void EposMotorController::setPositionProfile(unsigned int velocity, unsigned int acceleration, unsigned int deceleration) {
+    unsigned int error_code = 0;
+    if(VCS_SetPositionProfile(deviceHandle, NODE_ID, velocity, acceleration, deceleration, &error_code) == 0)
+    { failWithCode("Failed to set position profile", error_code); }
 }
 
 void EposMotorController::haltMovement() {
@@ -198,7 +229,7 @@ void EposMotorController::haltMovement() {
 void EposMotorController::haltPositionMovement() {
     unsigned int error_code = 0;
     if(VCS_HaltPositionMovement(deviceHandle, NODE_ID, &error_code) == 0)
-    { fail("Failed to halt position movement", error_code, false); }
+    { failWithCode("Failed to halt position movement", error_code, false); }
 }
 
 /************************************
@@ -213,7 +244,7 @@ void EposMotorController::fail(std::string message, bool disable_motor) {
     throw std::exception();
 }
 
-void EposMotorController::fail(std::string message, int error_code, bool disable_motor) {
+void EposMotorController::failWithCode(std::string message, int error_code, bool disable_motor) {
     std::stringstream ss;
     ss << message << ": " << lookupError(error_code);
     fail(ss.str(), disable_motor);
