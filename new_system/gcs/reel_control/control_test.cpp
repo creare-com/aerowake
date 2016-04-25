@@ -65,10 +65,16 @@ int main(int argc, char* argv[]) {
         cout << "Paid out length = " << len << "m" << endl;
         len += cm_to_retract / 100.0;
         cout << "Retracting to " << len << "m" << endl;
-        rc.setMaxTetherSpeed(100);
+        rc.setMaxTetherSpeed(2);
+        rc.setTetherAccelDecel(1.5, 1.5);
+        rc.setTetherSpeed(0.1);
         rc.setTetherLength(len);
         cout << "Done!" << endl;
-        
+        cout << "Waiting a second... " << endl;
+        sleep(1);
+        cout << "Turning the speed up." << endl;
+        rc.setTetherSpeed(1);
+        rc.setTetherLength(len);
         cout << "Waiting for interrupt." << endl;
         while(!g_interrupted) {
             double len = rc.getTetherLength();

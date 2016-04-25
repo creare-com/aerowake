@@ -31,9 +31,9 @@ public:
     // Tether operations
     void setTetherToHome(); // consider the tether length to be 0, we're fully reeled in.
     void setTetherLength(double desired_length_m); // pays out or reels in the tether to this length
-    double setMaxTetherSpeed(double max_payout_mps); // Returns the actual payout rate set.  Will cap based on the motor & gearbox capabilities.
-    void setTetherSpeed(double max_payout_mps);
-    void setTetherAccelDecel(double accel_mpss, double decel_mpss);
+    double setMaxTetherSpeed(double max_tether_mps); // Returns the actual payout rate set.  Will cap based on the motor & gearbox capabilities.
+    void setTetherSpeed(double tether_mps);
+    void setTetherAccelDecel(double accel_mpss, double decel_mpss); // Only takes effect when you update the speed.  In meters/s^2
     double getTetherLength();
 };
 

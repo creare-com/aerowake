@@ -7,7 +7,7 @@ const unsigned int ReelController::GEARBOX_MAX_INPUT_RPM = 8000;
 
 ReelController::ReelController(std::string port, double reel_diam_cm) :
     motor_controller(port), reel_diameter_m(reel_diam_cm / 100.0), gear_ratio(26),
-    profile_accel_mpss(100), profile_decel_mpss(100)
+    profile_accel_mpss(0.6), profile_decel_mpss(0.6)
 {
     std::cout << "Initializing with port: " << port << " reel diameter:" 
         << reel_diameter_m << "m and qc/rev: " << QC_PER_TURN << std::endl;
@@ -52,21 +52,26 @@ void ReelController::setTetherLength(double desired_length_m) {
     motor_controller.moveToPosition((long)desired_motor_position);
 }
 
-double ReelController::setMaxTetherSpeed(double max_payout_mps)
+double ReelController::setMaxTetherSpeed(double max_tether_mps)
 {
-    unsigned int max_payout_rpm = motor_rpm_from_tether_mps(max_payout_mps);
+    unsigned int max_payout_rpm = motor_rpm_from_tether_mps(max_tether_mps);
     if(max_payout_rpm * gear_ratio > MOTOR_MAX_RPM)
     { std::cout << "Limiting max RPM to motor max" << std::endl; max_payout_rpm = MOTOR_MAX_RPM / gear_ratio; }
     if(max_payout_rpm * gear_ratio > GEARBOX_MAX_INPUT_RPM)
     { std::cout << "Limiting max RPM to gearbox max" << std::endl;  max_payout_rpm = GEARBOX_MAX_INPUT_RPM / gear_ratio; }
-    std::cout << "Setting max payout velocity to " << max_payout_mps << "mps = " << max_payout_rpm << "RPM." << std::endl;
+    std::cout << "Setting max payout velocity to " << max_tether_mps << "mps = " << max_payout_rpm << "RPM." << std::endl;
     motor_controller.setMaxVelocity(max_payout_rpm);
     return max_payout_rpm;
 }
 
-void ReelController::setTetherSpeed(double max_payout_mps)
+void ReelController::setTetherSpeed(double tether_mps)
 {
-    
+    unsigned int tether_rpm        = motor_rpm_from_tether_mps(tether_mps);
+    unsigned int tether_accel_rpms = motor_rpm_from_tether_mps(profile_accel_mpss);
+    unsigned int tether_decel_rpms = motor_rpm_from_tether_mps(profile_decel_mpss);
+    std::cout << "Setting profile to /" << tether_accel_rpms
+              << " -" << tether_rpm << " \\" << tether_decel_rpms << std::endl;
+    motor_controller.setPositionProfile(tether_rpm, tether_accel_rpms, tether_decel_rpms);
 }
 
 void ReelController::setTetherAccelDecel(double accel_mpss, double decel_mpss)
