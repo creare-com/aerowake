@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include "ReelController.hpp"
 using namespace std;
+using namespace gcs;
 
 bool g_interrupted;
 
