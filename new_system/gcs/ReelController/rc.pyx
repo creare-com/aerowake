@@ -12,7 +12,7 @@ cdef extern from "ReelController.hpp" namespace "gcs":
 
 cdef class PyReelController:
     cdef ReelController *rc
-    def __cinit__(self, string usb_port, double reel_diam_cm):
+    def __cinit__(self, string usb_port = "USB0", double reel_diam_cm = 12.7):
         self.rc = new ReelController(usb_port, reel_diam_cm)
     def __dealloc__(self):
         del self.rc

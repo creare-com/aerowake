@@ -17,14 +17,15 @@ namespace gcs {
     }
 
     long ReelController::motor_position_from_tether_length(double tether_length_m) {
-        return QC_PER_TURN * (tether_length_m / (M_PI * reel_diameter_m));
+        return QC_PER_TURN * (-tether_length_m / (M_PI * reel_diameter_m));
     }
 
     double ReelController::tether_length_from_motor_position(int motor_position) {
-        return ((double)motor_position / QC_PER_TURN) * (M_PI * reel_diameter_m);
+        return (-(double)motor_position / QC_PER_TURN) * (M_PI * reel_diameter_m);
     }
 
     unsigned int ReelController::motor_rpm_from_tether_mps(double tether_mps) {
+        // Do not invert sign, since the motor controller only refers to rates in the positive
         return (60.0 * tether_mps / (M_PI * reel_diameter_m));
     }
 
@@ -72,11 +73,11 @@ namespace gcs {
 
     void ReelController::setTetherSpeed(double tether_mps)
     {
-        unsigned int tether_rpm        = motor_rpm_from_tether_mps(tether_mps);
+        unsigned int tether_rpm        = motor_rpm_from_tether_mps(fabs(tether_mps));
         unsigned int tether_accel_rpms = motor_rpm_from_tether_mps(profile_accel_mpss);
         unsigned int tether_decel_rpms = motor_rpm_from_tether_mps(profile_decel_mpss);
         std::cout << "Setting profile to /" << tether_accel_rpms
-                  << " -" << tether_rpm << " \\" << tether_decel_rpms << std::endl;
+                  << " " << tether_rpm << " \\" << tether_decel_rpms << std::endl;
         motor_controller.setPositionProfile(tether_rpm, tether_accel_rpms, tether_decel_rpms);
         if(!isnan(last_commanded_tether_length_m)) {
             setTetherLength(last_commanded_tether_length_m);
@@ -86,8 +87,8 @@ namespace gcs {
     void ReelController::setTetherAccelDecel(double accel_mpss, double decel_mpss)
     {
         // Store these for later
-        profile_accel_mpss = accel_mpss;
-        profile_decel_mpss = decel_mpss;
+        profile_accel_mpss = fabs(accel_mpss);
+        profile_decel_mpss = fabs(decel_mpss);
     }
 
     double ReelController::getTetherLength() {

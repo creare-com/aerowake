@@ -12,7 +12,9 @@ namespace gcs {
     }
 
     EposMotorController::~EposMotorController() {
+        std::cout << "Called destructor" << std::endl;
         close(); // Also disables
+        std::cout << "Destructor done." << std::endl;
     }
 
     void EposMotorController::open() 
