@@ -214,10 +214,24 @@ namespace gcs {
         { failWithCode("Failed to set maximum velocity", error_code); }
     }
 
-    void EposMotorController::setPositionProfile(unsigned int velocity, unsigned int acceleration, unsigned int deceleration) {
+    double EposMotorController::getMaxVelocity() {
+        unsigned int error_code = 0;
+        unsigned int velocity = 0;
+        if(VCS_GetMaxProfileVelocity(deviceHandle, NODE_ID, &velocity, &error_code) == 0)
+        { failWithCode("Failed to set maximum velocity", error_code); }
+        return velocity;
+    }
+
+    void EposMotorController::setPositionProfile(unsigned int  velocity, unsigned int  acceleration, unsigned int  deceleration) {
         unsigned int error_code = 0;
         if(VCS_SetPositionProfile(deviceHandle, NODE_ID, velocity, acceleration, deceleration, &error_code) == 0)
         { failWithCode("Failed to set position profile", error_code); }
+    }
+
+    void EposMotorController::getPositionProfile(unsigned int *velocity, unsigned int *acceleration, unsigned int *deceleration) {
+        unsigned int error_code = 0;
+        if(VCS_GetPositionProfile(deviceHandle, NODE_ID, velocity, acceleration, deceleration, &error_code) == 0)
+        { failWithCode("Failed to get position profile", error_code); }
     }
 
     void EposMotorController::haltMovement() {
