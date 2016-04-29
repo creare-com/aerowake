@@ -18,6 +18,7 @@ from dronekit import APIException, VehicleMode, connect, mavutil
 
 from airprobe.airprobe_main import airprobe_run
 
+#from controller.pose_control_cart import pose_controller_class
 from controller.pose_control import pose_controller_class
 
 # Autopilot Connection Path. UDP for local simulation. 
@@ -81,8 +82,10 @@ logging.info("-------------------- UAV NODE --------------------")
 CONTROL_DT = .1
 
 pose_controller = pose_controller_class(CONTROL_DT)
+pose_controller.log_file_name = 'uav_log_file_'+str(int(time.time()))+'.csv'
 
 
+pose_controller.run_sph_pose_controller()
 ####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Multiprocessing System Setup !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
@@ -133,7 +136,7 @@ logging.info("GCS Connected")
 
 
 #### System Time Setup ####
-
+human_time=0
 # We need to get the time from the autopilot (which gets it via gps), because the raspi does not have a RTC
 autopilot_start_time = 0
 rasp_start_time = 0
@@ -297,7 +300,7 @@ logging.info("-----------------------------------------------------")
 while True:
 
     t0= datetime.datetime.now()
-
+    pose_controller.human_time = human_time
 
     # Update State Information
     pose_controller.uav_coord = [autopilot.location.global_frame.lat, autopilot.location.global_frame.lon]     # GPS Coordinates of UAV [lat,lon] from pixhawk (DD.DDDDDDD)

@@ -26,12 +26,12 @@ class pose_controller_class:
 
         # Inputs 
         self.goal_pose = [1.57,0,10]	# UAV Goal Position [theta,phi,r] (radians)
-        self.goal_mode = None       # G_AUTO=0,  G_TAKEOFF=1,  G_LAND=2
+        self.goal_mode = 3          # G_AUTO=0,  G_TAKEOFF=1,  G_LAND=2
 
-        # Outputs
-        self.goal_attitude = [0,0] 	# UAV Goal attitude [roll, pitch] (radians)
-        self.goal_throttle = 0		# UAV Goal Throttle (PWM Signal)
-        self.goal_heading = 0 		# UAV Goal Heading (degrees) 
+        # # Outputs
+        # self.goal_attitude = [0,0] 	# UAV Goal attitude [roll, pitch] (radians)
+        # self.goal_throttle = 0		# UAV Goal Throttle (PWM Signal)
+        # self.goal_heading = 0 		# UAV Goal Heading (degrees) 
 
         # Memory Items for Control
         self.control_c = 0
@@ -43,6 +43,9 @@ class pose_controller_class:
         self.e_phi_int = 0
         self.e_th_int = 0 
 
+        self.log_n = 0
+        self.human_time = 0
+        self.log_file_name = 'log_generic.csv'
         # Controller Gains P D I
         # self.k_phi =[1.2, 2.0,  1.0] 
         # self.k_th  =[1,   2.0,  1.0]
@@ -55,6 +58,8 @@ class pose_controller_class:
         self.SMART_TETHER = True
 
         self.uav_weight = 2*9.81 #weight of the UAV in Newtons. 
+
+
 
 
 ##!!!!!!!!!!!!!!!!!!!!!!!!!! Helper Functions !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -172,10 +177,32 @@ class pose_controller_class:
         Fz = data_out[2]
         return [Fx,Fy,Fz]
 
+## !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Logging !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+    def write_to_log(self,dataPkt):
+        with open(self.log_file_name,'a') as f:
+            self.log_n+=1
+            if self.log_n ==1:
+                header_text = "log N,time,header \n"
+                f.write(header_text)            
+                
+                
+            #now= datetime.datetime.now()
+            #timestamp = now.strftime("%H:%M:%S")
+            outstr = str(self.log_n) + ","+ str(self.human_time)+","+ str(dataPkt)+ "\n"
+            try:
+                f.write(outstr)
+            except KeyboardInterrupt:
+                print "Keyboard Interrupt Logging"
+            #if var.logN<5:        
+            #    print "Writing to Logfile Successful"
+            return None
+
+
+
 ##!!!!!!!!!!!!!!!!!!!!!!!!!!!! Run Controller Function !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     def run_sph_pose_controller(self):
-
 
         self.control_c +=1
 
@@ -291,6 +318,9 @@ class pose_controller_class:
 
         #roll_cmd = 0.0 # positive is a roll right. 
         #pitch_cmd = 0.0 # positive is pitch up
+
+        log_data = "%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f " %(self.uav_coord[0],self.uav_coord[1],self.gcs_coord[0],self.gcs_coord[1],self.uav_alt,self.gcs_alt,self.goal_pose[0],self.goal_pose[1],self.goal_pose[2],self.uav_heading,self.gcs_heading,self.uav_vel[0],self.uav_vel[1],self.uav_vel[2],self.gcs_vel[0],self.gcs_vel[1],self.gcs_vel[2],self.uav_pose[0],self.uav_pose[1],self.uav_pose[2],self.goal_pose[0],self.goal_pose[1],self.goal_pose[2],self.goal_mode,self.L, roll_cmd,pitch_cmd,yaw_cmd,thr_cmd ) 
+        self.write_to_log(log_data)
          
         quat = self.eul2quat(roll_cmd,pitch_cmd,yaw_cmd)
 

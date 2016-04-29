@@ -267,7 +267,7 @@ MISSION_L   = [ 50,  50,  50,  60,   60,  70,  70, 100]
 
 while True:
     time.sleep(.2)
-
+    
     #Get Reel Info:
     # try:
     #     reel_reading = data_from_airprobe.get(False)
