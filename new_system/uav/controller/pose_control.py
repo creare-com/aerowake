@@ -24,8 +24,8 @@ class pose_controller_class:
         self.L = 0		            # GCS Tether Length (m)
         self.gcs_tether_tension = 0 # GCS Tether Tension (newtons)
 
-        self.voltage = 0            # UAV Voltage
-        self.current = 0            # UAV Current (milli-amps)
+        self.uav_voltage = 0            # UAV Voltage
+        self.uav_current = 0            # UAV Current (milli-amps)
 
         # Inputs 
         self.goal_pose = [1.57,0,10]	# UAV Goal Position [theta,phi,r] (radians)
@@ -187,7 +187,7 @@ class pose_controller_class:
             self.log_n+=1
             if self.log_n ==1:
                 header = "self.uav_coord[0],self.uav_coord[1],self.gcs_coord[0],self.gcs_coord[1],self.uav_alt,self.gcs_alt,self.goal_pose[0],self.goal_pose[1],self.goal_pose[2],self.uav_heading,self.gcs_heading,self.uav_vel[0],self.uav_vel[1],self.uav_vel[2],self.gcs_vel[0],self.gcs_vel[1],self.gcs_vel[2],self.uav_pose[0],self.uav_pose[1],self.uav_pose[2],self.goal_pose[0],self.goal_pose[1],self.goal_pose[2],self.goal_mode,self.L, roll_cmd,pitch_cmd,yaw_cmd,thr_cmd,self.voltage,self.current "
-                header_text = "log N,time, \n"
+                header_text = "log N,time,"+header+" \n"
                 f.write(header_text)            
                 
                 
@@ -205,6 +205,7 @@ class pose_controller_class:
 ##!!!!!!!!!!!!!!!!!!!!!!!!!!!! Run Controller Function !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     def run_sph_pose_controller(self):
+
 
         self.control_c +=1
 
@@ -321,7 +322,7 @@ class pose_controller_class:
         #roll_cmd = 0.0 # positive is a roll right. 
         #pitch_cmd = 0.0 # positive is pitch up
 
-        log_data = "%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f " %(self.uav_coord[0],self.uav_coord[1],self.gcs_coord[0],self.gcs_coord[1],self.uav_alt,self.gcs_alt,self.goal_pose[0],self.goal_pose[1],self.goal_pose[2],self.uav_heading,self.gcs_heading,self.uav_vel[0],self.uav_vel[1],self.uav_vel[2],self.gcs_vel[0],self.gcs_vel[1],self.gcs_vel[2],self.uav_pose[0],self.uav_pose[1],self.uav_pose[2],self.goal_pose[0],self.goal_pose[1],self.goal_pose[2],self.goal_mode,self.L, roll_cmd,pitch_cmd,yaw_cmd,thr_cmd,self.voltage,self.current ) 
+        log_data = "%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f " %(self.uav_coord[0],self.uav_coord[1],self.gcs_coord[0],self.gcs_coord[1],self.uav_alt,self.gcs_alt,self.goal_pose[0],self.goal_pose[1],self.goal_pose[2],self.uav_heading,self.gcs_heading,self.uav_vel[0],self.uav_vel[1],self.uav_vel[2],self.gcs_vel[0],self.gcs_vel[1],self.gcs_vel[2],self.uav_pose[0],self.uav_pose[1],self.uav_pose[2],self.goal_pose[0],self.goal_pose[1],self.goal_pose[2],self.goal_mode,self.L, roll_cmd,pitch_cmd,yaw_cmd,thr_cmd,self.uav_voltage,self.uav_current ) 
         self.write_to_log(log_data)
          
         quat = self.eul2quat(roll_cmd,pitch_cmd,yaw_cmd)
