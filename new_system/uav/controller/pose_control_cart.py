@@ -174,6 +174,27 @@ class pose_controller_class:
         Fz = data_out[2]
         return [Fx,Fy,Fz]
 
+## !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Logging !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+    def write_to_log(self,dataPkt):
+        with open(self.log_file_name,'a') as f:
+            self.log_n+=1
+            if self.log_n ==1:
+                header_text = "log N,time,header \n"
+                f.write(header_text)            
+                
+                
+            #now= datetime.datetime.now()
+            #timestamp = now.strftime("%H:%M:%S")
+            outstr = str(self.log_n) + ","+ str(self.human_time)+","+ str(dataPkt)+ "\n"
+            try:
+                f.write(outstr)
+            except KeyboardInterrupt:
+                print "Keyboard Interrupt Logging"
+            return None
+
+
+
 ##!!!!!!!!!!!!!!!!!!!!!!!!!!!! Run Controller Function !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     def run_sph_pose_controller(self):

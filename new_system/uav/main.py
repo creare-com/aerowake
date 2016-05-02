@@ -307,6 +307,8 @@ while True:
     pose_controller.uav_vel = [autopilot.velocity[0],autopilot.velocity[1],autopilot.velocity[2]]      # UAV velocity [x,y,z] from pixhawk (m/s)
     pose_controller.uav_alt = (autopilot.location.global_relative_frame.alt )       # UAV Alt from pixhawk (m)
     pose_controller.uav_heading = autopilot.attitude.yaw        # UAV Heading (degrees)
+    pose_controller.uav_voltage = autopilot.battery.voltage     # UAV Voltage
+    pose_controller.uav_current = autopilot.battery.current/10 # UAV Current in mA
 
     pose_controller.gcs_coord = [gcs.location.global_frame.lat, gcs.location.global_frame.lon]       # GPS Coordinates of GCS [lat,lon] from pixhawk (DD.DDDDDD)
     pose_controller.gcs_vel = [gcs.velocity[0], gcs.velocity[1], gcs.velocity[2]]        # GCS Velocity [x,y,z] from pixhawk (m/s)
