@@ -18,8 +18,8 @@ from dronekit import APIException, VehicleMode, connect, mavutil
 
 from airprobe.airprobe_main import airprobe_run
 
-from controller.pose_control_cart import pose_controller_class
-#from controller.pose_control import pose_controller_class
+#from controller.pose_control_cart import pose_controller_class
+from controller.pose_control import pose_controller_class
 
 # Autopilot Connection Path. UDP for local simulation. 
 #autopilot_connect_path = 'udpin:127.0.0.1:14550'
