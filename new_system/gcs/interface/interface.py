@@ -7,7 +7,6 @@ import time
 
 import numpy as np
 
-from Tkinter import *
 
 
 class interface_run (Process):
@@ -42,6 +41,7 @@ class interface_run (Process):
             pass
 
     def run(self):
+        from Tkinter import * # To address the issue described in http://stackoverflow.com/questions/10755641/
 
         root = Tk()
         frame = Frame(root)
