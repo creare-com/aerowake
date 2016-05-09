@@ -20,10 +20,21 @@ from dronekit import APIException, VehicleMode, connect, mavutil, Command
 from interface.interface import interface_run
 
 
-# gcs Connection Path. UDP for local simulation. 
+ #!# All comments to explain system will be prefaced with "#!#"
+
+ #!# Setting up connection path for the Autopilots. 
+ #!# For SITL testing, use the following. The UAV is located on Port 14552 and GCS 14554
 gcs_connect_path = '127.0.0.1:14556'
-#gcs_connect_path = '/dev/ttyAMA0' #also set baud=115200
+gcs_baud = 115200
+ 
+ #!# For Hardware operation, use the following. These baud rates must match those
+ #!# as established on the actual hardware. Wired connection should be 115200 and 
+ #!# the telemetry radio should be set up for 57600. Uncomment the following lines:
+
+#gcs_connect_path = '/dev/ttyAMA0' #Choose which ever is applicable
 #gcs_connect_path = '/dev/ttyUSB0'
+#gcs_connect_path = '/dev/ttyACM0'
+#gcs_baud = 115200
 
 
 
@@ -38,6 +49,10 @@ gcs_connect_path = '127.0.0.1:14556'
 
 #### Logging Setup. ####
 
+ #!# This logger will create a 'system.log', which will allow debugging later if the UAV system is not 
+ #!# not working properly for some reason or another. Messages will be printed to the console, and to the 
+ #!# log file. Messages shoudl be priorities with 'info', 'critical', or 'debug'. 
+
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 fh = logging.FileHandler('system.log')
@@ -51,8 +66,11 @@ ch.setFormatter(form_ch)
 logger.addHandler(fh)
 logger.addHandler(ch)
 
-# Single Log Format:
-# logging.basicConfig(filename='system.log',format='%(relativeCreated)s,%(levelname)s: %#(message)s',level=logging.DEBUG)
+
+
+
+ #!# This function is called if there is a problem with the vehicle setup. It will kill the script. 
+
 
 def setup_abort(abort_reason=None):
     t = 0
@@ -71,6 +89,8 @@ time.sleep(2)
 
 ####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Multiprocessing System Setup !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+ #!# This block will start both the interface and the reel controller. 
+#!# Both of these systems use the multiprocessing infrastructure. 
 
 commands_to_interface = Queue()
 data_from_interface = Queue()
@@ -92,17 +112,22 @@ ui.start()
 #     logging.critical('Problem connection to reel. Aborting.')
 #     setup_abort("Reel System Failure")
 #     #sys.exit(1)
-# airporbe.start()
+# reel.start()
 
 
 ####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Pixhawk System Setup !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+ #!# This block will connect to the GCS pixhawk. The autopilot will be given 60 seconds to connect. 
+ #!# If the connection fails, the script will exit. During connection the Pixhawk should be powered on, 
+ #!# initialized, and blinking green or yellow. If the script continually fails, reboot the pixhawk and check the paths. 
+
 
 #### Pixhawk Connection ####
 logging.info("Waiting for Pixhawk")
 while True:
     try:
         #Note: connecting another GCS might mess up stream rates. Start mavproxy with --streamrate=-1 to leave stream params alone.
-        gcs = connect(gcs_connect_path, heartbeat_timeout=60, rate=20, wait_ready=True)
+        gcs = connect(gcs_connect_path,baud=gcs_baud ,heartbeat_timeout=60, rate=20, wait_ready=True)
         break
     except OSError:
         logging.critical("Cannot find device, is the Pixhawk plugged in? Retrying...")
@@ -132,8 +157,9 @@ def gcs_time_callback(self, attr_name, msg):
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Pixhawk Callback/Logging System !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
-#Log if no MAVLink packets are heard for more than a second
-#also log mode changes, and arm/disarm
+ #!# Log if no MAVLink packets are heard for more than a second
+ #!# Also log mode changes, and arm/disarm
+
 timed_out = False
 
 @gcs.on_attribute('last_heartbeat')   
@@ -155,7 +181,6 @@ def arm_disarm_callback(self,attr_name, msg):
 def mode_callback(self,attr_name, mode):
     logging.info("gcs mode changed to %s" % mode.name)
 
-#@gcs.on_message('')
 
 #####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Main System !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -164,36 +189,28 @@ def mode_callback(self,attr_name, mode):
 #### !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Functions !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
-'''
-Send a STATUSTEXT message. Since the message doesn't have a target_system field,
-it is a broadcast message and ardupilot should rebroadcast it to the GCS.
-'''
+ #!# This is a functions that is part of DroneKit but is currently not used. 
 def send_msg_to_gcs(message):
     msg = gcs.message_factory.statustext_encode(mavutil.mavlink.MAV_SEVERITY_CRITICAL, message)
     gcs.send_mavlink(msg)
     gcs.flush()
 
 
-def abort_mission(reason):
-    logging.critical('%s! Aborting mission.' % reason)
-    send_msg_to_gcs(reason)
-    gcs.mode = VehicleMode("ALTHOLD")
-    #TODO: TEST THIS OUT to make sure it doesnt lock us in whatever mode we specify. 
 
-def send_ned_velocity(velocity_x, velocity_y, velocity_z):
-    """
-    Move vehicle in direction based on specified velocity vectors.
-    """
-    msg = gcs.message_factory.set_position_target_local_ned_encode(
-        0,       # time_boot_ms (not used)
-        0, 0,    # target system, target component
-        mavutil.mavlink.MAV_FRAME_LOCAL_NED, # frame
-        0b0000111111000111, # type_mask (only speeds enabled)
-        0, 0, 0, # x, y, z positions (not used)
-        velocity_x, velocity_y, velocity_z, # x, y, z velocity in m/s
-        0, 0, 0, # x, y, z acceleration (not supported yet, ignored in GCS_Mavlink)
-        0, 0)    # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink)
-    gcs.send_mavlink(msg)
+# def send_ned_velocity(velocity_x, velocity_y, velocity_z):
+#     """
+#     Move vehicle in direction based on specified velocity vectors.
+#     """
+#     msg = gcs.message_factory.set_position_target_local_ned_encode(
+#         0,       # time_boot_ms (not used)
+#         0, 0,    # target system, target component
+#         mavutil.mavlink.MAV_FRAME_LOCAL_NED, # frame
+#         0b0000111111000111, # type_mask (only speeds enabled)
+#         0, 0, 0, # x, y, z positions (not used)
+#         velocity_x, velocity_y, velocity_z, # x, y, z velocity in m/s
+#         0, 0, 0, # x, y, z acceleration (not supported yet, ignored in GCS_Mavlink)
+#         0, 0)    # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink)
+#     gcs.send_mavlink(msg)
 
 def download_mission():
     """
@@ -208,6 +225,7 @@ def download_mission():
         missionlist.append(cmd)
     return missionlist
 
+ #!# This is the important function that sends commands to the UAV. 
 def set_waypoint(mode,theta,phi,L,extra1=-1,tether_t=-1,extra2=-1):
     cmds = gcs.commands
     cmds.download()
@@ -222,7 +240,6 @@ def set_waypoint(mode,theta,phi,L,extra1=-1,tether_t=-1,extra2=-1):
     cmds.upload()
 
 def print_mission():
-
     missionlist = download_mission()
     for cmd in missionlist:
         #(cmd.seq,cmd.current,cmd.frame,cmd.command,cmd.param1,cmd.param2,cmd.param3,cmd.param4,cmd.x,cmd.y,cmd.z,cmd.autocontinue)
@@ -238,6 +255,7 @@ def clear_mission():
     cmds.clear()
     cmds.upload()
 
+#!# At this point, arm the GCS pixhawk and place it into guided mode. 
 
 if not gcs.armed:
     while not gcs.is_armable:
@@ -250,10 +268,14 @@ if not gcs.armed:
 gcs.mode = VehicleMode("GUIDED")
 
 
+#!# System is ready!
+
 logging.info("------------------SYSTEM IS READY!!------------------")
 logging.info("-----------------------------------------------------")
 
 
+#!# These are the different modes that the UAV can be operating in. 
+#!# i=0 is the index for the mission. 
 GCS_cmd = None
 G_AUTO = 0
 G_TAKEOFF = 1
@@ -261,9 +283,19 @@ G_LAND = 2
 mode=None
 i=0
 
+
+#!# This is how the mission is currently specified. Angles are in Radians. 
+#!# Theta: 90 degrees is horizontal ( same altitude as boat )
+#!# Phi: 0 degrees is straight behind the boat. This is always relative to the stern of the ship.
+#!# This system can be replaced with a mission file or similiar. 
 MISSION_TH  = [1.2, 1.2, 1.4, 1.2,  1.3, 1.3, 1.3, 1.3]
 MISSION_PHI = [  0,  .5,   0, -.5,  -.5,   0,  .5,   0]
 MISSION_L   = [ 50,  50,  50,  60,   60,  70,  70, 100] 
+
+
+
+
+#!# Start the main loop. 
 
 while True:
     time.sleep(.2)
