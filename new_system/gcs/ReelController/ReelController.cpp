@@ -7,8 +7,7 @@ namespace gcs {
     const unsigned int ReelController::GEARBOX_MAX_INPUT_RPM = 8000;
 
     ReelController::ReelController(std::string port, double reel_diam_cm) :
-        motor_controller(port), reel_diameter_m(reel_diam_cm / 100.0), gear_ratio(26),
-        profile_accel_mpss(0.6), profile_decel_mpss(0.6), last_commanded_tether_length_m(nan(""))
+        motor_controller(port), reel_diameter_m(reel_diam_cm / 100.0), gear_ratio(26)
     {
         std::cout << "Initializing with port: " << port << " reel diameter:" 
             << reel_diameter_m << "m and qc/rev: " << QC_PER_TURN << std::endl;
@@ -71,12 +70,11 @@ namespace gcs {
     bool ReelController::isEnabled() { return motor_controller.isEnabled(); }
 
     void ReelController::setTetherToHome() {
-        last_commanded_tether_length_m = 0;
+
     }
 
     void ReelController::setTetherLength(double desired_length_m) {
         // TBD: add offsets
-        last_commanded_tether_length_m = desired_length_m;
         double desired_motor_position = motorPositionFromTetherLength(desired_length_m);
         std::cout << "Moving motor to " << desired_motor_position << std::endl;
         motor_controller.moveToPosition((long)desired_motor_position);
@@ -96,34 +94,6 @@ namespace gcs {
     double ReelController::getMaxTetherSpeed() {
         double max_payout_rpm = motor_controller.getMaxVelocity();
         return tetherMpsFromMotorRpm(max_payout_rpm);
-    }
-
-    void ReelController::setTetherSpeed(double tether_mps) {
-        unsigned int tether_rpm        = motorRpmFromTetherMps(fabs(tether_mps));
-        unsigned int tether_accel_rpms = motorRpmFromTetherMps(profile_accel_mpss);
-        unsigned int tether_decel_rpms = motorRpmFromTetherMps(profile_decel_mpss);
-        std::cout << "Setting profile to /" << tether_accel_rpms
-                  << " " << tether_rpm << " \\" << tether_decel_rpms << std::endl;
-        motor_controller.setPositionProfile(tether_rpm, tether_accel_rpms, tether_decel_rpms);
-        if(!isnan(last_commanded_tether_length_m)) {
-            setTetherLength(last_commanded_tether_length_m);
-        }
-    }
-
-    double ReelController::getTetherSpeed() {
-        unsigned int tether_rpm       ;
-        unsigned int tether_accel_rpms;
-        unsigned int tether_decel_rpms;
-        motor_controller.getPositionProfile(&tether_rpm, &tether_accel_rpms, &tether_decel_rpms);
-        
-        return tetherMpsFromMotorRpm(tether_rpm);
-    }
-
-    void ReelController::setTetherAccelDecel(double accel_mpss, double decel_mpss)
-    {
-        // Store these for later; we'll send them every time we set the speed
-        profile_accel_mpss = fabs(accel_mpss);
-        profile_decel_mpss = fabs(decel_mpss);
     }
 
     double ReelController::getTetherLength() {

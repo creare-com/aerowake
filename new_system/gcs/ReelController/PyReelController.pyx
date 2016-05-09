@@ -14,11 +14,6 @@ cdef extern from "ReelController.hpp" namespace "gcs":
         void setTetherLength(double) except + # pays out or reels in the tether to this length
         double setMaxTetherSpeed(double) except + # Returns the actual payout rate set.  Will cap based on the motor & gearbox capabilities.
         double getMaxTetherSpeed() except + # Returns the actual payout/retract rate.
-        void setTetherSpeed(double) except + # Also re-commands the latest commanded length
-        double getTetherSpeed() except + # in meters per second
-        void setTetherAccelDecel(double, double) except + # Only takes effect when you update the speed.  In meters/s^2
-        double getTetherAccel() except + #In meters/s^2
-        double getTetherDecel() except + #In meters/s^2
         double getTetherLength() except +
         double getTetherTargetLength() except +
 
@@ -48,14 +43,6 @@ cdef class PyReelController:
         return self.rc.setMaxTetherSpeed(max_tether_mps)
     def getMaxTetherSpeed(self): # Returns the actual payout rate set.
         return self.rc.getMaxTetherSpeed()
-    def setTetherSpeed(self, double tether_mps): # Also re-commands the latest commanded length
-        return self.rc.setTetherSpeed(tether_mps)
-    def getTetherSpeed(self):
-        return self.rc.getTetherSpeed()
-    def setTetherAccelDecel(self, double accel_mpss, double decel_mpss): # Only takes effect when you update the speed.  In meters/s^2
-        return self.rc.setTetherAccelDecel(accel_mpss, decel_mpss)
-    def getTetherAccelDecel(self): # In meters/s^2
-        return (self.rc.getTetherAccel(),self.rc.getTetherDecel())
     def getTetherLength(self):
         """ Returns the current length of the tether, in meters. """
         return self.rc.getTetherLength()
