@@ -1,3 +1,5 @@
+""" Adapter classes used to interface with the C++ ReelController class """
+
 from libcpp.string cimport string
 from libcpp cimport bool
 
@@ -18,6 +20,7 @@ cdef extern from "ReelController.hpp" namespace "gcs":
         double getTetherAccel() except + #In meters/s^2
         double getTetherDecel() except + #In meters/s^2
         double getTetherLength() except +
+        double getTetherTargetLength() except +
 
 cdef class PyReelController:
     cdef ReelController *rc
@@ -35,9 +38,11 @@ cdef class PyReelController:
     def isEnabled(self): # returns true if the motor controller is attempting to hold position
         return True if self.rc.isEnabled() else False
         
-    def setTetherToHome(self): # consider the tether length to be 0, we're fully reeled in.
-        return self.rc.setTetherToHome()
+    # def setTetherToHome(self): # consider the tether length to be 0, we're fully reeled in.
+        # raise NotImplementedException()
+        # return self.rc.setTetherToHome()
     def setTetherLength(self, double desired_length_m): # pays out or reels in the tether to this length
+        """ Commands the current length of the tether, in meters. """
         return self.rc.setTetherLength(desired_length_m)
     def setMaxTetherSpeed(self, double max_tether_mps): # Returns the actual payout rate set.  Will cap based on the motor & gearbox capabilities.
         return self.rc.setMaxTetherSpeed(max_tether_mps)
@@ -52,4 +57,8 @@ cdef class PyReelController:
     def getTetherAccelDecel(self): # In meters/s^2
         return (self.rc.getTetherAccel(),self.rc.getTetherDecel())
     def getTetherLength(self):
+        """ Returns the current length of the tether, in meters. """
+        return self.rc.getTetherLength()
+    def getTetherTargetLength(self):
+        """ Returns the length to which the reel is spooling, in meters. """
         return self.rc.getTetherLength()

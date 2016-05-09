@@ -208,6 +208,14 @@ namespace gcs {
         return position;
     }
 
+    long EposMotorController::getTargetPosition() {
+        unsigned int error_code = 0;
+        long position = 0;
+        if(VCS_GetTargetPosition(deviceHandle, NODE_ID, &position, &error_code) == 0)
+        { failWithCode("Failed to get position", error_code); }
+        return position;
+    }
+
     void EposMotorController::setMaxVelocity(unsigned int velocity) {
         unsigned int error_code = 0;
         if(VCS_SetMaxProfileVelocity(deviceHandle, NODE_ID, velocity, &error_code) == 0)

@@ -47,6 +47,7 @@ namespace gcs {
         double getTetherAccelDecel(); //In meters/s^2
         double getTetherDecel(); //In meters/s^2
         double getTetherLength();
+        double getTetherTargetLength();
     };
 }
 

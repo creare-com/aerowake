@@ -131,4 +131,10 @@ namespace gcs {
         std::cout << "Motor position=" << cur_motor_position << " ";
         return tetherLengthFromMotorPosition(cur_motor_position);
     }
+
+    double ReelController::getTetherLength() {
+        long target_motor_position = motor_controller.getTargetPosition();
+        std::cout << "Motor position=" << cur_motor_position << " ";
+        return tetherLengthFromMotorPosition(cur_motor_position);
+    }
 }
