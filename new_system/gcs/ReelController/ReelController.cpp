@@ -52,8 +52,6 @@ namespace gcs {
             unsigned int tether_accel_rpms;
             unsigned int tether_decel_rpms;
             motor_controller.getPositionProfile(&tether_rpm, &tether_accel_rpms, &tether_decel_rpms);
-            profile_accel_mpss = tetherMpsFromMotorRpm(tether_accel_rpms);
-            profile_decel_mpss = tetherMpsFromMotorRpm(tether_decel_rpms);
                 
             // Set up
             motor_controller.setOperatingMode(EposMotorController::EPOS_OPMODE_PROFILE_POSITION_MODE);
