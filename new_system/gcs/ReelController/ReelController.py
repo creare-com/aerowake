@@ -91,3 +91,4 @@ class ReelController:
     def setTetherLengthM(self, tether_length_m):
         self._rc.setTetherLength(tether_length_m)
         self.update()
+        
