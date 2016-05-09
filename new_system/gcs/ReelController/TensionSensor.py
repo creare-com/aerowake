@@ -7,7 +7,7 @@ class TensionSensor:
         self._SENSOR_BASELINE_COUNTS = adc_baseline; # The sensor returns this ADC value when under no tension
 
     def readTension(self):
-        """ Returns cable tension in newtons, with deadbanding """
+        """ Returns cable tension in newtons """
         # 0 means channel 0 minus channel 1
         adc_counts = self._adc.read_adc_difference(0, gain=1)
         adc_counts -= self._SENSOR_BASELINE_COUNTS
