@@ -9,8 +9,6 @@ namespace gcs {
     ReelController::ReelController(std::string port, double reel_diam_cm) :
         motor_controller(port), reel_diameter_m(reel_diam_cm / 100.0), gear_ratio(26)
     {
-        std::cout << "Initializing with port: " << port << " reel diameter:" 
-            << reel_diameter_m << "m and qc/rev: " << QC_PER_TURN << std::endl;
         motor_controller.open();
         init();
     }
@@ -45,7 +43,6 @@ namespace gcs {
             int num = motor_controller.getGearRatioNumerator();
             int den = motor_controller.getGearRatioDenominator();
             gear_ratio = (double)num / (double)den;
-            std::cout << "Got gear ratio - " << num << ":" << den << " = " << gear_ratio << std::endl;
             
             // Get and remember acceleration/deceleration
             unsigned int tether_rpm       ;
@@ -56,8 +53,6 @@ namespace gcs {
             // Set up
             motor_controller.setOperatingMode(EposMotorController::EPOS_OPMODE_PROFILE_POSITION_MODE);
             motor_controller.clearFaultAndEnable();
-        } else {
-            std::cout << "Motor controller not open." << std::endl;
         }
     }
 
@@ -74,17 +69,15 @@ namespace gcs {
     void ReelController::setTetherLength(double desired_length_m) {
         // TBD: add offsets
         double desired_motor_position = motorPositionFromTetherLength(desired_length_m);
-        std::cout << "Moving motor to " << desired_motor_position << std::endl;
         motor_controller.moveToPosition((long)desired_motor_position);
     }
 
     double ReelController::setMaxTetherSpeed(double max_tether_mps) {
         unsigned int max_payout_rpm = motorRpmFromTetherMps(max_tether_mps);
         if(max_payout_rpm * gear_ratio > MOTOR_MAX_RPM)
-        { std::cout << "Limiting max RPM to motor max" << std::endl; max_payout_rpm = MOTOR_MAX_RPM / gear_ratio; }
+        { max_payout_rpm = MOTOR_MAX_RPM / gear_ratio; }
         if(max_payout_rpm * gear_ratio > GEARBOX_MAX_INPUT_RPM)
-        { std::cout << "Limiting max RPM to gearbox max" << std::endl;  max_payout_rpm = GEARBOX_MAX_INPUT_RPM / gear_ratio; }
-        std::cout << "Setting max payout velocity to " << max_tether_mps << "mps = " << max_payout_rpm << "RPM." << std::endl;
+        { max_payout_rpm = GEARBOX_MAX_INPUT_RPM / gear_ratio; }
         motor_controller.setMaxVelocity(max_payout_rpm);
         return max_payout_rpm;
     }
@@ -96,13 +89,11 @@ namespace gcs {
 
     double ReelController::getTetherLength() {
         int cur_motor_position = motor_controller.getPosition();
-        std::cout << "Motor position=" << cur_motor_position << " ";
         return tetherLengthFromMotorPosition(cur_motor_position);
     }
 
-    double ReelController::getTetherLength() {
+    double ReelController::getTetherTargetLength() {
         long target_motor_position = motor_controller.getTargetPosition();
-        std::cout << "Motor position=" << cur_motor_position << " ";
-        return tetherLengthFromMotorPosition(cur_motor_position);
+        return tetherLengthFromMotorPosition(target_motor_position);
     }
 }

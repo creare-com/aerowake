@@ -12,9 +12,7 @@ namespace gcs {
     }
 
     EposMotorController::~EposMotorController() {
-        std::cout << "Called destructor" << std::endl;
         close(); // Also disables
-        std::cout << "Destructor done." << std::endl;
     }
 
     void EposMotorController::open() 
@@ -114,7 +112,6 @@ namespace gcs {
             case EPOS_OPMODE_PROFILE_POSITION_MODE:
                 if(VCS_ActivateProfilePositionMode(deviceHandle, NODE_ID, &error_code) == 0)
                 { failWithCode("Failed to activate Profile Positioning Mode", error_code); }
-                else { std::cout << "Activated Profile Position mode" << std::endl; }
                 break;
             case EPOS_OPMODE_UNKNOWN:
             default:
@@ -192,7 +189,6 @@ namespace gcs {
                 1, // cancel the last one = TRUE
                 &error_code) == 0)
             { failWithCode("Failed to command movement to position", error_code, true); }
-            else { std::cout << "Successfully commanded movement." << std::endl; }
         } else {
             std::stringstream ss;
             ss << "Cannot move to a position unless in a positioning mode.  Currently in mode " << curOpMode << ".";
