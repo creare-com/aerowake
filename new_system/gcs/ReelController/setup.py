@@ -4,7 +4,7 @@ from distutils.extension import Extension
 
 extensions = [
     Extension("rc", 
-    sources=["rc.pyx", "EposMotorController.cpp", "ReelController.cpp"],
+    sources=["PyReelController.pyx", "EposMotorController.cpp", "ReelController.cpp"],
     language="c++", 
     include_dirs = ["include"],
     libraries = ["EposCmd"],

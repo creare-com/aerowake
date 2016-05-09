@@ -1,3 +1,5 @@
+""" Adapter classes used to interface with the C++ ReelController class """
+
 from libcpp.string cimport string
 from libcpp cimport bool
 
@@ -12,12 +14,8 @@ cdef extern from "ReelController.hpp" namespace "gcs":
         void setTetherLength(double) except + # pays out or reels in the tether to this length
         double setMaxTetherSpeed(double) except + # Returns the actual payout rate set.  Will cap based on the motor & gearbox capabilities.
         double getMaxTetherSpeed() except + # Returns the actual payout/retract rate.
-        void setTetherSpeed(double) except + # Also re-commands the latest commanded length
-        double getTetherSpeed() except + # in meters per second
-        void setTetherAccelDecel(double, double) except + # Only takes effect when you update the speed.  In meters/s^2
-        double getTetherAccel() except + #In meters/s^2
-        double getTetherDecel() except + #In meters/s^2
         double getTetherLength() except +
+        double getTetherTargetLength() except +
 
 cdef class PyReelController:
     cdef ReelController *rc
@@ -35,21 +33,19 @@ cdef class PyReelController:
     def isEnabled(self): # returns true if the motor controller is attempting to hold position
         return True if self.rc.isEnabled() else False
         
-    def setTetherToHome(self): # consider the tether length to be 0, we're fully reeled in.
-        return self.rc.setTetherToHome()
+    # def setTetherToHome(self): # consider the tether length to be 0, we're fully reeled in.
+        # raise NotImplementedException()
+        # return self.rc.setTetherToHome()
     def setTetherLength(self, double desired_length_m): # pays out or reels in the tether to this length
+        """ Commands the current length of the tether, in meters. """
         return self.rc.setTetherLength(desired_length_m)
     def setMaxTetherSpeed(self, double max_tether_mps): # Returns the actual payout rate set.  Will cap based on the motor & gearbox capabilities.
         return self.rc.setMaxTetherSpeed(max_tether_mps)
     def getMaxTetherSpeed(self): # Returns the actual payout rate set.
         return self.rc.getMaxTetherSpeed()
-    def setTetherSpeed(self, double tether_mps): # Also re-commands the latest commanded length
-        return self.rc.setTetherSpeed(tether_mps)
-    def getTetherSpeed(self):
-        return self.rc.getTetherSpeed()
-    def setTetherAccelDecel(self, double accel_mpss, double decel_mpss): # Only takes effect when you update the speed.  In meters/s^2
-        return self.rc.setTetherAccelDecel(accel_mpss, decel_mpss)
-    def getTetherAccelDecel(self): # In meters/s^2
-        return (self.rc.getTetherAccel(),self.rc.getTetherDecel())
     def getTetherLength(self):
+        """ Returns the current length of the tether, in meters. """
+        return self.rc.getTetherLength()
+    def getTetherTargetLength(self):
+        """ Returns the length to which the reel is spooling, in meters. """
         return self.rc.getTetherLength()
