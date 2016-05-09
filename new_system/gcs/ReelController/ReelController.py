@@ -51,9 +51,9 @@ class ReelController:
             self._rc = MockPyReelController()
     
     def tether_mps_from_reel_rpm(self, reel_rpm):
-        return reel_rpm   * (math.pi * self._reel_diam_m * 60)
+        return reel_rpm   * (math.pi * self._reel_diam_m / 60)
     def reel_rpm_from_tether_mps(self, tether_mps):
-        return tether_mps / (math.pi * self._reel_diam_m * 60)
+        return tether_mps / (math.pi * self._reel_diam_m / 60)
     
     def update(self):
         """
