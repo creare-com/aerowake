@@ -19,7 +19,7 @@ import logging
 class ReelController:
     def __init__(self, interface='USB0', reel_diam_m=0.127):
         self._N_PER_ADC_COUNT        = 0.0045203
-        self._SENSOR_BASELINE_COUNTS = 7991
+        self._SENSOR_BASELINE_COUNTS = 7848
         self._SENSOR_DEADBAND_COUNTS = 100
         self._T_DEADBAND_N           = self._N_PER_ADC_COUNT * self._SENSOR_DEADBAND_COUNTS
         self._reel_diam_m = reel_diam_m # Need to set this first so the conversion methods to work
@@ -43,7 +43,7 @@ class ReelController:
             self._tension_sensor = MockTensionSensor()
 
         try:
-            from rc import PyReelController
+            from PyReelController import PyReelController
             self._rc = PyReelController(interface, reel_diam_m*10)
         except:
             logging.warning("Cannot connect to motor controller!  Will be using mock motor controller instead.")
@@ -74,19 +74,26 @@ class ReelController:
         length_limited_speed  = self._KL_MPS_PER_M * current_length + self._MIN_MPS
         if current_length > target_length:
             # Reeling in
+            logging.info("Reeling in because %fm > %fm, length limits us to %fmps"%(current_length, target_length, length_limited_speed))
             speed_limit = min(self._MAX_MPS, length_limited_speed)
         else: # Stationary OR reeling out
             # Apply tension deadband
             tension_n = self._tension_sensor.readTension()
             if tension_n < self._T_DEADBAND_N:
+                logging.info("Within deadband because %fN < %fN"%(tension_n, self._T_DEADBAND_N))
                 speed_limit = 0
             else:
                 tension_n -= self._T_DEADBAND_N # Prevent "step" up when exiting deadband
                 tension_limited_speed = self._KT_MPS_PER_N * tension_n
+                logging.info("Reeling out, length limits us to %fmps, tension limits us to %fmps"%(length_limited_speed, tension_limited_speed))
                 speed_limit = min(self._MAX_MPS, length_limited_speed, tension_limited_speed)
         
         # Apply speed limit
-        self._rc.setMaxTetherSpeed(speed_limit)
+	logging.info("Setting speed limit to %fmps"%speed_limit)
+	if speed_limit == 0:
+		self._rc.haltMovement()
+	else:
+	        self._rc.setMaxTetherSpeed(speed_limit)
     
     def setTetherLengthM(self, tether_length_m):
         self._rc.setTetherLength(tether_length_m)
