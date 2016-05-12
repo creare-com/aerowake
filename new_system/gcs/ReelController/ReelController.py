@@ -31,6 +31,7 @@ class ReelController:
         self._T_MAX_SPEED_N = 5  # After this many newtons of force, don't limit payout rate
         self._KT_MPS_PER_N  =  self._L_MAX_SPEED_M / (self._T_MAX_SPEED_N - self._T_DEADBAND_N)
         self._KL_MPS_PER_M  = (self._MAX_MPS - self._MIN_MPS) / self._L_MAX_SPEED_M
+        self._home_pos_m = 0
         
         # For easier testing, create mock objects if the real ones fail.
         try:
@@ -49,6 +50,16 @@ class ReelController:
             logging.warning("Cannot connect to motor controller!  Will be using mock motor controller instead.")
             from MockPyReelController import MockPyReelController
             self._rc = MockPyReelController()
+        self.youAreHome()
+
+    def __del__(self):
+        self.stopMoving()
+        del self._rc
+        del self._tension_sensor
+        
+    def youAreHome(self):
+        """ Consider the tether's current position to be 0m """
+        self._home_pos_m = self._rc.getTetherLength()
     
     def tether_mps_from_reel_rpm(self, reel_rpm):
         return reel_rpm   * (math.pi * self._reel_diam_m / 60)
@@ -63,8 +74,8 @@ class ReelController:
         Call this method frequently in your main loop.
         """
         
-        current_length = self._rc.getTetherLength();
-        target_length  = self._rc.getTetherTargetLength();
+        current_length = self._rc.getTetherLength() - self._home_pos_m;
+        target_length  = self._rc.getTetherTargetLength() - self._home_pos_m;
         
         # Update the maximum speed of the motor controller differently
         # if it's spooling out vs reeling in.  When spooling out, we
@@ -89,13 +100,19 @@ class ReelController:
                 speed_limit = min(self._MAX_MPS, length_limited_speed, tension_limited_speed)
         
         # Apply speed limit
-	logging.info("Setting speed limit to %fmps"%speed_limit)
-	if speed_limit == 0:
-		self._rc.haltMovement()
-	else:
-	        self._rc.setMaxTetherSpeed(speed_limit)
+        logging.info("Setting speed limit to %fmps"%speed_limit)
+        if speed_limit == 0:
+            self._rc.haltMovement()
+        else:
+            self._rc.setMaxTetherSpeed(speed_limit)
+
+    def stopMoving():
+        self._rc.haltMovement()
     
     def setTetherLengthM(self, tether_length_m):
-        self._rc.setTetherLength(tether_length_m)
+        self._rc.setTetherLength(tether_length_m + self._home_pos_m)
         self.update()
+        
+    def getTetherLengthM(self):
+        return self._rc.getTetherLength() - self._home_pos_m
         
