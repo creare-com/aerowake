@@ -76,9 +76,13 @@ cdef class PyMotorController:
         return self._mc.isFaulted() 
         
     # Configuration (throw an  exception on failure)
-    def setOperatingMode(self, OperatingMode opmode):
+    def setOperatingMode(self, opmode):
+        if not isinstance(opmode, OperatingMode):
+            raise Exception("opmode must be an instance of OperatingMode")
         return self._mc.setOperatingMode(opmode)
-    def setSensorType(self, SensorType st):
+    def setSensorType(self, st):
+        if not isinstance(st, SensorType):
+            raise Exception("st must be an instance of SensorType")
         return self._mc.setSensorType(st)
     def setEncoderSettings(self, unsigned int pulses_per_turn=1024, bool invert_polarity=False):
         return self._mc.setEncoderSettings(pulses_per_turn, invert_polarity) 
@@ -105,9 +109,9 @@ cdef class PyMotorController:
         return self._mc.setPositionProfile(velocity, acceleration, deceleration)
     def getPositionProfile(self):
         """ (velocity, accel, decel) is in RPM or RPM/s after gearbox.  """
-        unsigned int velocity
-        unsigned int acceleration
-        unsigned int deceleration
+        cdef unsigned int velocity
+        cdef unsigned int acceleration
+        cdef unsigned int deceleration
         self._mc.getPositionProfile(&velocity, &acceleration, &deceleration)
         return (velocity, acceleration, deceleration)
     def haltMovement(self):
