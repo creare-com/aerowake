@@ -12,8 +12,8 @@ namespace gcs {
 class EposMotorController {
     public:
         enum OperatingMode {
-            EPOS_OPMODE_UNKNOWN,
-            EPOS_OPMODE_PROFILE_POSITION_MODE,
+            EPOS_OPMODE_UNKNOWN = 0,
+            EPOS_OPMODE_PROFILE_POSITION_MODE = 1,
         };
     private:
         std::string portName;

@@ -1,22 +1,10 @@
 """ Adapter classes used to interface with the C++ EposMotorController class """
-
+from enum import Enum
 from libcpp.string cimport string
 from libcpp cimport bool
 
 cdef extern from "EposMotorController.hpp" namespace "gcs":
     cdef cppclass EposMotorController:
-        cdef enum SensorType: # Copied from Definitions.h
-            ST_UNKNOWN                       = 0
-            ST_INC_ENCODER_3CHANNEL          = 1
-            ST_INC_ENCODER_2CHANNEL          = 2
-            ST_HALL_SENSORS                  = 3
-            ST_SSI_ABS_ENCODER_BINARY        = 4
-            ST_SSI_ABS_ENCODER_GREY          = 5
-
-        cdef enum OperatingMode:
-            EPOS_OPMODE_UNKNOWN
-            EPOS_OPMODE_PROFILE_POSITION_MODE
-
         EposMotorController(string, unsigned int) except +
         # Open/close the specified port. (throw an  exception on failure)
         void open() except +
@@ -31,8 +19,8 @@ cdef extern from "EposMotorController.hpp" namespace "gcs":
         bool isFaulted() except +
         
         # Configuration (throw an  exception on failure)
-        void setOperatingMode(OperatingMode) except +
-        void setSensorType(SensorType) except + 
+        void setOperatingMode(int) except + # This int must be a OperatingMode
+        void setSensorType(int) except + # This int must be a SensorType
         void setEncoderSettings(unsigned int, bool) except +
         unsigned short getGearRatioNumerator() except +
         unsigned short getGearRatioDenominator() except +
@@ -48,6 +36,18 @@ cdef extern from "EposMotorController.hpp" namespace "gcs":
         void haltMovement() except +
         
 cdef class PyMotorController:
+    class SensorType(Enum): # Copied from Definitions.h
+        ST_UNKNOWN                       = 0
+        ST_INC_ENCODER_3CHANNEL          = 1
+        ST_INC_ENCODER_2CHANNEL          = 2
+        ST_HALL_SENSORS                  = 3
+        ST_SSI_ABS_ENCODER_BINARY        = 4
+        ST_SSI_ABS_ENCODER_GREY          = 5
+
+    class OperatingMode(Enum):
+        EPOS_OPMODE_UNKNOWN               = 0
+        EPOS_OPMODE_PROFILE_POSITION_MODE = 1
+
     cdef EposMotorController *_mc
     def __cinit__(self, string usb_port = "USB0", unsigned int baudRate=1000000):
         self._mc = new EposMotorController(usb_port, baudRate)
@@ -75,7 +75,7 @@ cdef class PyMotorController:
         return self._mc.isFaulted() 
         
     # Configuration (throw an  exception on failure)
-    def setOperatingMode(self, EposMotorController.OperatingMode opmode):
+    def setOperatingMode(self, OperatingMode opmode):
         return setOperatingMode(opmode):
     def setSensorType(self, SensorType st)
         return setSensorType(st):
