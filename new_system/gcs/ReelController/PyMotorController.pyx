@@ -35,18 +35,19 @@ cdef extern from "EposMotorController.hpp" namespace "gcs":
         void getPositionProfile(unsigned int *, unsigned int *, unsigned int *) except + # velocity/accel/decel is in RPM or RPM/s after gearbox. 
         void haltMovement() except +
         
-cdef class PyMotorController:
-    class SensorType(Enum): # Copied from Definitions.h
-        ST_UNKNOWN                       = 0
-        ST_INC_ENCODER_3CHANNEL          = 1
-        ST_INC_ENCODER_2CHANNEL          = 2
-        ST_HALL_SENSORS                  = 3
-        ST_SSI_ABS_ENCODER_BINARY        = 4
-        ST_SSI_ABS_ENCODER_GREY          = 5
+class SensorType(Enum): # Copied from Definitions.h
+    ST_UNKNOWN                       = 0
+    ST_INC_ENCODER_3CHANNEL          = 1
+    ST_INC_ENCODER_2CHANNEL          = 2
+    ST_HALL_SENSORS                  = 3
+    ST_SSI_ABS_ENCODER_BINARY        = 4
+    ST_SSI_ABS_ENCODER_GREY          = 5
 
-    class OperatingMode(Enum):
-        EPOS_OPMODE_UNKNOWN               = 0
-        EPOS_OPMODE_PROFILE_POSITION_MODE = 1
+class OperatingMode(Enum):
+    EPOS_OPMODE_UNKNOWN               = 0
+    EPOS_OPMODE_PROFILE_POSITION_MODE = 1
+    
+cdef class PyMotorController:
 
     cdef EposMotorController *_mc
     def __cinit__(self, string usb_port = "USB0", unsigned int baudRate=1000000):
@@ -76,40 +77,40 @@ cdef class PyMotorController:
         
     # Configuration (throw an  exception on failure)
     def setOperatingMode(self, OperatingMode opmode):
-        return setOperatingMode(opmode):
+        return self._mc.setOperatingMode(opmode):
     def setSensorType(self, SensorType st)
-        return setSensorType(st):
+        return self._mc.setSensorType(st):
     def setEncoderSettings(self, unsigned int pulses_per_turn=1024, bool invert_polarity=False):
-        return setEncoderSettings(pulses_per_turn, invert_polarity) 
+        return self._mc.setEncoderSettings(pulses_per_turn, invert_polarity) 
     def getGearRatioNumerator(self):
-        return getGearRatioNumerator() 
+        return self._mc.getGearRatioNumerator() 
     def getGearRatioDenominator(self):
-        return getGearRatioDenominator() 
+        return self._mc.getGearRatioDenominator() 
         
     # Movement (throw an  exception on failure)
     def moveToPosition(self, long position):
-        return moveToPosition(position) 
+        return self._mc.moveToPosition(position) 
     def getPosition(self):
-        return getPosition() 
+        return self._mc.getPosition() 
     def getTargetPosition(self):
-        return getTargetPosition() 
+        return self._mc.getTargetPosition() 
     def setMaxVelocity(self, unsigned int velocity):
         """ velocity is in RPM after gearbox. Applies to both position and velocity control. """
-        return setMaxVelocity(velocity)
+        return self._mc.setMaxVelocity(velocity)
     def getMaxVelocity(self):
         """ velocity is in RPM after gearbox. Applies to both position and velocity control. """
-        return getMaxVelocity()
+        return self._mc.getMaxVelocity()
     def setPositionProfile(self, unsigned int  velocity, unsigned int  acceleration, unsigned int  deceleration):
         """ velocity/accel/decel is in RPM or RPM/s after gearbox.  """
-        return setPositionProfile(velocity, acceleration, deceleration)
+        return self._mc.setPositionProfile(velocity, acceleration, deceleration)
     def getPositionProfile(self):
         """ (velocity, accel, decel) is in RPM or RPM/s after gearbox.  """
         unsigned int velocity
         unsigned int acceleration
         unsigned int deceleration
-        getPositionProfile(&velocity, &acceleration, &deceleration)
+        self._mc.getPositionProfile(&velocity, &acceleration, &deceleration)
         return (velocity, acceleration, deceleration)
     def haltMovement(self):
-        return haltMovement() 
+        return self._mc.haltMovement() 
 
     
