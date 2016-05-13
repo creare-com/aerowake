@@ -106,7 +106,7 @@ class ReelController:
         else:
             self._rc.setMaxTetherSpeed(speed_limit)
 
-    def stopMoving():
+    def stopMoving(self):
         self._rc.haltMovement()
     
     def setTetherLengthM(self, tether_length_m):
