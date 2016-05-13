@@ -65,7 +65,7 @@ class ReelController:
     def motorPositionFromTetherLength(self, tether_length_m):
         return self._QC_PER_TURN * (-tether_length_m / (math.pi * self._reel_diam_m))
     def tetherLengthFromMotorPosition(self, motor_position):
-        return (-motor_position / self._QC_PER_TURN) * (M_PI * self._reel_diam_m);
+        return (-motor_position / self._QC_PER_TURN) * (math.pi * self._reel_diam_m);
     def tetherMpsFromReelRpm(self, reel_rpm):
         return reel_rpm   * (math.pi * self._reel_diam_m / 60)
     def reelRpmFromTetherMps(self, tether_mps):
@@ -125,7 +125,7 @@ class ReelController:
         self._mc.haltMovement()
     
     def setTetherLengthM(self, tether_length_m):
-        desired_motor_position = motorPositionFromTetherLength(tether_length_m + self._home_pos_m)
+        desired_motor_position = self.motorPositionFromTetherLength(tether_length_m + self._home_pos_m)
         self._mc.moveToPosition(desired_motor_position)
         self.update()
         
@@ -137,15 +137,15 @@ class ReelController:
         tgt_motor_position = self._mc.getTargetPosition()
         return self.tetherLengthFromMotorPosition(tgt_motor_position) - self._home_pos_m
         
-    def setMaxTetherSpeedMps(self, speed_limit):
-        max_payout_rpm = reelRpmFromTetherMps(max_tether_mps);
-        if max_payout_rpm * gear_ratio > self._MOTOR_MAX_RPM:
+    def setMaxTetherSpeedMps(self, max_tether_mps):
+        max_payout_rpm = self.reelRpmFromTetherMps(max_tether_mps);
+        if max_payout_rpm * self._gear_ratio > self._MOTOR_MAX_RPM:
             max_payout_rpm = MOTOR_MAX_RPM / self._gear_ratio
-        if max_payout_rpm * gear_ratio > self._GEARBOX_MAX_INPUT_RPM:
+        if max_payout_rpm * self._gear_ratio > self._GEARBOX_MAX_INPUT_RPM:
             max_payout_rpm = self._GEARBOX_MAX_INPUT_RPM / self._gear_ratio
         self._mc.setMaxVelocity(max_payout_rpm);
-        return max_payout_rpm;
+        return self.tetherMpsFromReelRpm(max_payout_rpm);
 
     def getMaxTetherSpeedMps(self):
         max_payout_rpm = self._mc.getMaxVelocity();
-        return tetherMpsFromReelRpm(max_payout_rpm);
+        return self.tetherMpsFromReelRpm(max_payout_rpm);
