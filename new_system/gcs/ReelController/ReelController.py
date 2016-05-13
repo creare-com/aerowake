@@ -74,12 +74,12 @@ class ReelController:
 
     def __del__(self):
         self.stopMoving()
-        del self._rc
+        del self._mc
         del self._tension_sensor
         
     def youAreHome(self):
         """ Consider the tether's current position to be 0m """
-        self._home_pos_m = self._rc.getTetherLength()
+        self._home_pos_m = self._mc.getTetherLength()
     
     def update(self):
         """
