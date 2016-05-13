@@ -26,6 +26,7 @@ class EposMotorController {
         void failWithCode(std::string message, int error_code, bool disable_motor = true); // The method called when an error is detected
         void fail(std::string message, bool disable_motor = true); // The method called when an error is detected
         
+        void setOperatingMode(OperatingMode mode);
         void haltPositionMovement(); // Users of this class should call haltMovement() instead
     public:
         static const unsigned short NODE_ID; // This would matter much more in a CAN network
@@ -47,7 +48,6 @@ class EposMotorController {
         bool isFaulted();
         
         // Configuration (throw an exception on failure)
-        void setOperatingMode(OperatingMode mode);
         void setSensorType(unsigned short type); // Must be one of the "ST_..." constants from Definitions.h
         void setEncoderSettings(unsigned int pulses_per_turn=1024, bool invert_polarity=false);
         unsigned short getGearRatioNumerator();

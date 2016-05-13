@@ -19,7 +19,6 @@ cdef extern from "EposMotorController.hpp" namespace "gcs":
         bool isFaulted() except +
         
         # Configuration (throw an  exception on failure)
-        void setOperatingMode(int) except + # This int must be a OperatingMode
         void setSensorType(int) except + # This int must be a SensorType
         void setEncoderSettings(unsigned int, bool) except +
         unsigned short getGearRatioNumerator() except +
@@ -42,10 +41,6 @@ class SensorType(Enum): # Copied from Definitions.h
     ST_HALL_SENSORS                  = 3
     ST_SSI_ABS_ENCODER_BINARY        = 4
     ST_SSI_ABS_ENCODER_GREY          = 5
-
-class OperatingMode(Enum):
-    EPOS_OPMODE_UNKNOWN               = 0
-    EPOS_OPMODE_PROFILE_POSITION_MODE = 1
     
 cdef class PyMotorController:
 
@@ -76,10 +71,6 @@ cdef class PyMotorController:
         return self._mc.isFaulted() 
         
     # Configuration (throw an  exception on failure)
-    def setOperatingMode(self, opmode):
-        if not isinstance(opmode, OperatingMode):
-            raise Exception("opmode must be an instance of OperatingMode")
-        return self._mc.setOperatingMode(opmode)
     def setSensorType(self, st):
         if not isinstance(st, SensorType):
             raise Exception("st must be an instance of SensorType")
