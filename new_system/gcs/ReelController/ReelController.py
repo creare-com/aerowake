@@ -5,9 +5,7 @@ Object hierarchy as follows (connections represent composition not inheritance):
 
 ReelController (in ReelController.py)
   | 
-PyReelController (in rc.pyx) - Note: this is added to Python's global import list by running "python setup.py build_ext --inplace"
-  |
-ReelController (in ReelController.hpp/cpp)
+PyMotorController (in PyMotorController.pyx) - Note: this is added to Python's global import list by running "python setup.py build_ext --inplace"
   |
 EposMotorController (in EposMotorController.hpp/cpp)
 
@@ -141,10 +139,10 @@ class ReelController:
         
     def setMaxTetherSpeedMps(self, speed_limit):
         max_payout_rpm = reelRpmFromTetherMps(max_tether_mps);
-        if(max_payout_rpm * gear_ratio > self._MOTOR_MAX_RPM)
-        { max_payout_rpm = MOTOR_MAX_RPM / self._gear_ratio; }
-        if(max_payout_rpm * gear_ratio > self._GEARBOX_MAX_INPUT_RPM)
-        { max_payout_rpm = self._GEARBOX_MAX_INPUT_RPM / self._gear_ratio; }
+        if max_payout_rpm * gear_ratio > self._MOTOR_MAX_RPM:
+            max_payout_rpm = MOTOR_MAX_RPM / self._gear_ratio
+        if max_payout_rpm * gear_ratio > self._GEARBOX_MAX_INPUT_RPM:
+            max_payout_rpm = self._GEARBOX_MAX_INPUT_RPM / self._gear_ratio
         self._mc.setMaxVelocity(max_payout_rpm);
         return max_payout_rpm;
 
