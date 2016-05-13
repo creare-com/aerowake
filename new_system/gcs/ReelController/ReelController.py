@@ -79,7 +79,7 @@ class ReelController:
         
     def youAreHome(self):
         """ Consider the tether's current position to be 0m """
-        self._home_pos_m = self._mc.getTetherLength()
+        self._home_pos_m = self.getTetherLengthM()
     
     def update(self):
         """
