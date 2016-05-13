@@ -57,7 +57,7 @@ cdef class PyMotorController:
         return self._mc.close() 
     def isOpen(self):
         return self._mc.isOpen() 
-
+26
     # Enable/disable movement. (throw an  exception on failure)
     def clearFaultAndEnable(self):
         return self._mc.clearFaultAndEnable() 
@@ -78,7 +78,7 @@ cdef class PyMotorController:
     def setEncoderSettings(self, unsigned int pulses_per_turn=1024, bool invert_polarity=False):
         return self._mc.setEncoderSettings(pulses_per_turn, invert_polarity) 
     def getGearRatioNumerator(self):
-        return self._mc.getGearRatioNumerator() 
+        return self._mc.getGearRatioNumerator()
     def getGearRatioDenominator(self):
         return self._mc.getGearRatioDenominator() 
         
@@ -108,4 +108,3 @@ cdef class PyMotorController:
     def haltMovement(self):
         return self._mc.haltMovement() 
 
-    

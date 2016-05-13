@@ -18,20 +18,28 @@ import logging
 
 class ReelController:
     def __init__(self, interface='USB0', reel_diam_m=0.127):
+        # Motor settings
+        self._QC_PER_TURN = 1024*4;
+        self._MOTOR_MAX_RPM = 10000;
+        self._GEARBOX_MAX_INPUT_RPM = 8000;
+        
+        # Sensor settings
         self._N_PER_ADC_COUNT        = 0.0045203
         self._SENSOR_BASELINE_COUNTS = 7848
         self._SENSOR_DEADBAND_COUNTS = 100
         self._T_DEADBAND_N           = self._N_PER_ADC_COUNT * self._SENSOR_DEADBAND_COUNTS
-        self._reel_diam_m = reel_diam_m # Need to set this first so the conversion methods to work
-        self._MAX_RPM = 60
-        self._MIN_RPM = 6
-        self._MAX_MPS = self.tether_mps_from_reel_rpm(self._MAX_RPM)
-        self._MIN_MPS = self.tether_mps_from_reel_rpm(self._MIN_RPM)
-        self._L_MAX_SPEED_M = 10 # length no longer limits reel speed beyond this range
-        self._T_MAX_SPEED_N = 5  # After this many newtons of force, don't limit payout rate
-        self._KT_MPS_PER_N  =  self._L_MAX_SPEED_M / (self._T_MAX_SPEED_N - self._T_DEADBAND_N)
-        self._KL_MPS_PER_M  = (self._MAX_MPS - self._MIN_MPS) / self._L_MAX_SPEED_M
-        self._home_pos_m = 0
+
+        # Reel system settings
+        self._reel_diam_m            = reel_diam_m # Need to set this first so the conversion methods to work
+        self._MAX_RPM                = 60
+        self._MIN_RPM                = 6
+        self._MAX_MPS                = self.tetherMpsFromReelRpm(self._MAX_RPM)
+        self._MIN_MPS                = self.tetherMpsFromReelRpm(self._MIN_RPM)
+        self._L_MAX_SPEED_M          = 10 # length no longer limits reel speed beyond this range
+        self._T_MAX_SPEED_N          = 5  # After this many newtons of force, don't limit payout rate
+        self._KT_MPS_PER_N           =  self._L_MAX_SPEED_M / (self._T_MAX_SPEED_N - self._T_DEADBAND_N)
+        self._KL_MPS_PER_M           = (self._MAX_MPS - self._MIN_MPS) / self._L_MAX_SPEED_M
+        self._home_pos_m             = 0
         
         # For easier testing, create mock objects if the real ones fail.
         try:
@@ -44,13 +52,27 @@ class ReelController:
             self._tension_sensor = MockTensionSensor()
 
         try:
-            from PyReelController import PyReelController
-            self._rc = PyReelController(interface, reel_diam_m*10)
+            from PyMotorController import PyMotorController, SensorType
+            self._mc = PyMotorController(interface)
         except:
             logging.warning("Cannot connect to motor controller!  Will be using mock motor controller instead.")
-            from MockPyReelController import MockPyReelController
-            self._rc = MockPyReelController()
+            from MockPyMotorController import MockPyMotorController
+            self._mc = MockPyMotorController()
+        # Configure motor controller
+        self._gear_ratio = self._mc.getGearRatioNumerator() / self._mc.getGearRatioDenominator()
         self.youAreHome()
+        self._mc.clearFaultAndEnable() # movement may occur after this point
+
+    # Conversion functions
+    def motorPositionFromTetherLength(self, tether_length_m):
+        return self._QC_PER_TURN * (-tether_length_m / (math.pi * self._reel_diam_m))
+    def tetherLengthFromMotorPosition(self, motor_position):
+        return (-motor_position / self._QC_PER_TURN) * (M_PI * self._reel_diam_m);
+    def tetherMpsFromReelRpm(self, reel_rpm):
+        return reel_rpm   * (math.pi * self._reel_diam_m / 60)
+    def reelRpmFromTetherMps(self, tether_mps):
+        return tether_mps / (math.pi * self._reel_diam_m / 60)
+    
 
     def __del__(self):
         self.stopMoving()
@@ -61,11 +83,6 @@ class ReelController:
         """ Consider the tether's current position to be 0m """
         self._home_pos_m = self._rc.getTetherLength()
     
-    def tether_mps_from_reel_rpm(self, reel_rpm):
-        return reel_rpm   * (math.pi * self._reel_diam_m / 60)
-    def reel_rpm_from_tether_mps(self, tether_mps):
-        return tether_mps / (math.pi * self._reel_diam_m / 60)
-    
     def update(self):
         """
         Updates the maximum speed of the motor controller
@@ -74,8 +91,8 @@ class ReelController:
         Call this method frequently in your main loop.
         """
         
-        current_length = self._rc.getTetherLength() - self._home_pos_m;
-        target_length  = self._rc.getTetherTargetLength() - self._home_pos_m;
+        current_length = self.getTetherLengthM()
+        target_length  = self.getTargetTetherLengthM()
         
         # Update the maximum speed of the motor controller differently
         # if it's spooling out vs reeling in.  When spooling out, we
@@ -102,17 +119,35 @@ class ReelController:
         # Apply speed limit
         logging.info("Setting speed limit to %fmps"%speed_limit)
         if speed_limit == 0:
-            self._rc.haltMovement()
+            self._mc.haltMovement()
         else:
-            self._rc.setMaxTetherSpeed(speed_limit)
+            self.setMaxTetherSpeedMps(speed_limit)
 
     def stopMoving(self):
-        self._rc.haltMovement()
+        self._mc.haltMovement()
     
     def setTetherLengthM(self, tether_length_m):
-        self._rc.setTetherLength(tether_length_m + self._home_pos_m)
+        desired_motor_position = motorPositionFromTetherLength(tether_length_m + self._home_pos_m)
+        self._mc.moveToPosition(desired_motor_position)
         self.update()
         
     def getTetherLengthM(self):
-        return self._rc.getTetherLength() - self._home_pos_m
+        cur_motor_position = self._mc.getPosition()
+        return self.tetherLengthFromMotorPosition(cur_motor_position) - self._home_pos_m
         
+    def getTargetTetherLengthM(self):
+        tgt_motor_position = self._mc.getTargetPosition()
+        return self.tetherLengthFromMotorPosition(tgt_motor_position) - self._home_pos_m
+        
+    def setMaxTetherSpeedMps(self, speed_limit):
+        max_payout_rpm = reelRpmFromTetherMps(max_tether_mps);
+        if(max_payout_rpm * gear_ratio > self._MOTOR_MAX_RPM)
+        { max_payout_rpm = MOTOR_MAX_RPM / self._gear_ratio; }
+        if(max_payout_rpm * gear_ratio > self._GEARBOX_MAX_INPUT_RPM)
+        { max_payout_rpm = self._GEARBOX_MAX_INPUT_RPM / self._gear_ratio; }
+        self._mc.setMaxVelocity(max_payout_rpm);
+        return max_payout_rpm;
+
+    def getMaxTetherSpeedMps(self):
+        max_payout_rpm = self._mc.getMaxVelocity();
+        return tetherMpsFromReelRpm(max_payout_rpm);
