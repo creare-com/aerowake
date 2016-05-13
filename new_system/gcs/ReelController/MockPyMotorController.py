@@ -35,7 +35,7 @@ class MockPyMotorController:
     # Configuration (throw an  exception on failure)
     def setSensorType(self, st):
         pass
-    def setEncoderSettings(self, unsigned int pulses_per_turn=1024, bool invert_polarity=False):
+    def setEncoderSettings(self, pulses_per_turn=1024, invert_polarity=False):
         pass
     def getGearRatioNumerator(self):
         return 26 
