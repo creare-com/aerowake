@@ -77,9 +77,9 @@ cdef class PyMotorController:
         
     # Configuration (throw an  exception on failure)
     def setOperatingMode(self, OperatingMode opmode):
-        return self._mc.setOperatingMode(opmode):
-    def setSensorType(self, SensorType st)
-        return self._mc.setSensorType(st):
+        return self._mc.setOperatingMode(opmode)
+    def setSensorType(self, SensorType st):
+        return self._mc.setSensorType(st)
     def setEncoderSettings(self, unsigned int pulses_per_turn=1024, bool invert_polarity=False):
         return self._mc.setEncoderSettings(pulses_per_turn, invert_polarity) 
     def getGearRatioNumerator(self):
