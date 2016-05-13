@@ -3,8 +3,8 @@ from Cython.Build import cythonize
 from distutils.extension import Extension
 
 extensions = [
-    Extension("PyReelController", 
-    sources=["PyReelController.pyx", "EposMotorController.cpp", "ReelController.cpp"],
+    Extension("PyEposMotorController", 
+    sources=["PyMotorController.pyx", "EposMotorController.cpp"],
     language="c++", 
     include_dirs = ["include"],
     libraries = ["EposCmd"],
