@@ -55,8 +55,8 @@ class pose_controller_class:
         # self.k_r   =[.5,   3] 
 
         self.k_phi =[1., .1,  0] 
-        self.k_th  =[1.,   .1,  0]
-        self.k_r   =[.5,  .1] 
+        self.k_th  =[1., .1,  0]
+        self.k_r   =[.5, .1    ] 
 
         self.SMART_TETHER = True
 
@@ -264,6 +264,9 @@ class pose_controller_class:
         # It is a numerical solution, and not tested on outdoor conditions yet. 
         [ffx,ffy,ffz] = self.smart_tether_ff(th,phi,r,self.goal_pose[2],self.L)
         print ">> Smart Tether:   %.2f, %.2f, %.2f" %(ffx,ffy,ffz)
+
+        if math.isnan(ffx) or math.isnan(ffy) or math.isnan(ffz):
+            print "Smart Tether NaN"
 
         # Basic tether model uses the weight of the tether and position to determine forces. 
         # It uses trig, and not the ideal tether conditions, but should be more robust than the FF. 
