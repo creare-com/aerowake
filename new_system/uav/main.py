@@ -23,8 +23,8 @@ from airprobe.airprobe_main import airprobe_run
  #!# Select which position controller to use. Pose_control is the spherical position controller. 
  #!# and pose_control_cart is the Cartesian based system. 
 
-from controller.pose_control_cart import pose_controller_class
-#from controller.pose_control import pose_controller_class
+#from controller.pose_control_cart import pose_controller_class
+from controller.pose_control import pose_controller_class
 
 
  #!# Setting up connection path for the Autopilots. 
