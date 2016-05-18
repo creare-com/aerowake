@@ -1724,3 +1724,23 @@
 2975.34799576,INFO: ------------------SYSTEM IS READY!!------------------
 2976.15599632,INFO: -----------------------------------------------------
 2976.7229557,INFO: Got GPS lock at 2016-05-02 11:03:16
+135.662078857,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+135.797023773,INFO: -------------------- UAV NODE --------------------
+135.872125626,INFO: Waiting for Autopilot
+1338.51909637,INFO: Autopilot connected!
+1338.71197701,WARNING: Autopilot reports arming checks are not standard!
+1338.7901783,INFO: Waiting for GCS
+2642.63510704,INFO: GCS Connected
+2642.92407036,INFO: ------------------SYSTEM IS READY!!------------------
+2643.36109161,INFO: -----------------------------------------------------
+2664.45612907,INFO: Got GPS lock at 2016-05-18 14:11:19
+115.339040756,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+115.494012833,INFO: -------------------- UAV NODE --------------------
+115.572929382,INFO: Waiting for Autopilot
+1118.04699898,INFO: Autopilot connected!
+1118.2179451,WARNING: Autopilot reports arming checks are not standard!
+1118.27707291,INFO: Waiting for GCS
+2621.49310112,INFO: GCS Connected
+2621.75512314,INFO: ------------------SYSTEM IS READY!!------------------
+2621.83499336,INFO: -----------------------------------------------------
+2650.24900436,INFO: Got GPS lock at 2016-05-18 14:12:04

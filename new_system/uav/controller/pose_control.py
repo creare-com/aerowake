@@ -2,6 +2,7 @@
 
 import numpy as np
 import imp
+import math
 import datetime
 from feedforward import feed_forward # Tether feed forward model. Might have robustness issues? 
 from referencecommand import reference_command # Tether reference location calculator
@@ -49,14 +50,16 @@ class pose_controller_class:
         self.log_n = 0
         self.human_time = 0
         self.log_file_name = 'log_generic.csv'
+
+
         # Controller Gains P D I
         # self.k_phi =[1.2, 2.0,  1.0] 
         # self.k_th  =[1,   2.0,  1.0]
         # self.k_r   =[.5,   3] 
 
-        self.k_phi =[1., .1,  0] 
-        self.k_th  =[1., .1,  0]
-        self.k_r   =[.5, .1    ] 
+        self.k_phi =[1.0, .1,  0] 
+        self.k_th  =[1.0, .1,  0]
+        self.k_r   =[0.5, .1    ] 
 
         self.SMART_TETHER = True
 
@@ -156,7 +159,7 @@ class pose_controller_class:
             self.goal_pose = [g_th,g_phi,L]
         return None
 
-    def special_att_control(self,roll,pitch,thr_cmd): # Returns quaternion for proper yaw but zero roll/pitch. 
+    def special_att_control(self,roll,pitch,thr_cmd): # Returns quaternion for proper yaw but specified roll/pitch. 
         quat = self.eul2quat(roll,pitch,self.get_bearing())
         return [quat[0],quat[1],quat[2],quat[3],thr_cmd]       
 

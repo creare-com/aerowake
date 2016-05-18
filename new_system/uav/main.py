@@ -40,6 +40,7 @@ gcs_baud = 115200
  #!# the telemetry radio should be set up for 57600. Uncomment the following lines:
 
 #autopilot_connect_path = '/dev/ttyAMA0'
+#autopilot_connect_path = '/dev/ttyS0' #USe for RaspPi3
 #uav_baud = 115200
 #gcs_connect_path = '/dev/ttyUSB0'
 #gcs_baud = 57600
@@ -108,7 +109,7 @@ pose_controller.log_file_name = 'uav_log_file_'+str(int(time.time()))+'.csv'
 
 ####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Multiprocessing System Setup !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
- #!# This blow will begin the Airprobe control system. TODO: Implement this. 
+ #!# This below will begin the Airprobe control system. TODO: Implement this. 
 
 #### Start Air Probe Controller ####
 # commands_to_airprobe = Queue()
@@ -215,10 +216,10 @@ def mode_callback(self,attr_name, mode):
 #### !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Functions !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
  #!# This is a functions that is part of DroneKit but is currently not used. 
-def send_msg_to_gcs(message):
-    msg = autopilot.message_factory.statustext_encode(mavutil.mavlink.MAV_SEVERITY_CRITICAL, message)
-    autopilot.send_mavlink(msg)
-    autopilot.flush()
+#def send_msg_to_gcs(message):
+#    msg = autopilot.message_factory.statustext_encode(mavutil.mavlink.MAV_SEVERITY_CRITICAL, message)
+#    autopilot.send_mavlink(msg)
+#    autopilot.flush()
 
 
  #!# This Abort Mission function an be called ONCE in the event that the mission should be autonmously terminated. 
@@ -376,7 +377,7 @@ while True:
         if pose_controller.goal_mode ==G_AUTO:
             output = pose_controller.run_sph_pose_controller()
             set_attitude_target(output)
-            condition_yaw(.5)
+            #condition_yaw(.5)
 
         if pose_controller.goal_mode ==G_TAKEOFF: 
             #Special condition for takoff. Positive pitch is pitch up

@@ -698,3 +698,11 @@
 2955.34801483,INFO: -----------------------------------------------------
 3015.11883736,INFO: Got GPS lock at 2016-05-02 10:17:56
 8475459.90682,CRITICAL: Pixhawk connection lost!
+117.279052734,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+117.407083511,INFO: -------------------- GCS NODE --------------------
+2137.21609116,INFO: Waiting for Pixhawk
+3541.06211662,INFO: Pixhawk connected!
+3541.38302803,INFO: ------------------SYSTEM IS READY!!------------------
+3541.45312309,INFO: -----------------------------------------------------
+3566.72811508,INFO: Got GPS lock at 2016-05-18 14:10:39
+307368.348122,CRITICAL: Pixhawk connection lost!

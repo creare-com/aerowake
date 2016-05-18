@@ -32,6 +32,7 @@ gcs_baud = 115200
  #!# the telemetry radio should be set up for 57600. Uncomment the following lines:
 
 #gcs_connect_path = '/dev/ttyAMA0' #Choose which ever is applicable
+#gcs_connect_path = '/dev/ttyS0' #For the RaspPi3 
 #gcs_connect_path = '/dev/ttyUSB0'
 #gcs_connect_path = '/dev/ttyACM0'
 #gcs_baud = 115200
@@ -159,6 +160,7 @@ def gcs_time_callback(self, attr_name, msg):
 
  #!# Log if no MAVLink packets are heard for more than a second
  #!# Also log mode changes, and arm/disarm
+ #!# Normal Dronekit Callbacks. 
 
 timed_out = False
 
@@ -190,10 +192,10 @@ def mode_callback(self,attr_name, mode):
 
 
  #!# This is a functions that is part of DroneKit but is currently not used. 
-def send_msg_to_gcs(message):
-    msg = gcs.message_factory.statustext_encode(mavutil.mavlink.MAV_SEVERITY_CRITICAL, message)
-    gcs.send_mavlink(msg)
-    gcs.flush()
+#def send_msg_to_gcs(message):
+#    msg = gcs.message_factory.statustext_encode(mavutil.mavlink.MAV_SEVERITY_CRITICAL, message)
+#    gcs.send_mavlink(msg)
+#    gcs.flush()
 
 
 
@@ -256,6 +258,7 @@ def clear_mission():
     cmds.upload()
 
 #!# At this point, arm the GCS pixhawk and place it into guided mode. 
+#1# Might have to set the ARMING CHECK parameter to 0 in the GCS pixhawk. 
 
 if not gcs.armed:
     while not gcs.is_armable:
@@ -298,7 +301,7 @@ MISSION_L   = [ 50,  50,  50,  60,   60,  70,  70, 100]
 #!# Start the main loop. 
 
 while True:
-    time.sleep(.2)
+    time.sleep(.1)
     
     #Get Reel Info:
     # try:
@@ -306,17 +309,6 @@ while True:
     # except Empty:
     #     pass
 
-    # ##########################################################################################
-    # # Populate GCS State information
-
-    # gcs_tether_l = reel_reading[0]       # GCS Tether Length (m)
-    # gcs_tether_tension = reel_reading[1] # GCS Tether Tension (newtons)
-
-    # # Transmit the GCS State information to the UAV:
-    # send_state_to_uav([gcs_tether_l,gcs_tether_tension])
-
-
-    # ##########################################################################################v
     # # Determine flight mode and waypoints for the vehicle
 
     if gcs.armed:
