@@ -8,5 +8,5 @@ sudo ln -s libftd2xx.so.1.2.8 libftd2xx.so
 
 sudo service udev restart
 
-sudo pip install cython Adafruit_ADS1X15
+sudo pip install cython Adafruit_ADS1X15 enum
 
