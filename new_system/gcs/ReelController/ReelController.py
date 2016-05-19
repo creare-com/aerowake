@@ -118,8 +118,10 @@ class ReelController:
         logging.info("Setting speed limit to %fmps"%speed_limit)
         if speed_limit == 0:
             self._mc.haltMovement()
+            actual_max_mps = 0
         else:
-            self.setMaxTetherSpeedMps(speed_limit)
+            actual_max_mps = self.setMaxTetherSpeedMps(speed_limit)
+        logging.info("Max tether mps wound up being %f"%actual_max_mps)
 
     def stopMoving(self):
         self._mc.haltMovement()
@@ -143,6 +145,7 @@ class ReelController:
             max_payout_rpm = MOTOR_MAX_RPM / self._gear_ratio
         if max_payout_rpm * self._gear_ratio > self._GEARBOX_MAX_INPUT_RPM:
             max_payout_rpm = self._GEARBOX_MAX_INPUT_RPM / self._gear_ratio
+        logging.info("Setting reel max RPM=%f"%(max_payout_rpm))
         self._mc.setMaxVelocity(max_payout_rpm);
         return self.tetherMpsFromReelRpm(max_payout_rpm);
 
