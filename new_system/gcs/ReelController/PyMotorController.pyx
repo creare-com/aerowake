@@ -47,6 +47,7 @@ cdef class PyMotorController:
     cdef EposMotorController *_mc
     def __cinit__(self, string usb_port = "USB0", unsigned int baudRate=1000000):
         self._mc = new EposMotorController(usb_port, baudRate)
+        self._mc.open()
     def __dealloc__(self):
         del self._mc
         
