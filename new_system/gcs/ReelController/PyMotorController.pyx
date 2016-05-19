@@ -57,7 +57,7 @@ cdef class PyMotorController:
         return self._mc.close() 
     def isOpen(self):
         return self._mc.isOpen() 
-26
+
     # Enable/disable movement. (throw an  exception on failure)
     def clearFaultAndEnable(self):
         return self._mc.clearFaultAndEnable() 
