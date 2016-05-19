@@ -38,6 +38,8 @@ class ReelController:
         self._KT_MPS_PER_N           =  self._L_MAX_SPEED_M / (self._T_MAX_SPEED_N - self._T_DEADBAND_N)
         self._KL_MPS_PER_M           = (self._MAX_MPS - self._MIN_MPS) / self._L_MAX_SPEED_M
         self._home_pos_m             = 0
+        self._motor_is_halted        = False
+        self._last_commanded_m       = 0
         
         # For easier testing, create mock objects if the real ones fail.
         try:
@@ -80,6 +82,8 @@ class ReelController:
     def youAreHome(self):
         """ Consider the tether's current position to be 0m """
         self._home_pos_m = self.getTetherLengthM()
+        self._last_commanded_m = 0
+        self.update()
     
     def update(self):
         """
@@ -115,18 +119,27 @@ class ReelController:
                 speed_limit = min(self._MAX_MPS, length_limited_speed, tension_limited_speed)
         
         # Apply speed limit
-        logging.info("Setting speed limit to %fmps"%speed_limit)
+        logging.info("Changing speed limit from %fmps to %fmps"%(self.getMaxTetherSpeedMps(),speed_limit))
         if speed_limit == 0:
             self._mc.haltMovement()
+            self._motor_is_halted = True
             actual_max_mps = 0
         else:
+            position_to_recommand = None # If the motor was halted, need to give it the target location again
+            if self._motor_is_halted:
+                position_to_recommand = self._mc.getTargetPosition()
             actual_max_mps = self.setMaxTetherSpeedMps(speed_limit)
+            if position_to_recommand != None:
+                logging.info("Recommanding motor to position %f"%position_to_recommand)
+		self._mc.moveToPosition(position_to_recommand)
+                self._motor_is_halted = False
         logging.info("Max tether mps wound up being %f"%actual_max_mps)
 
     def stopMoving(self):
         self._mc.haltMovement()
     
     def setTetherLengthM(self, tether_length_m):
+        self._last_commanded_m = tether_length_m
         desired_motor_position = self.motorPositionFromTetherLength(tether_length_m + self._home_pos_m)
         self._mc.moveToPosition(desired_motor_position)
         self.update()
