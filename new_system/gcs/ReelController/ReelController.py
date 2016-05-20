@@ -121,18 +121,18 @@ class ReelController:
         # Apply speed limit
         logging.info("Changing speed limit from %fmps to %fmps"%(self.getMaxTetherSpeedMps(),speed_limit))
         if speed_limit == 0:
-            self._mc.haltMovement()
-            self._motor_is_halted = True
-            actual_max_mps = 0
-        else:
-            position_to_recommand = None # If the motor was halted, need to give it the target location again
-            if self._motor_is_halted:
-                position_to_recommand = self._mc.getTargetPosition()
-            actual_max_mps = self.setMaxTetherSpeedMps(speed_limit)
-            if position_to_recommand != None:
-                logging.info("Recommanding motor to position %f"%position_to_recommand)
-		self._mc.moveToPosition(position_to_recommand)
-                self._motor_is_halted = False
+            #self._mc.haltMovement()
+#            self._motor_is_halted = True
+            speed_limit = 0.01
+#        else:
+#            position_to_recommand = None # If the motor was halted, need to give it the target location again
+#            if self._motor_is_halted:
+#                position_to_recommand = self._mc.getTargetPosition()
+        actual_max_mps = self.setMaxTetherSpeedMps(speed_limit)
+#            if position_to_recommand != None:
+#                logging.info("Recommanding motor to position %f"%position_to_recommand)
+#                self._mc.moveToPosition(position_to_recommand)
+#                self._motor_is_halted = False
         logging.info("Max tether mps wound up being %f"%actual_max_mps)
 
     def stopMoving(self):
@@ -155,7 +155,7 @@ class ReelController:
     def setMaxTetherSpeedMps(self, max_tether_mps):
         max_payout_rpm = self.reelRpmFromTetherMps(max_tether_mps);
         if max_payout_rpm * self._gear_ratio > self._MOTOR_MAX_RPM:
-            max_payout_rpm = MOTOR_MAX_RPM / self._gear_ratio
+            max_payout_rpm = self._MOTOR_MAX_RPM / self._gear_ratio
         if max_payout_rpm * self._gear_ratio > self._GEARBOX_MAX_INPUT_RPM:
             max_payout_rpm = self._GEARBOX_MAX_INPUT_RPM / self._gear_ratio
         logging.info("Setting reel max RPM=%f"%(max_payout_rpm))
