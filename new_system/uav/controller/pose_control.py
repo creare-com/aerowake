@@ -265,34 +265,32 @@ class pose_controller_class:
         #These are the forces that the vehicle needs to exert to balance the tether tension
         # Smart Tether FF uses the tether dynamics to figure out the forces.
         # It is a numerical solution, and not tested on outdoor conditions yet. 
-        [ffx,ffy,ffz] = self.smart_tether_ff(th,phi,r,self.goal_pose[2],self.L)
-        print ">> Smart Tether:   %.2f, %.2f, %.2f" %(ffx,ffy,ffz)
-
-        if math.isnan(ffx) or math.isnan(ffy) or math.isnan(ffz):
-            print "Smart Tether NaN"
-
+        
+        if self.SMART_TETHER:
+            [ffx,ffy,ffz] = self.smart_tether_ff(th,phi,r,self.goal_pose[2],self.L)
+            print ">> Smart Tether:   %.2f, %.2f, %.2f" %(ffx,ffy,ffz)
+            if math.isnan(ffx) or math.isnan(ffy) or math.isnan(ffz):
+                print "Smart Tether NaN"
+                [ffx,ffy,ffz] = self.basic_tether_ff(th,phi,self.L)
+        else:
+            [ffx,ffy,ffz] = self.basic_tether_ff(th,phi,self.L) 
+            print ">> Basic Tether:   %.2f, %.2f, %.2f" %(ffx,ffy,ffz)
         # Basic tether model uses the weight of the tether and position to determine forces. 
         # It uses trig, and not the ideal tether conditions, but should be more robust than the FF. 
-        [fbx,fby,fbz] = self.basic_tether_ff(th,phi,self.L)
-        print ">> Basic Tether:   %.2f, %.2f, %.2f" %(fbx,fby,fbz)
 
         #Set to zero for simulation
-        [fx,fy,fz] = [0,0,0]
+        [ffx,ffy,ffz] = [0,0,0]
 
         #TODO: Saturate tether model forces. 
-
-        if self.SMART_TETHER:
-            print "TODO: Need to Select Tether Model"
-
 
         #### Forces from Drag on Vehicle ####
         [fdx, fdy, fdz] = self.get_drag_vector()
 
 
         #### Total Forces for Output ####
-        ftx = fix + fx + fdx
-        fty = fiy + fy + fdy
-        ftz = fiz + fz + fdz + self.uav_weight #weight needs to be in newtons
+        ftx = fix + ffx + fdx
+        fty = fiy + ffy + fdy
+        ftz = fiz + ffz + fdz + self.uav_weight #weight needs to be in newtons
 
         print ">> Total:    %.2f, %.2f, %.2f" %(ftx,fty,ftz)
 
