@@ -17,7 +17,7 @@ import logging
 class ReelController:
     def __init__(self, interface='USB0', reel_diam_m=0.127):
         # Motor settings
-        self._QC_PER_TURN            = 1024*4
+        self._QC_PER_TURN            = -1024*4 # Flip the sign - the motor considers "positive" to be the direction that retracts the tether
         self._MOTOR_MAX_RPM          = 10000
         self._GEARBOX_MAX_INPUT_RPM  = 8000
         
@@ -42,6 +42,7 @@ class ReelController:
         self._T_MAX_SPEED_N          = 5  # Above this many newtons of force, don't limit payout rate
         self._KT_MPS_PER_N           =  self._L_MAX_SPEED_M / (self._T_MAX_SPEED_N - self._T_DEADBAND_N)
         self._KL_MPS_PER_M           = (self._MAX_MPS - self._MIN_MPS) / self._L_MAX_SPEED_M
+        self._QC_PER_M               = self._QC_PER_TURN / (math.pi * self._reel_diam_m)
         self._home_pos_m             = 0
         
         # For easier testing, create mock objects if the real ones fail.
@@ -74,9 +75,11 @@ class ReelController:
 
     # Conversion functions
     def motorPositionFromTetherLength(self, tether_length_m):
-        return -(self._QC_PER_TURN * ((tether_length_m + self._home_pos_m)/ (math.pi * self._reel_diam_m)))
+        """ tether_length_m is considered to be relative to the home position """
+        return self._QC_PER_M * (tether_length_m + self._home_pos_m)
     def tetherLengthFromMotorPosition(self, motor_position):
-        return (-motor_position / self._QC_PER_TURN) * (math.pi * self._reel_diam_m) - self._home_pos_m;
+        """ Returns meters relative to the home position """
+        return motor_position / self._QC_PER_M - self._home_pos_m;
     def tetherMpsFromReelRpm(self, reel_rpm):
         return reel_rpm   * (math.pi * self._reel_diam_m / 60)
     def reelRpmFromTetherMps(self, tether_mps):
@@ -103,7 +106,6 @@ class ReelController:
         you want the reel to resume movement and go there.
         """
         position_to_recommand = self._mc.getTargetPosition()
-        #logging.info("Re-commanding the tether to %fm."%self.tetherLengthFromMotorPosition(position_to_recommand))
         self._mc.moveToPosition(position_to_recommand)
     
     def update(self):
@@ -125,26 +127,22 @@ class ReelController:
         # the UAV will take up the slack.  When reeling in, we want the
         # UAV to slow down as it approaches the landing site.
         length_limited_speed  = self._KL_MPS_PER_M * current_length + self._MIN_MPS
+        tension_n = self._tension_sensor.readTension()
         if current_length > target_length:
             # Reeling in
-            #logging.info("Reeling in because %fm > %fm, length limits us to %fmps"%(current_length, target_length, length_limited_speed))
             speed_limit = min(self._MAX_MPS, length_limited_speed)
             dir = "<-"
         else: # Stationary OR reeling out
             # Apply tension deadband
-            tension_n = self._tension_sensor.readTension()
             if tension_n < self._T_DEADBAND_N:
-                #logging.info("Within deadband because %fN < %fN"%(tension_n, self._T_DEADBAND_N))
                 speed_limit = 0
             else:
                 tension_n -= self._T_DEADBAND_N # Prevent "step" up when exiting deadband
                 tension_limited_speed = self._KT_MPS_PER_N * tension_n
-                #logging.info("Reeling out, length limits us to %fmps, tension limits us to %fmps"%(length_limited_speed, tension_limited_speed))
                 speed_limit = min(self._MAX_MPS, length_limited_speed, tension_limited_speed)
                 dir = "->"
         
         # Apply speed limit
-        #logging.info("Changing speed limit from %fmps to %fmps"%(self.getMaxTetherSpeedMps(),speed_limit))
         if speed_limit == 0:
             self._mc.haltMovement()
             actual_max_mps = 0
@@ -153,7 +151,7 @@ class ReelController:
             actual_max_mps = self.setMaxTetherSpeedMps(speed_limit)
             self._recommandMotorPosition() # Causes the motor controller to move at the new speed
             mv = '-'
-        status_str = dir[0] + mv + dir[1] + " %03.03fm->%03.03f @%03.03fmps"%(current_length, target_length, speed_limit)
+        status_str = dir[0] + mv + dir[1] + " %03.03fm->%03.03f @%03.03fmps %03.03fN "%(current_length, target_length, speed_limit, tension_n)
         logging.info(status_str)
 
     def stopMoving(self):
