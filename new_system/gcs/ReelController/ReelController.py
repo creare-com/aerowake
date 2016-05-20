@@ -31,7 +31,7 @@ class ReelController:
         # Sensor settings
         self._N_PER_ADC_COUNT        = 0.0045203
         self._SENSOR_BASELINE_COUNTS = 7848
-        self._SENSOR_DEADBAND_COUNTS = 100
+        self._SENSOR_DEADBAND_COUNTS = 500
         self._T_DEADBAND_N           = self._N_PER_ADC_COUNT * self._SENSOR_DEADBAND_COUNTS
 
         # Reel system settings
@@ -39,7 +39,7 @@ class ReelController:
         self._MAX_MPS                = self.tetherMpsFromReelRpm(self._MAX_RPM) # _MAX_RPM in mps
         self._MIN_MPS                = self.tetherMpsFromReelRpm(self._MIN_RPM) # _MIN_RPM in mps
         self._L_MAX_SPEED_M          = 10 # length no longer limits reel speed beyond this range
-        self._T_MAX_SPEED_N          = 30 # Above this many newtons of force, don't limit payout rate
+        self._T_MAX_SPEED_N          = 5  # Above this many newtons of force, don't limit payout rate
         self._KT_MPS_PER_N           =  self._L_MAX_SPEED_M / (self._T_MAX_SPEED_N - self._T_DEADBAND_N)
         self._KL_MPS_PER_M           = (self._MAX_MPS - self._MIN_MPS) / self._L_MAX_SPEED_M
         self._QC_PER_M               = self._QC_PER_TURN / (math.pi * self._reel_diam_m)
