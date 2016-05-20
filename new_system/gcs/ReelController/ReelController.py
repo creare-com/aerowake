@@ -39,7 +39,7 @@ class ReelController:
         self._MAX_MPS                = self.tetherMpsFromReelRpm(self._MAX_RPM) # _MAX_RPM in mps
         self._MIN_MPS                = self.tetherMpsFromReelRpm(self._MIN_RPM) # _MIN_RPM in mps
         self._L_MAX_SPEED_M          = 10 # length no longer limits reel speed beyond this range
-        self._T_MAX_SPEED_N          = 5  # Above this many newtons of force, don't limit payout rate
+        self._T_MAX_SPEED_N          = 30 # Above this many newtons of force, don't limit payout rate
         self._KT_MPS_PER_N           =  self._L_MAX_SPEED_M / (self._T_MAX_SPEED_N - self._T_DEADBAND_N)
         self._KL_MPS_PER_M           = (self._MAX_MPS - self._MIN_MPS) / self._L_MAX_SPEED_M
         self._QC_PER_M               = self._QC_PER_TURN / (math.pi * self._reel_diam_m)
@@ -120,6 +120,7 @@ class ReelController:
         target_length  = self.getTargetTetherLengthM()
         
         dir = "--"
+        mv = 'o'
 
         # Update the maximum speed of the motor controller differently
         # if it's spooling out vs reeling in.  When spooling out, we
@@ -133,26 +134,24 @@ class ReelController:
             speed_limit = min(self._MAX_MPS, length_limited_speed)
             mv = 'l'
             dir = "<-"
+            actual_max_mps = self.setMaxTetherSpeedMps(speed_limit)
+            self._recommandMotorPosition() # Causes the motor controller to move at the new speed
         else: # Stationary OR reeling out
             # Apply tension deadband
             if tension_n < self._T_DEADBAND_N:
-                speed_limit = 0
+                self._mc.haltMovement()
                 mv = 'x'
+                actual_max_mps = 0
             else:
                 tension_n -= self._T_DEADBAND_N # Prevent "step" up when exiting deadband
                 tension_limited_speed = self._KT_MPS_PER_N * tension_n
                 speed_limit = min(self._MAX_MPS, length_limited_speed, tension_limited_speed)
-                mv = 't' if speed_limit == tension_limited_speed else 'l'
+                mv = 't' if speed_limit == tension_limited_speed else ('l' if speed_limit == length_limited_speed else '-')
                 dir = "->"
+                actual_max_mps = self.setMaxTetherSpeedMps(speed_limit)
+                self._recommandMotorPosition() # Causes the motor controller to move at the new speed
         
-        # Apply speed limit
-        if speed_limit == 0:
-            self._mc.haltMovement()
-            actual_max_mps = 0
-        else:
-            actual_max_mps = self.setMaxTetherSpeedMps(speed_limit)
-            self._recommandMotorPosition() # Causes the motor controller to move at the new speed
-        status_str = dir[0] + mv + dir[1] + " %03.03fm->%03.03f @%03.03fmps %03.03fN "%(current_length, target_length, speed_limit, tension_n)
+        status_str = dir[0] + mv + dir[1] + " %03.03fm->%03.03f @%03.03fmps %03.03fN "%(current_length, target_length, actual_max_mps, tension_n)
         logging.info(status_str)
 
     def stopMoving(self):
