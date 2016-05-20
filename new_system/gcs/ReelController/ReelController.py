@@ -146,7 +146,7 @@ class ReelController:
             actual_max_mps = 0
         else:
             actual_max_mps = self.setMaxTetherSpeedMps(speed_limit)
-        self._recommandMotorPosition() # Causes the motor controller to move at the new speed
+            self._recommandMotorPosition() # Causes the motor controller to move at the new speed
         logging.info("Max tether mps wound up being %f"%actual_max_mps)
 
     def stopMoving(self):
@@ -177,7 +177,7 @@ class ReelController:
         max_tether_rpm = self.reelRpmFromTetherMps(max_tether_mps)
         # Tone it down if necessary 
         max_tether_rpm = min(max_tether_rpm, self._REEL_MAX_VEL_RPM)
-        self._mc.setPositionProfile(velocity=max_tether_mps,
+        self._mc.setPositionProfile(velocity=max_tether_rpm,
             acceleration=self._REEL_ACCEL_RPMS, deceleration=self._REEL_DECEL_RPMS)
         return self.tetherMpsFromReelRpm(max_tether_rpm)
 
