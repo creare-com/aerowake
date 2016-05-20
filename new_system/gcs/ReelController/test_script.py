@@ -8,5 +8,5 @@ def setAndLoop(len_m):
     rc.setTetherLengthM(len_m)
     while True:
         rc.update()
-        time.sleep(0.1)
+        time.sleep(0.05)
 

@@ -181,9 +181,13 @@ class ReelController:
         max_tether_rpm = self.reelRpmFromTetherMps(max_tether_mps)
         # Tone it down if necessary 
         max_tether_rpm = min(max_tether_rpm, self._REEL_MAX_VEL_RPM)
-        self._mc.setPositionProfile(velocity=max_tether_rpm,
-            acceleration=self._REEL_ACCEL_RPMS, deceleration=self._REEL_DECEL_RPMS)
-        return self.tetherMpsFromReelRpm(max_tether_rpm)
+        if max_tether_rpm < 1:
+            logging.warning("Cannot set max tether speed to %fRPM because it's <1."%max_tether_rpm)
+            return 0
+	else:
+            self._mc.setPositionProfile(velocity=max_tether_rpm,
+                acceleration=self._REEL_ACCEL_RPMS, deceleration=self._REEL_DECEL_RPMS)
+            return self.tetherMpsFromReelRpm(max_tether_rpm)
 
     def getMaxTetherSpeedMps(self):
         return self.tetherMpsFromReelRpm(self._mc.getPositionProfile()['velocity']);
