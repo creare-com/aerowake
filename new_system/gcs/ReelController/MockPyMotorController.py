@@ -8,7 +8,7 @@ class MockPyMotorController:
         self._pos = 0;
         self._target_pos = 0;
         self._maxspeed = 0;
-        self._profile = (0, 0, 0)
+        self._profile = {'velocity':0, 'acceleration':0, 'deceleration':0}
         
     # Open/close the specified port. (throw an  exception on failure)
     def open(self):
@@ -54,12 +54,13 @@ class MockPyMotorController:
     def setMaxVelocity(self, velocity):
         """ velocity is in RPM after gearbox. Applies to both position and velocity control. """
         self._maxspeed = velocity
+        self._profile['velocity'] = min(velocity, self._profile['velocity'])
     def getMaxVelocity(self):
         """ velocity is in RPM after gearbox. Applies to both position and velocity control. """
         return self._maxspeed
     def setPositionProfile(self, velocity, acceleration, deceleration):
         """ velocity/accel/decel is in RPM or RPM/s after gearbox.  """
-        self._profile = (velocity, acceleration, deceleration)
+        self._profile = {'velocity':velocity, 'acceleration':acceleration, 'deceleration':deceleration}
     def getPositionProfile(self):
         """ (velocity, accel, decel) is in RPM or RPM/s after gearbox.  """
         return self._profile

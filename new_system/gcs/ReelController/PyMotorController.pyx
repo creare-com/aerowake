@@ -91,7 +91,11 @@ cdef class PyMotorController:
     def getTargetPosition(self):
         return self._mc.getTargetPosition() 
     def setMaxVelocity(self, unsigned int velocity):
-        """ velocity is in RPM after gearbox. Applies to both position and velocity control. """
+        """ velocity is in RPM after gearbox. Applies to both position and velocity control. 
+        Note: If this velocity is less than the velocity stored in the motor controller as part of the
+        position profile, the velocity in the position profile will be lowered to match it.
+        The position profile's velocity will not be raised when this value is raised.
+        """
         return self._mc.setMaxVelocity(velocity)
     def getMaxVelocity(self):
         """ velocity is in RPM after gearbox. Applies to both position and velocity control. """
@@ -105,7 +109,7 @@ cdef class PyMotorController:
         cdef unsigned int acceleration
         cdef unsigned int deceleration
         self._mc.getPositionProfile(&velocity, &acceleration, &deceleration)
-        return (velocity, acceleration, deceleration)
+        return {'velocity':velocity, 'acceleration':acceleration, 'deceleration':deceleration}
     def haltMovement(self):
         return self._mc.haltMovement() 
 
