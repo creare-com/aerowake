@@ -93,8 +93,8 @@ class ReelController:
         
     def youAreHome(self):
         """ Consider the tether's current position to be 0m """
+        self._home_pos_m = 0 # Zero this out because getTetherLengthM() returns a value relative to home
         self._home_pos_m = self.getTetherLengthM()
-        self._last_commanded_m = 0
     
     def _recommandMotorPosition(self):
         """
@@ -131,26 +131,27 @@ class ReelController:
         if current_length > target_length:
             # Reeling in
             speed_limit = min(self._MAX_MPS, length_limited_speed)
+            mv = 'l'
             dir = "<-"
         else: # Stationary OR reeling out
             # Apply tension deadband
             if tension_n < self._T_DEADBAND_N:
                 speed_limit = 0
+                mv = 'x'
             else:
                 tension_n -= self._T_DEADBAND_N # Prevent "step" up when exiting deadband
                 tension_limited_speed = self._KT_MPS_PER_N * tension_n
                 speed_limit = min(self._MAX_MPS, length_limited_speed, tension_limited_speed)
+                mv = 't' if speed_limit == tension_limited_speed else 'l'
                 dir = "->"
         
         # Apply speed limit
         if speed_limit == 0:
             self._mc.haltMovement()
             actual_max_mps = 0
-            mv = 'x'
         else:
             actual_max_mps = self.setMaxTetherSpeedMps(speed_limit)
             self._recommandMotorPosition() # Causes the motor controller to move at the new speed
-            mv = '-'
         status_str = dir[0] + mv + dir[1] + " %03.03fm->%03.03f @%03.03fmps %03.03fN "%(current_length, target_length, speed_limit, tension_n)
         logging.info(status_str)
 
@@ -158,7 +159,6 @@ class ReelController:
         self._mc.haltMovement()
     
     def setTetherLengthM(self, tether_length_m):
-        self._last_commanded_m = tether_length_m
         desired_motor_position = self.motorPositionFromTetherLength(tether_length_m)
         self._mc.moveToPosition(desired_motor_position)
         self.update()
