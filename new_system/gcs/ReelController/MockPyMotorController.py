@@ -49,7 +49,7 @@ class MockPyMotorController:
         return self._pos
     def getTargetPosition(self):
         return self._target_pos
-    def setActualPosition(self, actual_pos):
+    def setActualPosition(self, actual_pos): # a method unique to the mock object
         self._pos = actual_pos
     def setMaxVelocity(self, velocity):
         """ velocity is in RPM after gearbox. Applies to both position and velocity control. """
