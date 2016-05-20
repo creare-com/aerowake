@@ -10,7 +10,7 @@ PyMotorController (in PyMotorController.pyx) - Note: this is added to Python's g
 EposMotorController (in EposMotorController.hpp/cpp)
 
 """
-
+import time
 import math
 import logging
 
@@ -23,7 +23,7 @@ class ReelController:
         
         # Post-gearbox settings
         self._REEL_ACCEL_RPMS        = 100 # Used in the Profile, ramps up   speed at this rate
-        self._REEL_DECEL_RPMS        = 100 # Used in the Profile, ramps down speed at this rate
+        self._REEL_DECEL_RPMS        = 300 # Used in the Profile, ramps down speed at this rate
         self._REEL_MAX_VEL_RPM       = None #100 # Set as the max RPM - profile velocity will be limited to this value.  Set to None here to compute it based on the motor.
         self._MAX_RPM                = 60 # The highest RPM commanded by the tether speed equations
         self._MIN_RPM                = 6  # The lowest  RPM commanded by the tether speed equations
@@ -151,7 +151,7 @@ class ReelController:
                 actual_max_mps = self.setMaxTetherSpeedMps(speed_limit)
                 self._recommandMotorPosition() # Causes the motor controller to move at the new speed
         
-        status_str = dir[0] + mv + dir[1] + " %03.03fm->%03.03f @%03.03fmps %03.03fN "%(current_length, target_length, actual_max_mps, tension_n)
+        status_str = dir[0] + mv + dir[1] + " %3.3fm->%3.3f @%3.8fmps %03.8fN "%(current_length, target_length, actual_max_mps, tension_n)
         logging.info(status_str)
 
     def stopMoving(self):
@@ -182,7 +182,7 @@ class ReelController:
         # Tone it down if necessary 
         max_tether_rpm = min(max_tether_rpm, self._REEL_MAX_VEL_RPM)
         if max_tether_rpm < 1:
-            logging.warning("Cannot set max tether speed to %fRPM because it's <1."%max_tether_rpm)
+            logging.debug("Cannot set max tether speed to %fRPM because it's <1."%max_tether_rpm)
             return 0
 	else:
             self._mc.setPositionProfile(velocity=max_tether_rpm,
