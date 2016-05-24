@@ -62,25 +62,28 @@ cdef extern from "EposMotorController.hpp" namespace "gcs":
         void setVelocityProfile(                unsigned int  , unsigned int  ) except + # accel/decel is in RPM/s after gearbox. 
         void getVelocityProfile(                unsigned int *, unsigned int *) except + # accel/decel is in RPM/s after gearbox. 
 
-class SensorType(Enum):
-    UNKNOWN                = ST_UNKNOWN               
-    INC_ENCODER_3CHANNEL   = ST_INC_ENCODER_3CHANNEL  
-    INC_ENCODER_2CHANNEL   = ST_INC_ENCODER_2CHANNEL  
-    HALL_SENSORS           = ST_HALL_SENSORS          
-    SSI_ABS_ENCODER_BINARY = ST_SSI_ABS_ENCODER_BINARY
-    SSI_ABS_ENCODER_GREY   = ST_SSI_ABS_ENCODER_GREY  
-    
-class OperatingMode(Enum):
-    PROFILE_POSITION       = OMD_PROFILE_POSITION_MODE      
-    PROFILE_VELOCITY       = OMD_PROFILE_VELOCITY_MODE      
-    HOMING                 = OMD_HOMING_MODE                
-    INTERPOLATED_POSITION  = OMD_INTERPOLATED_POSITION_MODE 
-    POSITION               = OMD_POSITION_MODE              
-    VELOCITY               = OMD_VELOCITY_MODE              
-    CURRENT                = OMD_CURRENT_MODE               
-    MASTER_ENCODER         = OMD_MASTER_ENCODER_MODE        
-    STEP_DIRECTION         = OMD_STEP_DIRECTION_MODE        
-    
+# Would use an Enum here, but cython won't let us put non-literals for enum values
+SensorType = {
+    'UNKNOWN'                : ST_UNKNOWN               ,
+    'INC_ENCODER_3CHANNEL'   : ST_INC_ENCODER_3CHANNEL  ,
+    'INC_ENCODER_2CHANNEL'   : ST_INC_ENCODER_2CHANNEL  ,
+    'HALL_SENSORS'           : ST_HALL_SENSORS          ,
+    'SSI_ABS_ENCODER_BINARY' : ST_SSI_ABS_ENCODER_BINARY,
+    'SSI_ABS_ENCODER_GREY'   : ST_SSI_ABS_ENCODER_GREY  ,
+}
+
+# Would use an Enum here, but cython won't let us put non-literals for enum values
+OperatingMode = {
+    'PROFILE_POSITION'       : OMD_PROFILE_POSITION_MODE      ,
+    'PROFILE_VELOCITY'       : OMD_PROFILE_VELOCITY_MODE      ,
+    'HOMING'                 : OMD_HOMING_MODE                ,
+    'INTERPOLATED_POSITION'  : OMD_INTERPOLATED_POSITION_MODE ,
+    'POSITION'               : OMD_POSITION_MODE              ,
+    'VELOCITY'               : OMD_VELOCITY_MODE              ,
+    'CURRENT'                : OMD_CURRENT_MODE               ,
+    'MASTER_ENCODER'         : OMD_MASTER_ENCODER_MODE        ,
+    'STEP_DIRECTION'         : OMD_STEP_DIRECTION_MODE        ,
+}
 cdef class PyMotorController:
     cdef EposMotorController *_mc
     def __cinit__(self, string usb_port = "USB0", unsigned int baudRate=1000000):
@@ -111,12 +114,12 @@ cdef class PyMotorController:
         
     # Configuration (throw an  exception on failure)
     def setOperatingMode(self, om):
-        if not isinstance(om, OperatingMode):
-            raise Exception("Operating mode must be an instance of OperatingMode")
+        if not om in OperatingMode.keys():
+            raise Exception("Operating mode must be a key of PyMotorController.OperatingMode; got '" + om + "' instead.")
         return self._mc.setOperatingMode(om)
     def setSensorType(self, st):
-        if not isinstance(st, SensorType):
-            raise Exception("Sensor type must be an instance of SensorType")
+        if not st in SensorType.keys():
+            raise Exception("Operating mode must be a key of PyMotorController.SensorType; got '" + st + "' instead.")
         return self._mc.setSensorType(st)
     def setEncoderSettings(self, unsigned int pulses_per_turn=1024, bool invert_polarity=False):
         return self._mc.setEncoderSettings(pulses_per_turn, invert_polarity) 
