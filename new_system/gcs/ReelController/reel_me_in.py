@@ -8,26 +8,32 @@ import logging
 from PyMotorController import *
 
 def open():
+    global mc
     mc = PyMotorController()
     mc.setOperatingMode('PROFILE_VELOCITY')
+    max_ad = mc.getMaxAccelDecel()
+    mc.setVelocityProfile(max_ad, max_ad) # no smoothing
     mc.clearFaultAndEnable() # movement may occur after this point
 
 speed_rpm = 20
 speed_inc = 5
 def updateSpeed():
-    mc.moveWithVelocity(-speed_rpm)
+    global mc
+    mc.moveWithVelocity(speed_rpm)
     
 def holdPosition():
+    global mc
     mc.haltMovement()
     
 if __name__ == "__main__":
+    global mc
     try:
         stationary = False
         open()
         updateSpeed()
         while True:
             print("Press ctrl-C at any time to exit.  This will put the reel in a freewheeling state.")
-            cmd=raw_input('Type h<enter> to pause and hold position,\n  r<enter> to resume,\n f<enter> to go faster,\n  s<enter> to go slower.')
+            cmd=raw_input('Type\n  h<enter> to pause and hold position,\n  r<enter> to resume,\n  f<enter> to go faster,\n  s<enter> to go slower.\n')
             if   cmd.startswith('h'):
                 stationary = True
                 holdPosition()
@@ -54,5 +60,4 @@ if __name__ == "__main__":
         print("Caught ^C; exiting.")
     finally:
         print("Disabling motor control; reel will now spin freely.")
-        mc.disable()
-        mc.close()
+        del mc
