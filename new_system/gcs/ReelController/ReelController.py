@@ -23,7 +23,8 @@ class ReelController:
         
         # Post-gearbox settings
         self._REEL_ACCEL_RPMS        = 100 # Used in the Profile, ramps up   speed at this rate
-        self._REEL_DECEL_RPMS        = 300 # Used in the Profile, ramps down speed at this rate
+        self._REELING_IN_DECEL_RPMS  = 100 # Used in the Profile, ramps down speed at this rate
+        self._REELING_OUT_DECEL_RPMS = None # Decelerate quicker while reeling out to prevent letting the tether off the pulleys.  Set to None here to read it from the motor controller.
         self._REEL_MAX_VEL_RPM       = None #100 # Set as the max RPM - profile velocity will be limited to this value.  Set to None here to compute it based on the motor.
         self._MAX_RPM                = 60 # The highest RPM commanded by the tether speed equations
         self._MIN_RPM                = 6  # The lowest  RPM commanded by the tether speed equations
@@ -65,9 +66,12 @@ class ReelController:
         
         # Configure motor controller
         self._gear_ratio = self._mc.getGearRatioNumerator() / self._mc.getGearRatioDenominator()
+        if self._REELING_OUT_DECEL_RPMS == None:
+            self._REELING_OUT_DECEL_RPMS = self._mc.getMaxAccelDecel()
         if self._REEL_MAX_VEL_RPM == None:
             self._REEL_MAX_VEL_RPM = self.computeMaxTetherSpeedRpm()
         self._mc.setMaxVelocity(self._REEL_MAX_VEL_RPM)
+        
         
         # Initialize tether system
         self.youAreHome()
@@ -134,7 +138,7 @@ class ReelController:
             speed_limit = min(self._MAX_MPS, length_limited_speed)
             mv = 'l'
             dir = "<-"
-            actual_max_mps = self.setMaxTetherSpeedMps(speed_limit)
+            actual_max_mps = self._setMaxTetherSpeedMps(speed_limit, reeling_out=False)
             self._recommandMotorPosition() # Causes the motor controller to move at the new speed
         else: # Stationary OR reeling out
             # Apply tension deadband
@@ -148,7 +152,7 @@ class ReelController:
                 speed_limit = min(self._MAX_MPS, length_limited_speed, tension_limited_speed)
                 mv = 't' if speed_limit == tension_limited_speed else ('l' if speed_limit == length_limited_speed else '-')
                 dir = "->"
-                actual_max_mps = self.setMaxTetherSpeedMps(speed_limit)
+                actual_max_mps = self._setMaxTetherSpeedMps(speed_limit, reeling_out=True)
                 self._recommandMotorPosition() # Causes the motor controller to move at the new speed
         
         status_str = dir[0] + mv + dir[1] + " %3.3fm->%3.3f @%3.8fmps %03.8fN "%(current_length, target_length, actual_max_mps, tension_n)
@@ -176,7 +180,9 @@ class ReelController:
         motor_max_rpm = min(motor_limited_rpm, gearbox_limited_rpm)
         return motor_max_rpm
         
-    def setMaxTetherSpeedMps(self, max_tether_mps):
+    def _setMaxTetherSpeedMps(self, max_tether_mps, reeling_out=True):
+        if reeling_out: decel = self._REELING_OUT_DECEL_RPMS
+        else:           decel = self._REELING_IN_DECEL_RPMS
         # Convert to RPM
         max_tether_rpm = self.reelRpmFromTetherMps(max_tether_mps)
         # Tone it down if necessary 
@@ -184,9 +190,9 @@ class ReelController:
         if max_tether_rpm < 1:
             logging.debug("Cannot set max tether speed to %fRPM because it's <1."%max_tether_rpm)
             return 0
-	else:
+        else:
             self._mc.setPositionProfile(velocity=max_tether_rpm,
-                acceleration=self._REEL_ACCEL_RPMS, deceleration=self._REEL_DECEL_RPMS)
+                acceleration=self._REEL_ACCEL_RPMS, deceleration=decel)
             return self.tetherMpsFromReelRpm(max_tether_rpm)
 
     def getMaxTetherSpeedMps(self):
