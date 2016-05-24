@@ -30,6 +30,7 @@ cdef extern from "EposMotorController.hpp" namespace "gcs":
         long getTargetPosition() except +
         void setMaxVelocity(unsigned int) except + # velocity is in RPM after gearbox. Applies to both position and velocity control.
         double getMaxVelocity() except + # velocity is in RPM after gearbox. Applies to both position and velocity control.
+        double getMaxAccelDecel() except + # in RPM/s after gearbox.  This is the limit that the controller will apply to the acceleration/deceleration of the position profile.
         void setPositionProfile(unsigned int  , unsigned int  , unsigned int  ) except + # velocity/accel/decel is in RPM or RPM/s after gearbox. 
         void getPositionProfile(unsigned int *, unsigned int *, unsigned int *) except + # velocity/accel/decel is in RPM or RPM/s after gearbox. 
         void haltMovement() except +
@@ -100,6 +101,9 @@ cdef class PyMotorController:
     def getMaxVelocity(self):
         """ velocity is in RPM after gearbox. Applies to both position and velocity control. """
         return self._mc.getMaxVelocity()
+    def getMaxAccelDecel(self):
+        """ in RPM/s after gearbox.  This is the limit that the controller will apply to the acceleration/deceleration of the position profile. """
+        return self._mc.getMaxAccelDecel()
     def setPositionProfile(self, unsigned int  velocity, unsigned int  acceleration, unsigned int  deceleration):
         """ velocity/accel/decel is in RPM or RPM/s after gearbox.  """
         return self._mc.setPositionProfile(velocity, acceleration, deceleration)

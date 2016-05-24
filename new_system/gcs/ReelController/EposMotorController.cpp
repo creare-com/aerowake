@@ -225,6 +225,14 @@ namespace gcs {
         { failWithCode("Failed to set maximum velocity", error_code); }
         return velocity;
     }
+    
+    double EposMotorController::getMaxAccelDecel() {
+        unsigned int error_code = 0;
+        unsigned int accel = 0;
+        if(VCS_GetMaxAcceleration(deviceHandle, NODE_ID, &accel, &error_code) == 0)
+        { failWithCode("Failed to set maximum velocity", error_code); }
+        return accel;
+    }
 
     void EposMotorController::setPositionProfile(unsigned int  velocity, unsigned int  acceleration, unsigned int  deceleration) {
         unsigned int error_code = 0;
@@ -258,11 +266,10 @@ namespace gcs {
     ************************************/
 
     void EposMotorController::fail(std::string message, bool disable_motor) {
-        std::cout << message << std::endl;
         if(disable_motor) {
             disable(); // Note that this is likely to throw an exception, so code after this line may not execute.
         }
-        throw std::exception();
+        throw std::runtime_error(message);
     }
 
     void EposMotorController::failWithCode(std::string message, int error_code, bool disable_motor) {

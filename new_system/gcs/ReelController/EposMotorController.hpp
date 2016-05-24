@@ -59,6 +59,7 @@ class EposMotorController {
         long getTargetPosition();
         void setMaxVelocity(unsigned int velocity); // velocity is in RPM after gearbox. Applies to both position and velocity control.
         double getMaxVelocity(); // velocity is in RPM after gearbox. Applies to both position and velocity control.
+        double getMaxAccelDecel(); // in RPM/s after gearbox.  This is the limit that the controller will apply to the acceleration/deceleration of the position profile.
         void setPositionProfile(unsigned int  velocity, unsigned int  acceleration, unsigned int  deceleration); // velocity/accel/decel is in RPM or RPM/s after gearbox. 
         void getPositionProfile(unsigned int *velocity, unsigned int *acceleration, unsigned int *deceleration); // velocity/accel/decel is in RPM or RPM/s after gearbox. 
         void haltMovement();
