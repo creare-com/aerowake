@@ -6,6 +6,7 @@
 #include <Definitions.h> // Comes with Epos_Linux_Library
 #include <iostream>
 #include <string>
+#include <stdexcept>
 #include <sstream>
 namespace gcs {
 
