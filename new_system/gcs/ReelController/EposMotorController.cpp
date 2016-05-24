@@ -6,7 +6,7 @@ namespace gcs {
     const unsigned short EposMotorController::GEAR_RATIO_INDEX = 0x2230;// The Object Index of the Gear Configuration object in EPOS memory
 
     EposMotorController::EposMotorController(std::string port, unsigned int baudRate) :
-        portName(port), baudRate(baudRate), curOpMode(EPOS_OPMODE_UNKNOWN)
+        portName(port), baudRate(baudRate), curOpMode(0)
     {
 
     }
@@ -35,8 +35,8 @@ namespace gcs {
                 if(0 != VCS_SetProtocolStackSettings(deviceHandle, baudRate, actual_timeout, &error_code)) {
                     if(0 != VCS_GetProtocolStackSettings(deviceHandle, &actual_baud_rate, &actual_timeout, &error_code)) {
                         if (actual_baud_rate == baudRate) {
-                            // Right now we only support one operating mode; enter it
-                            setOperatingMode(EPOS_OPMODE_PROFILE_POSITION_MODE);
+                            // Default to a mode
+                            setOperatingMode(OMD_PROFILE_POSITION_MODE);
                         } else {
                             std::stringstream ss;
                             ss << "Tried to set port rate to " << baudRate << " but instead got " << actual_baud_rate << std::endl;
@@ -52,7 +52,7 @@ namespace gcs {
     ************************************/
     void EposMotorController::close() {
         disable(); // turn it off before releasing control
-        setOperatingMode(EPOS_OPMODE_UNKNOWN);
+        
         unsigned int error_code = 0;
         if(VCS_CloseDevice(deviceHandle, &error_code) == 0)
         { failWithCode("Failed to close motor controller", error_code, false); }
@@ -106,17 +106,24 @@ namespace gcs {
     /************************************
                  Configuration
     ************************************/
-    void EposMotorController::setOperatingMode(OperatingMode mode) {
+    void EposMotorController::setOperatingMode(signed char mode) {
         unsigned int error_code = 0;
         switch(mode) {
-            case EPOS_OPMODE_PROFILE_POSITION_MODE:
+            case OMD_PROFILE_POSITION_MODE:
                 if(VCS_ActivateProfilePositionMode(deviceHandle, NODE_ID, &error_code) == 0)
-                { failWithCode("Failed to activate Profile Positioning Mode", error_code); }
+                { failWithCode("Failed to activate Profile Position Mode", error_code); }
                 break;
-            case EPOS_OPMODE_UNKNOWN:
+            case OMD_PROFILE_VELOCITY_MODE:
+                if(VCS_ActivateProfileVelocityMode(deviceHandle, NODE_ID, &error_code) == 0)
+                { failWithCode("Failed to activate Profile Velocity Mode", error_code); }
+                break;
             default:
-                // Handled at the end of this function
+            {
+                std::stringstream ss;
+                ss << "Operating mode " << mode << " not supported.";
+                fail(ss.str());
                 break;
+            }
         }
         
         curOpMode = mode;
@@ -176,11 +183,46 @@ namespace gcs {
     }
 
 
+    void EposMotorController::setMaxVelocity(unsigned int velocity) {
+        unsigned int error_code = 0;
+        if(VCS_SetMaxProfileVelocity(deviceHandle, NODE_ID, velocity, &error_code) == 0)
+        { failWithCode("Failed to set maximum velocity", error_code); }
+    }
+
+    double EposMotorController::getMaxVelocity() {
+        unsigned int error_code = 0;
+        unsigned int velocity = 0;
+        if(VCS_GetMaxProfileVelocity(deviceHandle, NODE_ID, &velocity, &error_code) == 0)
+        { failWithCode("Failed to set maximum velocity", error_code); }
+        return velocity;
+    }
+    
+    double EposMotorController::getMaxAccelDecel() {
+        unsigned int error_code = 0;
+        unsigned int accel = 0;
+        if(VCS_GetMaxAcceleration(deviceHandle, NODE_ID, &accel, &error_code) == 0)
+        { failWithCode("Failed to set maximum velocity", error_code); }
+        return accel;
+    }
+        
+    void EposMotorController::haltMovement() {
+        switch(curOpMode) {
+            case OMD_PROFILE_VELOCITY_MODE:
+                haltVelocityMovement();
+                break;
+            case OMD_PROFILE_POSITION_MODE:
+                // Fallthrough
+            default:
+                haltPositionMovement();
+                break;
+        }
+    }
+
     /************************************
-                 Movement
+         Profile position movement
     ************************************/
     void EposMotorController::moveToPosition(long position) {
-        if(curOpMode == EPOS_OPMODE_PROFILE_POSITION_MODE) {
+        if(curOpMode == OMD_PROFILE_POSITION_MODE) {
             unsigned int error_code = 0;
             if(VCS_MoveToPosition(deviceHandle,
                 NODE_ID, 
@@ -212,28 +254,6 @@ namespace gcs {
         return position;
     }
 
-    void EposMotorController::setMaxVelocity(unsigned int velocity) {
-        unsigned int error_code = 0;
-        if(VCS_SetMaxProfileVelocity(deviceHandle, NODE_ID, velocity, &error_code) == 0)
-        { failWithCode("Failed to set maximum velocity", error_code); }
-    }
-
-    double EposMotorController::getMaxVelocity() {
-        unsigned int error_code = 0;
-        unsigned int velocity = 0;
-        if(VCS_GetMaxProfileVelocity(deviceHandle, NODE_ID, &velocity, &error_code) == 0)
-        { failWithCode("Failed to set maximum velocity", error_code); }
-        return velocity;
-    }
-    
-    double EposMotorController::getMaxAccelDecel() {
-        unsigned int error_code = 0;
-        unsigned int accel = 0;
-        if(VCS_GetMaxAcceleration(deviceHandle, NODE_ID, &accel, &error_code) == 0)
-        { failWithCode("Failed to set maximum velocity", error_code); }
-        return accel;
-    }
-
     void EposMotorController::setPositionProfile(unsigned int  velocity, unsigned int  acceleration, unsigned int  deceleration) {
         unsigned int error_code = 0;
         if(VCS_SetPositionProfile(deviceHandle, NODE_ID, velocity, acceleration, deceleration, &error_code) == 0)
@@ -246,19 +266,43 @@ namespace gcs {
         { failWithCode("Failed to get position profile", error_code); }
     }
 
-    void EposMotorController::haltMovement() {
-        switch(curOpMode) {
-            case EPOS_OPMODE_PROFILE_POSITION_MODE:
-            default:
-                haltPositionMovement();
-                break;
-        }
-    }
-
     void EposMotorController::haltPositionMovement() {
         unsigned int error_code = 0;
         if(VCS_HaltPositionMovement(deviceHandle, NODE_ID, &error_code) == 0)
         { failWithCode("Failed to halt position movement", error_code, false); }
+    }
+
+    /************************************
+         Profile velocity movement
+    ************************************/
+    void EposMotorController::moveWithVelocity(long velocity) {
+        if(curOpMode == OMD_PROFILE_VELOCITY_MODE) {
+            unsigned int error_code = 0;
+            if(VCS_MoveWithVelocity(deviceHandle, NODE_ID, velocity, &error_code) == 0)
+            { failWithCode("Failed to command movement to position", error_code, true); }
+        } else {
+            std::stringstream ss;
+            ss << "Cannot move with a velocity unless in profile velocity mode.  Currently in mode " << curOpMode << ".";
+            fail(ss.str());
+        }
+    }
+    
+    void EposMotorController::setVelocityProfile(unsigned int  acceleration, unsigned int  deceleration) {
+        unsigned int error_code = 0;
+        if(VCS_SetVelocityProfile(deviceHandle, NODE_ID, acceleration, deceleration, &error_code) == 0)
+        { failWithCode("Failed to set velocity profile", error_code); }
+    }
+    
+    void EposMotorController::getVelocityProfile(unsigned int *acceleration, unsigned int *deceleration) {
+        unsigned int error_code = 0;
+        if(VCS_GetVelocityProfile(deviceHandle, NODE_ID, acceleration, deceleration, &error_code) == 0)
+        { failWithCode("Failed to get velocity profile", error_code); }
+    }
+    
+    void EposMotorController::haltVelocityMovement() {
+        unsigned int error_code = 0;
+        if(VCS_HaltVelocityMovement(deviceHandle, NODE_ID, &error_code) == 0)
+        { failWithCode("Failed to halt velocity movement", error_code, false); }
     }
 
     /************************************

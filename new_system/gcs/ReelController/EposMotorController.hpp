@@ -11,24 +11,19 @@
 namespace gcs {
 
 class EposMotorController {
-    public:
-        enum OperatingMode {
-            EPOS_OPMODE_UNKNOWN = 0,
-            EPOS_OPMODE_PROFILE_POSITION_MODE = 1,
-        };
     private:
         std::string portName;
         void * deviceHandle;
         unsigned int baudRate;
-        OperatingMode curOpMode;
+        signed char curOpMode;
 
         std::string lookupError(unsigned int error);
         void enable(); // To avoid confusion, force them to clear the fault too
         void failWithCode(std::string message, int error_code, bool disable_motor = true); // The method called when an error is detected
         void fail(std::string message, bool disable_motor = true); // The method called when an error is detected
         
-        void setOperatingMode(OperatingMode mode);
         void haltPositionMovement(); // Users of this class should call haltMovement() instead
+        void haltVelocityMovement(); // Users of this class should call haltMovement() instead
     public:
         static const unsigned short NODE_ID; // This would matter much more in a CAN network
         static const unsigned short GEAR_RATIO_INDEX;// The Object Index of the Gear Configuration object in EPOS memory
@@ -49,21 +44,29 @@ class EposMotorController {
         bool isFaulted();
         
         // Configuration (throw an exception on failure)
-        void setSensorType(unsigned short type); // Must be one of the "ST_..." constants from Definitions.h
+        void setOperatingMode(signed char mode); // Must be one of the "OPM_..." values from Definitions.h
+        void setSensorType(unsigned short type); // Must be one of the "ST_..."  values from Definitions.h
         void setEncoderSettings(unsigned int pulses_per_turn=1024, bool invert_polarity=false);
         unsigned short getGearRatioNumerator();
         unsigned short getGearRatioDenominator();
-        
-        // Movement (throw an exception on failure)
-        void moveToPosition(long position);
-        int getPosition();
-        long getTargetPosition();
         void setMaxVelocity(unsigned int velocity); // velocity is in RPM after gearbox. Applies to both position and velocity control.
         double getMaxVelocity(); // velocity is in RPM after gearbox. Applies to both position and velocity control.
         double getMaxAccelDecel(); // in RPM/s after gearbox.  This is the limit that the controller will apply to the acceleration/deceleration of the position profile.
+        
+        // General movement (throw an exception on failure)
+        void haltMovement();
+        
+        // Profile position movement (throw an exception on failure)
+        void moveToPosition(long position);
+        int getPosition();
+        long getTargetPosition();
         void setPositionProfile(unsigned int  velocity, unsigned int  acceleration, unsigned int  deceleration); // velocity/accel/decel is in RPM or RPM/s after gearbox. 
         void getPositionProfile(unsigned int *velocity, unsigned int *acceleration, unsigned int *deceleration); // velocity/accel/decel is in RPM or RPM/s after gearbox. 
-        void haltMovement();
+        
+        // Profile velocity movement (throw an exception on failure)
+        void moveWithVelocity(long velocity); // in RPM after gearbox
+        void setVelocityProfile(                        unsigned int  acceleration, unsigned int  deceleration); //          accel/decel is in RPM or RPM/s after gearbox. 
+        void getVelocityProfile(                        unsigned int *acceleration, unsigned int *deceleration); //          accel/decel is in RPM or RPM/s after gearbox. 
     };
 }
 #endif // EPOS_MOTOR_CONTROLLER_H

@@ -3,6 +3,25 @@ from enum import Enum
 from libcpp.string cimport string
 from libcpp cimport bool
 
+cdef extern from "include/Definitions.h":
+    const signed char OMD_PROFILE_POSITION_MODE     
+    const signed char OMD_PROFILE_VELOCITY_MODE     
+    const signed char OMD_HOMING_MODE               
+    const signed char OMD_INTERPOLATED_POSITION_MODE
+    const signed char OMD_POSITION_MODE             
+    const signed char OMD_VELOCITY_MODE             
+    const signed char OMD_CURRENT_MODE              
+    const signed char OMD_MASTER_ENCODER_MODE       
+    const signed char OMD_STEP_DIRECTION_MODE       
+    
+    const unsigned short ST_UNKNOWN                
+    const unsigned short ST_INC_ENCODER_3CHANNEL   
+    const unsigned short ST_INC_ENCODER_2CHANNEL   
+    const unsigned short ST_HALL_SENSORS           
+    const unsigned short ST_SSI_ABS_ENCODER_BINARY 
+    const unsigned short ST_SSI_ABS_ENCODER_GREY   
+
+
 cdef extern from "EposMotorController.hpp" namespace "gcs":
     cdef cppclass EposMotorController:
         EposMotorController(string, unsigned int) except +
@@ -19,32 +38,50 @@ cdef extern from "EposMotorController.hpp" namespace "gcs":
         bool isFaulted() except +
         
         # Configuration (throw an  exception on failure)
-        void setSensorType(int) except + # This int must be a SensorType
+        void setOperatingMode(signed char) except + # Must be one of the "OPM_..." values from Definitions.h
+        void setSensorType(unsigned short) except + # Must be one of the "ST_..."  values from Definitions.h
         void setEncoderSettings(unsigned int, bool) except +
         unsigned short getGearRatioNumerator() except +
         unsigned short getGearRatioDenominator() except +
+        double getMaxVelocity() except + # velocity is in RPM after gearbox. Applies to both position and velocity control.
+        double getMaxAccelDecel() except + # in RPM/s after gearbox.  This is the limit that the controller will apply to the acceleration/deceleration of the position profile.
         
-        # Movement (throw an  exception on failure)
+        # General movement (throw an exception on failure)
+        void haltMovement() except +
+        
+        # Profile position movement (throw an  exception on failure)
         void moveToPosition(long) except +
         int getPosition() except +
         long getTargetPosition() except +
         void setMaxVelocity(unsigned int) except + # velocity is in RPM after gearbox. Applies to both position and velocity control.
-        double getMaxVelocity() except + # velocity is in RPM after gearbox. Applies to both position and velocity control.
-        double getMaxAccelDecel() except + # in RPM/s after gearbox.  This is the limit that the controller will apply to the acceleration/deceleration of the position profile.
         void setPositionProfile(unsigned int  , unsigned int  , unsigned int  ) except + # velocity/accel/decel is in RPM or RPM/s after gearbox. 
         void getPositionProfile(unsigned int *, unsigned int *, unsigned int *) except + # velocity/accel/decel is in RPM or RPM/s after gearbox. 
-        void haltMovement() except +
         
-class SensorType(Enum): # Copied from Definitions.h
-    ST_UNKNOWN                       = 0
-    ST_INC_ENCODER_3CHANNEL          = 1
-    ST_INC_ENCODER_2CHANNEL          = 2
-    ST_HALL_SENSORS                  = 3
-    ST_SSI_ABS_ENCODER_BINARY        = 4
-    ST_SSI_ABS_ENCODER_GREY          = 5
+        # Profile velocity movement (throw an  exception on failure)
+        void moveWithVelocity(long) except + # in RPM after gearbox
+        void setVelocityProfile(                unsigned int  , unsigned int  ) except + # accel/decel is in RPM/s after gearbox. 
+        void getVelocityProfile(                unsigned int *, unsigned int *) except + # accel/decel is in RPM/s after gearbox. 
+
+class SensorType(Enum):
+    UNKNOWN                = ST_UNKNOWN               
+    INC_ENCODER_3CHANNEL   = ST_INC_ENCODER_3CHANNEL  
+    INC_ENCODER_2CHANNEL   = ST_INC_ENCODER_2CHANNEL  
+    HALL_SENSORS           = ST_HALL_SENSORS          
+    SSI_ABS_ENCODER_BINARY = ST_SSI_ABS_ENCODER_BINARY
+    SSI_ABS_ENCODER_GREY   = ST_SSI_ABS_ENCODER_GREY  
+    
+class OperatingMode(Enum):
+    PROFILE_POSITION       = OMD_PROFILE_POSITION_MODE      
+    PROFILE_VELOCITY       = OMD_PROFILE_VELOCITY_MODE      
+    HOMING                 = OMD_HOMING_MODE                
+    INTERPOLATED_POSITION  = OMD_INTERPOLATED_POSITION_MODE 
+    POSITION               = OMD_POSITION_MODE              
+    VELOCITY               = OMD_VELOCITY_MODE              
+    CURRENT                = OMD_CURRENT_MODE               
+    MASTER_ENCODER         = OMD_MASTER_ENCODER_MODE        
+    STEP_DIRECTION         = OMD_STEP_DIRECTION_MODE        
     
 cdef class PyMotorController:
-
     cdef EposMotorController *_mc
     def __cinit__(self, string usb_port = "USB0", unsigned int baudRate=1000000):
         self._mc = new EposMotorController(usb_port, baudRate)
@@ -73,9 +110,13 @@ cdef class PyMotorController:
         return self._mc.isFaulted() 
         
     # Configuration (throw an  exception on failure)
+    def setOperatingMode(self, om):
+        if not isinstance(om, OperatingMode):
+            raise Exception("Operating mode must be an instance of OperatingMode")
+        return self._mc.setOperatingMode(om)
     def setSensorType(self, st):
         if not isinstance(st, SensorType):
-            raise Exception("st must be an instance of SensorType")
+            raise Exception("Sensor type must be an instance of SensorType")
         return self._mc.setSensorType(st)
     def setEncoderSettings(self, unsigned int pulses_per_turn=1024, bool invert_polarity=False):
         return self._mc.setEncoderSettings(pulses_per_turn, invert_polarity) 
@@ -83,8 +124,18 @@ cdef class PyMotorController:
         return self._mc.getGearRatioNumerator()
     def getGearRatioDenominator(self):
         return self._mc.getGearRatioDenominator() 
+    def getMaxAccelDecel(self):
+        """ in RPM/s after gearbox.  This is the limit that the controller will apply to the acceleration/deceleration of the position profile. """
+        return self._mc.getMaxAccelDecel()
+    def getMaxVelocity(self):
+        """ velocity is in RPM after gearbox. Applies to both position and velocity control. """
+        return self._mc.getMaxVelocity()
         
-    # Movement (throw an  exception on failure)
+    # General movement (throw an  exception on failure)
+    def haltMovement(self):
+        return self._mc.haltMovement() 
+
+    # Movement functions in Profile Position Mode
     def moveToPosition(self, long position):
         return self._mc.moveToPosition(position) 
     def getPosition(self):
@@ -98,12 +149,6 @@ cdef class PyMotorController:
         The position profile's velocity will not be raised when this value is raised.
         """
         return self._mc.setMaxVelocity(velocity)
-    def getMaxVelocity(self):
-        """ velocity is in RPM after gearbox. Applies to both position and velocity control. """
-        return self._mc.getMaxVelocity()
-    def getMaxAccelDecel(self):
-        """ in RPM/s after gearbox.  This is the limit that the controller will apply to the acceleration/deceleration of the position profile. """
-        return self._mc.getMaxAccelDecel()
     def setPositionProfile(self, unsigned int  velocity, unsigned int  acceleration, unsigned int  deceleration):
         """ velocity/accel/decel is in RPM or RPM/s after gearbox.  """
         return self._mc.setPositionProfile(velocity, acceleration, deceleration)
@@ -114,6 +159,16 @@ cdef class PyMotorController:
         cdef unsigned int deceleration
         self._mc.getPositionProfile(&velocity, &acceleration, &deceleration)
         return {'velocity':velocity, 'acceleration':acceleration, 'deceleration':deceleration}
-    def haltMovement(self):
-        return self._mc.haltMovement() 
 
+    # Movement functions in Profile Velocity Mode
+    def moveWithVelocity(self, long velocity):
+        return self._mc.moveWithVelocity(velocity) 
+    def setVelocityProfile(self, unsigned int  acceleration, unsigned int  deceleration):
+        """ accel/decel is in RPM/s after gearbox """
+        return self._mc.setVelocityProfile(acceleration, deceleration)
+    def getVelocityProfile(self):
+        """ (accel,decel) is in RPM/s after gearbox """
+        cdef unsigned int acceleration
+        cdef unsigned int deceleration
+        self._mc.getVelocityProfile(&acceleration, &deceleration)
+        return {'acceleration':acceleration, 'deceleration':deceleration}
