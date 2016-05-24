@@ -113,14 +113,16 @@ cdef class PyMotorController:
         return self._mc.isFaulted() 
         
     # Configuration (throw an  exception on failure)
-    def setOperatingMode(self, om):
-        if not om in OperatingMode.keys():
-            raise Exception("Operating mode must be a key of PyMotorController.OperatingMode; got '" + om + "' instead.")
-        return self._mc.setOperatingMode(om)
-    def setSensorType(self, st):
-        if not st in SensorType.keys():
-            raise Exception("Operating mode must be a key of PyMotorController.SensorType; got '" + st + "' instead.")
-        return self._mc.setSensorType(st)
+    def setOperatingMode(self, string om):
+        try:
+            return self._mc.setOperatingMode(OperatingMode[om])
+        except KeyError:
+            raise Exception("Operating Mode must be one of: " + str(OperatingMode.keys()))
+    def setSensorType(self, string st):
+        try:
+            return self._mc.setSensorType(SensorType[st])
+        except KeyError:
+            raise Exception("Sensor Type must be one of: " + str(SensorType.keys()))
     def setEncoderSettings(self, unsigned int pulses_per_turn=1024, bool invert_polarity=False):
         return self._mc.setEncoderSettings(pulses_per_turn, invert_polarity) 
     def getGearRatioNumerator(self):
