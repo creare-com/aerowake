@@ -35,7 +35,7 @@ class reel_run (Process):
                 L = cmd['L']
                 self._rc.setTetherLengthM(L)
             elif cmd['cmd'] == 'rehome':
-                del self._rc.youAreHome()
+                self._rc.youAreHome()
             elif cmd['cmd'] == 'halt':
                 self._rc.stopMoving()
             elif cmd['cmd'] == 'exit':
