@@ -29,10 +29,11 @@ from controller.pose_control import pose_controller_class
 
  #!# Setting up connection path for the Autopilots. 
  #!# For SITL testing, use the following. The UAV is located on Port 14552 and GCS 14554
-autopilot_connect_path = '127.0.0.1:14552'
-gcs_connect_path = '127.0.0.1:14554'
-uav_baud = 115200
-gcs_baud = 115200
+
+#autopilot_connect_path = '127.0.0.1:14552'
+#gcs_connect_path = '127.0.0.1:14554'
+#uav_baud = 115200
+#gcs_baud = 115200
 
 
  #!# For Hardware operation, use the following. These baud rates must match those
@@ -40,10 +41,10 @@ gcs_baud = 115200
  #!# the telemetry radio should be set up for 57600. Uncomment the following lines:
 
 #autopilot_connect_path = '/dev/ttyAMA0'
-#autopilot_connect_path = '/dev/ttyS0' #USe for RaspPi3
-#uav_baud = 115200
-#gcs_connect_path = '/dev/ttyUSB0'
-#gcs_baud = 57600
+autopilot_connect_path = '/dev/ttyS0' #USe for RaspPi3
+uav_baud = 115200
+gcs_connect_path = '/dev/ttyUSB0'
+gcs_baud = 57600
 
 
 #####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -151,6 +152,8 @@ logging.info("Autopilot connected!")
 if(autopilot.parameters['ARMING_CHECK'] != 1):
     logging.warning("Autopilot reports arming checks are not standard!")
 
+print "AUTOPILOT PIXHAWK IS CONNECTED!!!!"
+
 #### GCS Connection ####
 logging.info("Waiting for GCS")
 while True:
@@ -165,6 +168,7 @@ while True:
 logging.info("GCS Connected")
 
 
+print "GCS PIXHAWK IS CONNECTED!!!!!!!"
 
 #### System Time Setup ####
 human_time=0
@@ -179,7 +183,6 @@ def autopilot_time_callback(self, attr_name, msg):
         human_time = datetime.datetime.fromtimestamp(autopilot_start_time).strftime('%Y-%m-%d %H:%M:%S')
         logging.info("Got GPS lock at %s" % human_time)
         rasp_start_time = time.clock()
-
 
 
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Pixhawk Callback/Logging System !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -356,7 +359,7 @@ while True:
     curr_time = datetime.datetime.now()
     delta = (curr_time-prev_time).total_seconds()
     if delta>2:
-        read_mission()
+#UNDO THIS###        read_mission()
         prev_time=curr_time
         #print "tried to read mission"
 
@@ -372,7 +375,15 @@ while True:
  #!# ###### CONTROLLER MANAGEMENT
  #!#  This set will only allow the control system to have control when both pixhawks are armed, and the UAV pixhawk is in GUIDED mode. 
  #!#  If the operator needs to recover the vehicle, he should change to ALTHOLD mode, and he will have full control of the vehicle. 
-    if autopilot.mode.name=='GUIDED' and autopilot.armed and gcs.armed:
+
+    print autopilot.mode.name
+    print autopilot.armed
+    print gcs.mode.name
+    print gcs.armed
+
+    #if autopilot.mode.name=='GUIDED' and autopilot.armed and gcs.armed:
+    if True:
+	pose_controller.goal_mode=G_AUTO
 
         if pose_controller.goal_mode ==G_AUTO:
             output = pose_controller.run_sph_pose_controller()

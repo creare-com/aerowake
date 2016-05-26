@@ -51,44 +51,46 @@ print("-------------------- UAV NODE 0 ------------------")
 
 
 #### Autopilot Connection ####
-logging.info("Waiting for Autopilot")
+print("Waiting for Autopilot")
 while True:
     try:
         #Note: connecting another GCS might mess up stream rates. Start mavproxy with --streamrate=-1 to leave stream params alone.
         autopilot = connect(autopilot_connect_path,baud=uav_baud, heartbeat_timeout=60, rate=20, wait_ready=True)
         break
     except OSError:
-        logging.critical("Cannot find device, is the Autopilot plugged in? Retrying...")
+        print("Cannot find device, is the Autopilot plugged in? Retrying...")
         time.sleep(5)
     except APIException:
-        logging.critical("Autopilot connection timed out. Retrying...")
-logging.info("Autopilot connected!")
+        print("Autopilot connection timed out. Retrying...")
+print("Autopilot connected!")
 
 if(autopilot.parameters['ARMING_CHECK'] != 1):
     logging.warning("Autopilot reports arming checks are not standard!")
 
+print "GOT CONNECTION WITH PIXHAWK ON UAV"
+
 #### GCS Connection ####
-logging.info("Waiting for GCS")
+print("Waiting for GCS")
 while True:
     try:
         gcs = connect(gcs_connect_path,baud=gcs_baud,heartbeat_timeout=60, rate=20, wait_ready=True)
         break
     except OSError:
-        logging.critical("Cannot find device, is the GCS connected? Retrying...")
+        print("Cannot find device, is the GCS connected? Retrying...")
         time.sleep(5)
     except APIException:
-        logging.critical("GCS connection timed out. Retrying...")
-logging.info("GCS Connected")
+        print("GCS connection timed out. Retrying...")
+print("GCS Connected")
 
-
+print "BOTH DEVICES CONNECTED"
 
 
 while True:
     time.sleep(.1)
 
     print "============="
-    print autopilot.attitude
-    print gcs.attitude
+    print autopilot.location.global_relative_frame
+    print gcs.location.global_relative_frame
 
 
 
