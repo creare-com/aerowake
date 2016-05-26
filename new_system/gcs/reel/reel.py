@@ -4,44 +4,59 @@ import datetime
 from multiprocessing import Process, Queue
 from Queue import Empty
 import time
-
-import numpy as np
-from reel_main import reel_main
+import ReelController
 
 SKIP_CYCLES=10 #only send the position every 10 cycles
 
 class reel_run (Process):
     def __init__(self, cmd, data_out):
         Process.__init__(self)
-        self.cmd = cmd
-        self.data_out = data_out
-        self.dt_des =1/200.0
-        self.reel = reel_main(self.dt_des)
-        self.cycles = 0
+        self._cmd = cmd
+        self._data_out = data_out
+        self._dt_des =1/200.0
+        self._cycles = 0
+        self._rc = ReelController.ReelController()
 
     def run(self):
 
         while True:
             #check if any new cmds
             try:
-                self.cmd.get(False)
+                cmd = self._cmd.get(False)
             except Empty:
-                pass
+                cmd = None
 
+            # We expect cmd to be one of the following:
+            # {"cmd":"goto", "L":<length in meters, an int}
+            # {"cmd":"halt"}    # holds the reel where it is
+            # {"cmd":"disable"} # lets the reel freewheel
+            # {"cmd":"rehome"}  # consider the current tether length to be 0m
+            if cmd['cmd'] == 'goto':
+                L = cmd['L']
+                self._rc.setTetherLengthM(L)
+            elif cmd['cmd'] == 'rehome':
+                del self._rc.youAreHome()
+            elif cmd['cmd'] == 'halt':
+                self._rc.stopMoving()
+            elif cmd['cmd'] == 'disable':
+                del self._rc
+            
             t_0 = datetime.datetime.now()
 
-            #run the airprobe and push the data to the queue if its been so many skip cycles. 
-            if(self.cycles >= SKIP_CYCLES):
-                self.data_out.put(self.reel.run())
-                self.cycles = 0
+            # Push tether status back if we've skipped the appropriate number of cycles
+            self._rc.update()
+            if(self._cycles >= SKIP_CYCLES):
+                L = self._rc.getTetherLengthM()
+                T = self._rc.getTetherTensionN()
+                data_out.put({"L": L, "T": T})
+                self._cycles = 0
             else:
-                self.reel.run()
-                self.cycles = self.cycles + 1
+                self._cycles += 1
 
             #Sleep for desired amount of time
             t_1 = datetime.datetime.now()
             dt = (t_1-t_0).total_seconds()
-            sleep_time = self.dt_des-dt
+            sleep_time = self._dt_des-dt
             if sleep_time<0:
                 sleep_time = 0
             time.sleep(sleep_time)
