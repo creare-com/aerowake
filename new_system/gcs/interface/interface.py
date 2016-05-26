@@ -80,11 +80,11 @@ class interface_run (Process):
         l1.config(text=curr)
         l1.after(1,self.update_curr)
 
-        b4 = Button(frame, text="Advance Target", command=self.callback_adv)
+        b4 = Button(self.frame, text="Advance Target", command=self.callback_adv)
         b4.pack(fill=X)
 
 
-        b5 = Button(frame, text="Update", command=self.update_curr)
+        b5 = Button(self.frame, text="Update", command=self.update_curr)
         b5.pack(fill=X)
 
         root.mainloop()
