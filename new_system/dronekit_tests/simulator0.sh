@@ -4,7 +4,7 @@
 
 cd ../../../ardupilot/ArduCopter/
 
-sim_vehicle.sh -j4 -I 1 --map --console --out 127.0.0.1:14552
+bash sim_vehicle.sh -j4 -I 1 --map --console --out 127.0.0.1:14552
 
 # FOLLOW THE ARDUPILOT SITL INSTRUCTIONS TO SET UP
 
