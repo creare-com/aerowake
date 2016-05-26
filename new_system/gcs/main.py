@@ -16,7 +16,7 @@ from multiprocessing import Queue
 from Queue import Empty
 
 from dronekit import APIException, VehicleMode, connect, mavutil, Command
-#from reel.reel_main import reel_run
+from reel.reel import reel_run
 from interface.interface import interface_run
 
 
@@ -104,16 +104,16 @@ except Exception:
 ui.start()
 
 
-# #### Start Reel Controller ####
-# commands_to_reel = Queue()
-# data_from_reel = Queue()
-# try:
-#     reel = reel_controller(commands_to_airprobe, data_from_airprobe)
-# except Exception:
-#     logging.critical('Problem connection to reel. Aborting.')
-#     setup_abort("Reel System Failure")
-#     #sys.exit(1)
-# reel.start()
+#### Start Reel Controller ####
+commands_to_reel = Queue()
+data_from_reel = Queue()
+try:
+    reel = reel_run(commands_to_airprobe, data_from_airprobe)
+except Exception:
+    logging.critical('Problem connection to reel. Aborting.')
+    setup_abort("Reel System Failure")
+    #sys.exit(1)
+reel.start()
 
 
 ####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Pixhawk System Setup !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -304,10 +304,11 @@ while True:
     time.sleep(.2)
     print "Run"
     #Get Reel Info:
-    # try:
-    #     reel_reading = data_from_airprobe.get(False)
-    # except Empty:
-    #     pass
+    try:
+         # Expected to return {"L": <length in meters, as double>, "T": <tension in newtons, as double>}
+         reel_reading = data_from_reel.get(False)
+    except Empty:
+        pass
 
     # # Determine flight mode and waypoints for the vehicle
 
