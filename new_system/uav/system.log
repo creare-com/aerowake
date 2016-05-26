@@ -1804,3 +1804,367 @@
 3251.74999237,INFO: ------------------SYSTEM IS READY!!------------------
 3251.95288658,INFO: -----------------------------------------------------
 3273.56100082,INFO: Got GPS lock at 2016-05-19 22:10:19
+1016.3500309,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+1017.53592491,INFO: -------------------- UAV NODE --------------------
+1018.12887192,INFO: Waiting for Autopilot
+12863.3868694,INFO: Autopilot connected!
+12864.825964,INFO: Waiting for GCS
+45752.2089481,CRITICAL: GCS connection timed out. Retrying...
+453.372955322,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+453.954935074,INFO: -------------------- UAV NODE --------------------
+454.313993454,INFO: Waiting for Autopilot
+12786.3459587,INFO: Autopilot connected!
+12787.5180244,INFO: Waiting for GCS
+41367.7430153,INFO: GCS Connected
+41368.9088821,INFO: ------------------SYSTEM IS READY!!------------------
+41369.4138527,INFO: -----------------------------------------------------
+45814.0649796,CRITICAL: Pixhawk connection lost!
+45881.829977,INFO: Pixhawk connection restored.
+61894.1009045,CRITICAL: Pixhawk connection lost!
+65242.7489758,INFO: Pixhawk connection restored.
+75508.4369183,CRITICAL: Pixhawk connection lost!
+80741.0318851,INFO: Pixhawk connection restored.
+457.498073578,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+458.101034164,INFO: -------------------- UAV NODE --------------------
+458.470106125,INFO: Waiting for Autopilot
+13195.3861713,INFO: Autopilot connected!
+13196.5370178,INFO: Waiting for GCS
+40484.7819805,INFO: GCS Connected
+40486.0961437,INFO: ------------------SYSTEM IS READY!!------------------
+40486.8130684,INFO: -----------------------------------------------------
+41070.3001022,CRITICAL: Pixhawk connection lost!
+47447.466135,INFO: Pixhawk connection restored.
+50411.4379883,CRITICAL: Pixhawk connection lost!
+53357.2831154,INFO: Pixhawk connection restored.
+56334.2730999,CRITICAL: Pixhawk connection lost!
+56659.6271992,INFO: Pixhawk connection restored.
+59648.9620209,CRITICAL: Pixhawk connection lost!
+61144.0751553,INFO: Pixhawk connection restored.
+71751.8920898,CRITICAL: Pixhawk connection lost!
+77399.4131088,INFO: Pixhawk connection restored.
+83096.3480473,CRITICAL: Pixhawk connection lost!
+83268.127203,INFO: Pixhawk connection restored.
+86228.8742065,CRITICAL: Pixhawk connection lost!
+87737.9670143,INFO: Pixhawk connection restored.
+90702.7740479,CRITICAL: Pixhawk connection lost!
+91166.093111,INFO: Pixhawk connection restored.
+94154.1161537,CRITICAL: Pixhawk connection lost!
+451.519012451,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+452.11315155,INFO: -------------------- UAV NODE --------------------
+452.471971512,INFO: Waiting for Autopilot
+5771.86512947,INFO: Autopilot connected!
+5772.62997627,INFO: Waiting for GCS
+32052.5379181,INFO: GCS Connected
+32054.4469357,INFO: ------------------SYSTEM IS READY!!------------------
+32056.5929413,INFO: -----------------------------------------------------
+456.75778389,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+457.374811172,INFO: -------------------- UAV NODE --------------------
+457.731962204,INFO: Waiting for Autopilot
+12195.8539486,INFO: Autopilot connected!
+12201.1139393,INFO: Waiting for GCS
+38399.8258114,INFO: GCS Connected
+38400.6018639,INFO: ------------------SYSTEM IS READY!!------------------
+38401.0329247,INFO: -----------------------------------------------------
+453.13501358,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+453.722953796,INFO: -------------------- UAV NODE --------------------
+454.094171524,INFO: Waiting for Autopilot
+12792.2251225,INFO: Autopilot connected!
+12798.304081,INFO: Waiting for GCS
+41696.5589523,INFO: GCS Connected
+41699.8140812,INFO: ------------------SYSTEM IS READY!!------------------
+41701.1070251,INFO: -----------------------------------------------------
+81236.344099,INFO: Autopilot mode changed to ALT_HOLD
+83239.3860817,INFO: Autopilot mode changed to STABILIZE
+116031.939983,INFO: Autopilot mode changed to GUIDED
+219393.498182,INFO: Autopilot mode changed to ALT_HOLD
+222596.184015,INFO: Autopilot mode changed to STABILIZE
+229835.719109,INFO: Vehicle is now armed 
+230529.406071,INFO: Vehicle is now disarmed 
+231568.717003,INFO: Vehicle is now armed 
+231584.385157,INFO: Vehicle is now disarmed 
+232512.27808,INFO: Vehicle is now armed 
+232527.619123,INFO: Vehicle is now disarmed 
+233772.972107,INFO: Vehicle is now armed 
+233809.831142,INFO: Vehicle is now disarmed 
+234699.541092,INFO: Vehicle is now armed 
+235608.678102,INFO: Vehicle is now disarmed 
+236638.327122,INFO: Vehicle is now armed 
+236759.790182,INFO: Vehicle is now disarmed 
+237740.858078,INFO: Vehicle is now armed 
+238916.088104,INFO: Vehicle is now disarmed 
+239795.962095,INFO: Vehicle is now armed 
+239918.437004,INFO: Vehicle is now disarmed 
+240895.081997,INFO: Vehicle is now armed 
+240913.414955,INFO: Vehicle is now disarmed 
+241582.931042,INFO: Vehicle is now armed 
+241702.896118,INFO: Vehicle is now disarmed 
+243430.974007,INFO: Vehicle is now armed 
+243500.102043,INFO: Vehicle is now disarmed 
+244530.127048,INFO: Vehicle is now armed 
+244547.223091,INFO: Vehicle is now disarmed 
+245474.275112,INFO: Vehicle is now armed 
+245542.096138,INFO: Vehicle is now disarmed 
+246521.605015,INFO: Vehicle is now armed 
+247533.113956,INFO: Vehicle is now disarmed 
+248464.174986,INFO: Vehicle is now armed 
+248530.60317,INFO: Vehicle is now disarmed 
+249428.40004,INFO: Vehicle is now armed 
+451.351881027,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+451.93195343,INFO: -------------------- UAV NODE --------------------
+452.287912369,INFO: Waiting for Autopilot
+12592.6539898,INFO: Autopilot connected!
+12596.531868,WARNING: Autopilot reports arming checks are not standard!
+12603.0440331,INFO: Waiting for GCS
+41097.1670151,INFO: GCS Connected
+41098.4539986,INFO: ------------------SYSTEM IS READY!!------------------
+41098.9618301,INFO: -----------------------------------------------------
+173065.903902,CRITICAL: Pixhawk connection lost!
+173130.831957,INFO: Pixhawk connection restored.
+459.963083267,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+460.544109344,INFO: -------------------- UAV NODE --------------------
+460.906982422,INFO: Waiting for Autopilot
+12493.8230515,INFO: Autopilot connected!
+12494.5170879,WARNING: Autopilot reports arming checks are not standard!
+12495.2011108,INFO: Waiting for GCS
+39380.9001446,INFO: GCS Connected
+39381.6921711,INFO: ------------------SYSTEM IS READY!!------------------
+39382.0869923,INFO: -----------------------------------------------------
+47072.0231533,INFO: Autopilot mode changed to STABILIZE
+48191.8151379,INFO: Vehicle is now armed 
+60010.997057,INFO: Autopilot mode changed to ALT_HOLD
+453.014850616,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+453.588962555,INFO: -------------------- UAV NODE --------------------
+453.943967819,INFO: Waiting for Autopilot
+12384.6700191,INFO: Autopilot connected!
+12385.35285,WARNING: Autopilot reports arming checks are not standard!
+12385.7450485,INFO: Waiting for GCS
+452.438116074,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+453.022956848,INFO: -------------------- UAV NODE --------------------
+453.381061554,INFO: Waiting for Autopilot
+12787.2600555,INFO: Autopilot connected!
+12788.6781693,WARNING: Autopilot reports arming checks are not standard!
+12789.3300056,INFO: Waiting for GCS
+37380.17416,INFO: GCS Connected
+37380.9201717,INFO: ------------------SYSTEM IS READY!!------------------
+37381.7369938,INFO: -----------------------------------------------------
+42124.7420311,INFO: Autopilot mode changed to ALT_HOLD
+60221.5530872,INFO: Autopilot mode changed to STABILIZE
+465.871095657,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+466.451883316,INFO: -------------------- UAV NODE --------------------
+466.81189537,INFO: Waiting for Autopilot
+12698.9490986,INFO: Autopilot connected!
+12700.3190517,WARNING: Autopilot reports arming checks are not standard!
+12705.6379318,INFO: Waiting for GCS
+45526.2401104,CRITICAL: GCS connection timed out. Retrying...
+452.250003815,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+452.835083008,INFO: -------------------- UAV NODE --------------------
+453.194141388,INFO: Waiting for Autopilot
+12185.7771873,INFO: Autopilot connected!
+12186.8600845,WARNING: Autopilot reports arming checks are not standard!
+12187.5650883,INFO: Waiting for GCS
+35666.5420532,INFO: GCS Connected
+35667.288065,INFO: ------------------SYSTEM IS READY!!------------------
+35667.5930023,INFO: -----------------------------------------------------
+38959.5870972,CRITICAL: Pixhawk connection lost!
+42019.4940567,INFO: Pixhawk connection restored.
+47912.7631187,CRITICAL: Pixhawk connection lost!
+56150.0291824,INFO: Pixhawk connection restored.
+56568.7601566,CRITICAL: Pixhawk connection lost!
+63642.7080631,INFO: Pixhawk connection restored.
+66346.7390537,CRITICAL: Pixhawk connection lost!
+1007.82704353,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+1009.10305977,INFO: -------------------- UAV NODE --------------------
+1009.53817368,INFO: Waiting for Autopilot
+13357.1901321,INFO: Autopilot connected!
+13358.2291603,WARNING: Autopilot reports arming checks are not standard!
+13361.0579967,INFO: Waiting for GCS
+44273.3380795,CRITICAL: GCS connection timed out. Retrying...
+75971.9760418,CRITICAL: GCS connection timed out. Retrying...
+108787.096024,CRITICAL: GCS connection timed out. Retrying...
+152983.947039,CRITICAL: GCS connection timed out. Retrying...
+468.002080917,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+468.62912178,INFO: -------------------- UAV NODE --------------------
+469.008922577,INFO: Waiting for Autopilot
+13015.8541203,INFO: Autopilot connected!
+13017.0550346,WARNING: Autopilot reports arming checks are not standard!
+13017.788887,INFO: Waiting for GCS
+47121.0339069,CRITICAL: GCS connection timed out. Retrying...
+458.024024963,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+458.608865738,INFO: -------------------- UAV NODE --------------------
+458.980798721,INFO: Waiting for Autopilot
+12591.9508934,INFO: Autopilot connected!
+12593.0318832,WARNING: Autopilot reports arming checks are not standard!
+12593.7378407,INFO: Waiting for GCS
+46091.16292,CRITICAL: GCS connection timed out. Retrying...
+83194.0169334,CRITICAL: GCS connection timed out. Retrying...
+457.73100853,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+458.336114883,INFO: -------------------- UAV NODE --------------------
+458.703041077,INFO: Waiting for Autopilot
+12798.2501984,INFO: Autopilot connected!
+12798.9470959,WARNING: Autopilot reports arming checks are not standard!
+12804.1071892,INFO: Waiting for GCS
+459.468841553,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+460.071802139,INFO: -------------------- UAV NODE --------------------
+460.433959961,INFO: Waiting for Autopilot
+12793.7018871,INFO: Autopilot connected!
+12794.7809696,WARNING: Autopilot reports arming checks are not standard!
+12795.5799103,INFO: Waiting for GCS
+45787.5938416,CRITICAL: GCS connection timed out. Retrying...
+456.871986389,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+457.473993301,INFO: -------------------- UAV NODE --------------------
+457.844018936,INFO: Waiting for Autopilot
+12289.7930145,INFO: Autopilot connected!
+12290.886879,WARNING: Autopilot reports arming checks are not standard!
+12294.1989899,INFO: Waiting for GCS
+47227.6208401,CRITICAL: GCS connection timed out. Retrying...
+456.947088242,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+457.548141479,INFO: -------------------- UAV NODE --------------------
+457.915067673,INFO: Waiting for Autopilot
+12291.301012,INFO: Autopilot connected!
+12292.4630642,WARNING: Autopilot reports arming checks are not standard!
+12300.5411625,INFO: Waiting for GCS
+47421.3080406,CRITICAL: GCS connection timed out. Retrying...
+504.592895508,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+505.257844925,INFO: -------------------- UAV NODE --------------------
+505.624055862,INFO: Waiting for Autopilot
+12436.6998672,INFO: Autopilot connected!
+12440.3839111,WARNING: Autopilot reports arming checks are not standard!
+12445.1239109,INFO: Waiting for GCS
+39745.5379963,INFO: GCS Connected
+39746.3040352,INFO: ------------------SYSTEM IS READY!!------------------
+39746.6750145,INFO: -----------------------------------------------------
+39753.939867,INFO: Got GPS lock at 2014-04-06 00:37:48
+65131.6008568,CRITICAL: Pixhawk connection lost!
+65980.2918434,INFO: Pixhawk connection restored.
+69917.1559811,CRITICAL: Pixhawk connection lost!
+70171.6258526,INFO: Pixhawk connection restored.
+73285.4349613,CRITICAL: Pixhawk connection lost!
+73404.2749405,INFO: Pixhawk connection restored.
+77702.2650242,CRITICAL: Pixhawk connection lost!
+78321.5310574,INFO: Pixhawk connection restored.
+81219.8998928,CRITICAL: Pixhawk connection lost!
+83596.3740349,INFO: Pixhawk connection restored.
+89503.5009384,CRITICAL: Pixhawk connection lost!
+91179.6269417,INFO: Pixhawk connection restored.
+97099.9319553,CRITICAL: Pixhawk connection lost!
+98514.8818493,INFO: Pixhawk connection restored.
+101474.76387,CRITICAL: Pixhawk connection lost!
+102363.389969,INFO: Pixhawk connection restored.
+105609.385014,CRITICAL: Pixhawk connection lost!
+106583.323002,INFO: Pixhawk connection restored.
+109543.715954,CRITICAL: Pixhawk connection lost!
+111893.322945,INFO: Pixhawk connection restored.
+114812.717915,CRITICAL: Pixhawk connection lost!
+114933.487892,INFO: Pixhawk connection restored.
+119543.717861,CRITICAL: Pixhawk connection lost!
+124121.615887,INFO: Pixhawk connection restored.
+127245.923042,CRITICAL: Pixhawk connection lost!
+1004.16207314,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+1005.52105904,INFO: -------------------- UAV NODE --------------------
+1006.02293015,INFO: Waiting for Autopilot
+12660.3839397,INFO: Autopilot connected!
+12661.8609428,WARNING: Autopilot reports arming checks are not standard!
+12663.0830765,INFO: Waiting for GCS
+41971.7459679,INFO: GCS Connected
+41972.4831581,INFO: ------------------SYSTEM IS READY!!------------------
+41972.7971554,INFO: -----------------------------------------------------
+42019.4981098,INFO: Got GPS lock at 2016-05-26 18:49:24
+1005.46693802,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+1006.73389435,INFO: -------------------- UAV NODE --------------------
+1007.11989403,INFO: Waiting for Autopilot
+12659.1989994,INFO: Autopilot connected!
+12660.3448391,WARNING: Autopilot reports arming checks are not standard!
+12661.0689163,INFO: Waiting for GCS
+38663.2080078,INFO: GCS Connected
+38664.4618511,INFO: ------------------SYSTEM IS READY!!------------------
+38665.0938988,INFO: -----------------------------------------------------
+39164.0069485,INFO: Got GPS lock at 2016-05-26 19:12:46
+43536.7748737,CRITICAL: Pixhawk connection lost!
+65246.5529442,INFO: Pixhawk connection restored.
+67516.3249969,CRITICAL: Pixhawk connection lost!
+71591.9859409,INFO: Pixhawk connection restored.
+75632.8599453,CRITICAL: Pixhawk connection lost!
+79635.7879639,INFO: Pixhawk connection restored.
+82343.5528278,CRITICAL: Pixhawk connection lost!
+107351.927042,INFO: Pixhawk connection restored.
+109198.438883,CRITICAL: Pixhawk connection lost!
+465.739011765,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+466.985940933,INFO: -------------------- UAV NODE --------------------
+467.42606163,INFO: Waiting for Autopilot
+12813.2460117,INFO: Autopilot connected!
+12815.0749207,WARNING: Autopilot reports arming checks are not standard!
+12819.1289902,INFO: Waiting for GCS
+46326.3030052,INFO: GCS Connected
+46326.9999027,INFO: ------------------SYSTEM IS READY!!------------------
+46327.4331093,INFO: -----------------------------------------------------
+46661.6461277,INFO: Got GPS lock at 2016-05-26 19:20:05
+50342.5750732,CRITICAL: Pixhawk connection lost!
+56730.588913,INFO: Pixhawk connection restored.
+59939.3110275,CRITICAL: Pixhawk connection lost!
+66826.8151283,INFO: Pixhawk connection restored.
+69315.789938,CRITICAL: Pixhawk connection lost!
+84480.230093,INFO: Pixhawk connection restored.
+87478.8839817,CRITICAL: Pixhawk connection lost!
+92057.5430393,INFO: Pixhawk connection restored.
+95386.5768909,CRITICAL: Pixhawk connection lost!
+108674.777031,INFO: Pixhawk connection restored.
+112247.390985,CRITICAL: Pixhawk connection lost!
+115541.337013,INFO: Pixhawk connection restored.
+118829.828024,CRITICAL: Pixhawk connection lost!
+122919.316053,INFO: Pixhawk connection restored.
+126132.441044,CRITICAL: Pixhawk connection lost!
+132041.829109,INFO: Pixhawk connection restored.
+135306.936026,CRITICAL: Pixhawk connection lost!
+143407.253027,INFO: Pixhawk connection restored.
+146469.177961,CRITICAL: Pixhawk connection lost!
+194951.06411,INFO: Pixhawk connection restored.
+198214.258909,CRITICAL: Pixhawk connection lost!
+203001.471996,INFO: Pixhawk connection restored.
+205925.31395,CRITICAL: Pixhawk connection lost!
+234388.098955,INFO: Pixhawk connection restored.
+237505.433083,CRITICAL: Pixhawk connection lost!
+286770.029068,INFO: Pixhawk connection restored.
+289989.084959,CRITICAL: Pixhawk connection lost!
+346592.018127,INFO: Pixhawk connection restored.
+349508.238077,CRITICAL: Pixhawk connection lost!
+406170.346022,INFO: Pixhawk connection restored.
+409164.706945,CRITICAL: Pixhawk connection lost!
+438843.914986,INFO: Pixhawk connection restored.
+441626.954079,CRITICAL: Pixhawk connection lost!
+464194.976091,INFO: Pixhawk connection restored.
+469226.347923,CRITICAL: Pixhawk connection lost!
+500343.925953,INFO: Pixhawk connection restored.
+503859.025955,CRITICAL: Pixhawk connection lost!
+533136.39307,INFO: Pixhawk connection restored.
+536061.728954,CRITICAL: Pixhawk connection lost!
+536700.536013,INFO: Pixhawk connection restored.
+540067.687035,CRITICAL: Pixhawk connection lost!
+457.696914673,INFO: ------------ STARTING AEROWAKE SYSTEM ------------
+458.347082138,INFO: -------------------- UAV NODE --------------------
+458.748102188,INFO: Waiting for Autopilot
+12404.2429924,INFO: Autopilot connected!
+12407.4349403,WARNING: Autopilot reports arming checks are not standard!
+12411.6408825,INFO: Waiting for GCS
+35893.2099342,INFO: GCS Connected
+35893.9828873,INFO: ------------------SYSTEM IS READY!!------------------
+35894.3459988,INFO: -----------------------------------------------------
+35920.7479954,INFO: Got GPS lock at 2016-05-26 19:34:29
+47554.1779995,CRITICAL: Pixhawk connection lost!
+50977.3049355,INFO: Pixhawk connection restored.
+67033.2958698,CRITICAL: Pixhawk connection lost!
+71027.6179314,INFO: Pixhawk connection restored.
+76779.9379826,CRITICAL: Pixhawk connection lost!
+85143.116951,INFO: Pixhawk connection restored.
+86074.2418766,CRITICAL: Pixhawk connection lost!
+103722.478867,INFO: Pixhawk connection restored.
+106115.618944,CRITICAL: Pixhawk connection lost!
+112990.645885,INFO: Pixhawk connection restored.
+115966.777086,CRITICAL: Pixhawk connection lost!
+129847.745895,INFO: Pixhawk connection restored.
+133508.056879,CRITICAL: Pixhawk connection lost!
+156357.246876,INFO: Pixhawk connection restored.
+157031.172991,INFO: Vehicle is now armed 
+160071.362972,CRITICAL: Pixhawk connection lost!
+160930.747032,INFO: Pixhawk connection restored.
+163765.127897,CRITICAL: Pixhawk connection lost!
+177376.518965,INFO: Pixhawk connection restored.
