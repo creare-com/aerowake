@@ -69,5 +69,6 @@ class MockPyMotorController:
         """ (velocity, accel, decel) is in RPM or RPM/s after gearbox.  """
         return self._profile
     def haltMovement(self):
-        logging.info("Stopping movement in mock motor controller")
+         pass
+#        logging.info("Stopping movement in mock motor controller")
 
