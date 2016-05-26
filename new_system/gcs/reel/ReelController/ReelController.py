@@ -132,7 +132,7 @@ class ReelController:
         # the UAV will take up the slack.  When reeling in, we want the
         # UAV to slow down as it approaches the landing site.
         length_limited_speed  = self._KL_MPS_PER_M * current_length + self._MIN_MPS
-        tension_n = self._tension_sensor.readTension()
+        tension_n = self.getTetherTensionN()
         if current_length > target_length:
             # Reeling in
             speed_limit = min(self._MAX_MPS, length_limited_speed)
@@ -197,3 +197,6 @@ class ReelController:
 
     def getMaxTetherSpeedMps(self):
         return self.tetherMpsFromReelRpm(self._mc.getPositionProfile()['velocity']);
+
+    def getTetherTensionN(self):
+        return self._tension_sensor.readTension()
