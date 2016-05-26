@@ -108,7 +108,7 @@ ui.start()
 commands_to_reel = Queue()
 data_from_reel = Queue()
 try:
-    reel = reel_run(commands_to_airprobe, data_from_airprobe)
+    reel = reel_run(commands_to_reel, data_from_reel)
 except Exception:
     logging.critical('Problem connection to reel. Aborting.')
     setup_abort("Reel System Failure")
