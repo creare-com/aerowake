@@ -1,7 +1,7 @@
 import datetime
 import time
 
-class reel_main:
+class reel_run:
     def __init__(self,dt):
         
 
@@ -16,7 +16,7 @@ class reel_main:
 ################################################################################
 ################################################################################
 
-#This will get called at 200hz or whatever rate you want it to, as specified by the class reel_run().
+#This will get called at 200hz or whatever rate you want it to, as specified by the airprobe_run().
 
     def run(self):
         reel_data = [0,0,0,0,0]        
