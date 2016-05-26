@@ -37,7 +37,7 @@ gcs_baud = 115200
 # logging.basicConfig(filename='system.log',format='%(relativeCreated)s,%(levelname)s: %#(message)s',level=logging.DEBUG)
 
 print("------------ STARTING AEROWAKE SYSTEM ------------")
-print("-------------------- UAV NODE 0 ------------------")
+print("-------------------- GCS NODE 0 ------------------")
 
 
 ####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Pixhawk System Setup !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -59,12 +59,15 @@ logging.info("GCS Connected")
 
 
 
+
 while True:
-    time.sleep(.1)
+    time.sleep(1)
 
     print "============="
-    print gcs.attitude
-
+    cmds=gcs.commands
+    print cmds.download()
+    cmds.clear()
+    cmds.upload()
 
 
 

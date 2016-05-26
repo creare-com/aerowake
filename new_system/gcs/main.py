@@ -24,18 +24,19 @@ from interface.interface import interface_run
 
  #!# Setting up connection path for the Autopilots. 
  #!# For SITL testing, use the following. The UAV is located on Port 14552 and GCS 14554
-gcs_connect_path = '127.0.0.1:14556'
-gcs_baud = 115200
+
+#gcs_connect_path = '127.0.0.1:14556'
+#gcs_baud = 115200
  
  #!# For Hardware operation, use the following. These baud rates must match those
  #!# as established on the actual hardware. Wired connection should be 115200 and 
  #!# the telemetry radio should be set up for 57600. Uncomment the following lines:
 
 #gcs_connect_path = '/dev/ttyAMA0' #Choose which ever is applicable
-#gcs_connect_path = '/dev/ttyS0' #For the RaspPi3 
+gcs_connect_path = '/dev/ttyS0' #For the RaspPi3 
 #gcs_connect_path = '/dev/ttyUSB0'
 #gcs_connect_path = '/dev/ttyACM0'
-#gcs_baud = 115200
+gcs_baud = 115200
 
 
 
@@ -260,6 +261,10 @@ def clear_mission():
 #!# At this point, arm the GCS pixhawk and place it into guided mode. 
 #1# Might have to set the ARMING CHECK parameter to 0 in the GCS pixhawk. 
 
+gcs.channels.overrides = {'1':1500, '2':1500, '3':1000, '4':1500, '5':1500,'6':1500}
+
+gcs.mode = VehicleMode("GUIDED")
+
 if not gcs.armed:
     while not gcs.is_armable:
         print "GCS Not Armable"
@@ -302,6 +307,8 @@ MISSION_L   = [ 50,  50,  50,  60,   60,  70,  70, 100]
 
 while True:
     time.sleep(.2)
+    gcs.mode = VehicleMode('GUIDED')
+    gcs.armed=True
     print "Run"
     #Get Reel Info:
     # try:
