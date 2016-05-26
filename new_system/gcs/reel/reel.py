@@ -31,18 +31,19 @@ class reel_run (Process):
             # {"cmd":"halt"}    # holds the reel where it is
             # {"cmd":"rehome"}  # consider the current tether length to be 0m
             # {"cmd":"exit"}    # exit the subprocess
-            if cmd['cmd'] == 'goto':
-                L = cmd['L']
-                self._rc.setTetherLengthM(L)
-            elif cmd['cmd'] == 'rehome':
-                self._rc.youAreHome()
-            elif cmd['cmd'] == 'halt':
-                self._rc.stopMoving()
-            elif cmd['cmd'] == 'exit':
-                self._rc.stopMoving()
-                del self._rc
-                run = False
-                continue
+            if cmd != None and cmd.has_key('cmd'):
+                if cmd['cmd'] == 'goto':
+                    L = cmd['L']
+                    self._rc.setTetherLengthM(L)
+                elif cmd['cmd'] == 'rehome':
+                    self._rc.youAreHome()
+                elif cmd['cmd'] == 'halt':
+                    self._rc.stopMoving()
+                elif cmd['cmd'] == 'exit':
+                    self._rc.stopMoving()
+                    del self._rc
+                    run = False
+                    continue
             
             t_0 = datetime.datetime.now()
 
@@ -51,7 +52,7 @@ class reel_run (Process):
             if(self._cycles >= SKIP_CYCLES):
                 L = self._rc.getTetherLengthM()
                 T = self._rc.getTetherTensionN()
-                data_out.put({"L": L, "T": T})
+                self._data_out.put({"L": L, "T": T})
                 self._cycles = 0
             else:
                 self._cycles += 1
