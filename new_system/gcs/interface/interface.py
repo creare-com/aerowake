@@ -32,6 +32,15 @@ class interface_run (Process):
     def callback_adv(self):
         print "Advance Target"
         self.data_out.put("ADV_CMD")
+    
+    def callback_quit(self):
+        print "Quit"
+        self.data_out.put("QUIT_CMD")
+        self.frame.quit()
+
+    def callback_halt_reel(self):
+        print "Halt reel"
+        self.data_out.put("HALT_REEL_CMD")
 
     def update_curr(self):
         print "updating"
@@ -44,21 +53,24 @@ class interface_run (Process):
         from Tkinter import * # To address the issue described in http://stackoverflow.com/questions/10755641/
 
         root = Tk()
-        frame = Frame(root)
-        frame.pack()
+        self.frame = Frame(root)
+        self.frame.pack()
 
 
 
-        b1 = Button(frame, text="QUIT", fg="red",command=frame.quit)
+        b1 = Button(self.frame, text="QUIT", fg="red",command=self.callback_quit)
         b1.pack(fill=X)
 
-        b2 = Button(frame, text="Takeoff", command=self.callback_takeoff)
+        b2 = Button(self.frame, text="Takeoff", command=self.callback_takeoff)
         b2.pack(fill=X)
 
-        b3 = Button(frame, text="Land", command=self.callback_land)
+        b3 = Button(self.frame, text="Land", command=self.callback_land)
         b3.pack(fill=X)
 
-        b6 = Button(frame, text="Auto Mode",command=self.callback_auto)
+        b6 = Button(self.frame, text="Auto Mode",command=self.callback_auto)
+        b6.pack(fill=X)
+
+        b6 = Button(self.frame, text="Halt reel",command=self.callback_halt_reel)
         b6.pack(fill=X)
 
         l1 = Label(root, fg="dark green")
@@ -76,31 +88,3 @@ class interface_run (Process):
         b5.pack(fill=X)
 
         root.mainloop()
-
-        
-
-        # while True:
-        #     #check if any new cmds
-        #     try:
-        #         self.cmd.get(False)
-        #     except Empty:
-        #         pass
-
-        #     t_0 = datetime.datetime.now()
-
-        #     #run the airprobe and push the data to the queue if its been so many skip cycles. 
-        #     if(self.cycles >= SKIP_CYCLES):
-        #         self.data_out.put(self.airprobe.run())
-        #         self.cycles = 0
-        #     else:
-        #         self.airprobe.run()
-        #         self.cycles = self.cycles + 1
-
-        #     #Sleep for desired amount of time
-        #     t_1 = datetime.datetime.now()
-        #     dt = (t_1-t_0).total_seconds()
-        #     sleep_time = self.dt_des-dt
-        #     if sleep_time<0:
-        #         sleep_time = 0
-        #     time.sleep(sleep_time)
-

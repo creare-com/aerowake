@@ -256,7 +256,7 @@ def print_mission():
         print cmd.z
 
 def clear_mission():
-    cmds =gcs.commands
+    cmds = gcs.commands
     cmds.download()
     cmds.wait_ready()
     cmds.clear()
@@ -305,7 +305,8 @@ MISSION_L   = [ 50,  50,  50,  60,   60,  70,  70, 100]
 
 #!# Start the main loop. 
 try:
-    while True:
+    run = True
+    while run:
         time.sleep(.2)
         print "Run"
         #Get Reel Info:
@@ -343,7 +344,7 @@ try:
                 print "Mode: ",mode," Theta: %.1f  Phi: %.1f  L: %.1f" %(MISSION_TH[i],MISSION_PHI[i],MISSION_L[i])
                 print_mission()
 
-            if GCS_cmd == "ADV_CMD":
+            elif GCS_cmd == "ADV_CMD":
                 i+=1
                 if i==len(MISSION_TH):
                     i=0
@@ -359,7 +360,7 @@ try:
                 print_mission()
 
 
-            if GCS_cmd == "TAKEOFF_CMD":
+            elif GCS_cmd == "TAKEOFF_CMD":
                 phi = 0
                 theta = 1.5
                 L = 20
@@ -369,7 +370,7 @@ try:
                 print "Mode: ",mode
                 print_mission()
 
-            if GCS_cmd == "LAND_CMD":
+            elif GCS_cmd == "LAND_CMD":
                 phi = 0
                 theta = 1.5
                 L = 20
@@ -379,7 +380,11 @@ try:
                 print "Mode: ",mode
                 print_mission()
 
-
+            elif GCS_cmd == "QUIT_CMD":
+                run = False # Cleanup tasks handled after main loop
+            
+            elif GCS_cmd == "HALT_REEL_CMD":
+                commands_to_reel.put({"cmd":"halt"})
 
             GCS_cmd="WAITING"
 
@@ -387,5 +392,12 @@ try:
             print "GCS Not Armed"
 
 except KeyboardInterrupt:
-    # Stop the reel prior to exiting
+    print("Got ^C, Cleaning up")
+
+# A clean exit stops the reel prior to exiting.
+# An unclean exit might leave the reel moving.
+commands_to_reel.put({"cmd":"exit"})
+reel.join()
+if ui.is_alive(): # under a ctrl-c, this will be oblivious
+    ui.terminate()
     

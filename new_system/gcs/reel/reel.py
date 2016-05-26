@@ -18,8 +18,8 @@ class reel_run (Process):
         self._rc = ReelController.ReelController()
 
     def run(self):
-
-        while True:
+        run = True
+        while run:
             #check if any new cmds
             try:
                 cmd = self._cmd.get(False)
@@ -29,8 +29,8 @@ class reel_run (Process):
             # We expect cmd to be one of the following:
             # {"cmd":"goto", "L":<length in meters, an int}
             # {"cmd":"halt"}    # holds the reel where it is
-            # {"cmd":"disable"} # lets the reel freewheel
             # {"cmd":"rehome"}  # consider the current tether length to be 0m
+            # {"cmd":"exit"}    # exit the subprocess
             if cmd['cmd'] == 'goto':
                 L = cmd['L']
                 self._rc.setTetherLengthM(L)
@@ -38,8 +38,11 @@ class reel_run (Process):
                 del self._rc.youAreHome()
             elif cmd['cmd'] == 'halt':
                 self._rc.stopMoving()
-            elif cmd['cmd'] == 'disable':
+            elif cmd['cmd'] == 'exit':
+                self._rc.stopMoving()
                 del self._rc
+                run = False
+                continue
             
             t_0 = datetime.datetime.now()
 
