@@ -64,6 +64,7 @@ if __name__ == '__main__':
     ch.setFormatter(form_ch)
     logger.addHandler(fh)
     logger.addHandler(ch)
+    logging.getLogger('Adafruit_I2C').setLevel(logging.ERROR)
 
 
 
@@ -424,8 +425,8 @@ if __name__ == '__main__':
                 ("Target Phi (Az, rad)",     phi              ),
                 ("Target Theta (el, rad)",   theta            ),
                 ("Target L (m)",             L                ),
-#                ("Current reel L (m)",       reel_reading['L']),
-#                ("Current reel tension (N)", reel_reading['T']),
+                ("Current reel L (m)",       reel_reading['L']),
+                ("Current reel tension (N)", reel_reading['T']),
             ]
             status_to_interface.put(display_vars)
 

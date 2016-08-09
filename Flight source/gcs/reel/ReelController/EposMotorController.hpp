@@ -19,8 +19,7 @@ class EposMotorController {
 
         std::string lookupError(unsigned int error);
         void enable(); // To avoid confusion, force them to clear the fault too
-//        void failWithCode(std::string message, int error_code, bool disable_motor = true); // The method called when an error is detected
-        void failWithCode(std::string message, int error_code, bool disable_motor = false); // The method called when an error is detected
+        void failWithCode(std::string message, int error_code, bool disable_motor = true); // The method called when an error is detected
         void fail(std::string message, bool disable_motor = true); // The method called when an error is detected
         
         void haltPositionMovement(); // Users of this class should call haltMovement() instead
