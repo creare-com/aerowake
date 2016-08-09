@@ -5,6 +5,7 @@ from multiprocessing import Process, Queue
 from Queue import Empty
 import time
 import ReelController
+import logging
 
 SKIP_CYCLES=100 #only send the position every 10 cycles
 # SKIP_CYCLES=0
@@ -16,10 +17,10 @@ class reel_run (Process):
         self._data_out = data_out
         self._dt_des =1/200.0
         self._cycles = 0
-        self._rc = ReelController.ReelController()
 
     def run(self):
         run = True
+        self._rc = ReelController.ReelController()
         while run:
             #check if any new cmds
             try:
@@ -41,8 +42,10 @@ class reel_run (Process):
                     logging.info("Homing tether")
                     self._rc.youAreHome()
                 elif cmd['cmd'] == 'halt':
+                    logging.info("Halting reel")
                     self._rc.stopMoving()
                 elif cmd['cmd'] == 'exit':
+                    logging.info("Halting reel")
                     self._rc.stopMoving()
                     del self._rc
                     run = False
@@ -51,14 +54,20 @@ class reel_run (Process):
             t_0 = datetime.datetime.now()
 
             # Push tether status back if we've skipped the appropriate number of cycles
+            logging.info("updating reel")
             self._rc.update()
+	    logging.info("Updated")
             if(self._cycles >= SKIP_CYCLES):
+                logging.info("Getting length")
                 L = self._rc.getTetherLengthM()
+                logging.info("Getting tension")
                 T = self._rc.getTetherTensionN()
+                logging.info("Putting data")
                 self._data_out.put({"L": L, "T": T})
                 self._cycles = 0
             else:
                 self._cycles += 1
+            logging.info("Reel done")
 
             #Sleep for desired amount of time
             t_1 = datetime.datetime.now()
