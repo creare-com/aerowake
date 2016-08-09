@@ -54,20 +54,14 @@ class reel_run (Process):
             t_0 = datetime.datetime.now()
 
             # Push tether status back if we've skipped the appropriate number of cycles
-            logging.info("updating reel")
             self._rc.update()
-	    logging.info("Updated")
             if(self._cycles >= SKIP_CYCLES):
-                logging.info("Getting length")
                 L = self._rc.getTetherLengthM()
-                logging.info("Getting tension")
                 T = self._rc.getTetherTensionN()
-                logging.info("Putting data")
                 self._data_out.put({"L": L, "T": T})
                 self._cycles = 0
             else:
                 self._cycles += 1
-            logging.info("Reel done")
 
             #Sleep for desired amount of time
             t_1 = datetime.datetime.now()
