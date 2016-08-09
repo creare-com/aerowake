@@ -9,7 +9,9 @@ class TensionSensor:
     def readTension(self):
         """ Returns cable tension in newtons """
         # 0 means channel 0 minus channel 1
+        print("Reading tension")
         adc_counts = self._adc.read_adc_difference(0, gain=1)
+        print("Read tension")
         adc_counts -= self._SENSOR_BASELINE_COUNTS
         return adc_counts * self._N_PER_ADC_COUNT;
 

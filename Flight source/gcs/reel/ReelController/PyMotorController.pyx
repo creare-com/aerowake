@@ -1,4 +1,5 @@
 """ Adapter classes used to interface with the C++ EposMotorController class """
+import logging
 from enum import Enum
 from libcpp.string cimport string
 from libcpp cimport bool
@@ -87,9 +88,13 @@ OperatingMode = {
 cdef class PyMotorController:
     cdef EposMotorController *_mc
     def __cinit__(self, string usb_port = "USB0", unsigned int baudRate=1000000):
+        logging.debug("Creating C++ object")
         self._mc = new EposMotorController(usb_port, baudRate)
+        logging.debug("Opening")
         self._mc.open()
+        logging.debug("Opened")
     def __dealloc__(self):
+        logging.debug("deallocating")
         del self._mc
         
     # Open/close the specified port. (throw an  exception on failure)
@@ -144,7 +149,10 @@ cdef class PyMotorController:
     def moveToPosition(self, long position):
         return self._mc.moveToPosition(position) 
     def getPosition(self):
-        return self._mc.getPosition() 
+        logging.debug("Getting _mc position")
+        pos = self._mc.getPosition() 
+        logging.debug("Got _mc position")
+        return pos
     def getTargetPosition(self):
         return self._mc.getTargetPosition() 
     def setMaxVelocity(self, unsigned int velocity):
