@@ -7,4 +7,4 @@
 # in the other script because the other script opens to an interactive console.
 sleep 30
 
-python ../uav/main.py >> uav.log
+python ../uav/main.py sim >> uav.log

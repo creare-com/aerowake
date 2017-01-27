@@ -23,20 +23,17 @@ from interface.interface import interface_run
  #!# All comments to explain system will be prefaced with "#!#"
 
  #!# Setting up connection path for the Autopilots. 
- #!# For SITL testing, use the following. The UAV is located on Port 14552 and GCS 14554
-gcs_connect_path = '127.0.0.1:14556'
-gcs_baud = 115200
- 
- #!# For Hardware operation, use the following. These baud rates must match those
- #!# as established on the actual hardware. Wired connection should be 115200 and 
- #!# the telemetry radio should be set up for 57600. Uncomment the following lines:
-
 #gcs_connect_path = '/dev/ttyAMA0' #Choose which ever is applicable
-#gcs_connect_path = '/dev/ttyS0' #For the RaspPi3 
+gcs_connect_path = '/dev/ttyS0' #For the RaspPi3 
 #gcs_connect_path = '/dev/ttyUSB0'
 #gcs_connect_path = '/dev/ttyACM0'
-#gcs_baud = 115200
+gcs_baud = 115200
 
+if len(sys.argv) >= 2 and sys.argv[1].startswith('sim'):
+     #!# For SITL testing, use the following. The UAV is located on Port 14552 and GCS 14554
+    gcs_connect_path = '127.0.0.1:14556'
+    gcs_baud = 115200
+ 
 
 
 #####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
