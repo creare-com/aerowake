@@ -16,7 +16,7 @@ from Queue import Empty
 import numpy as np
 
 from dronekit import APIException, VehicleMode, connect, mavutil
-from airprobe.airprobe_main import airprobe_run
+from airprobe.airprobe_main import airprobe_main
 
  #!# All comments to explain system will be prefaced with "#!#"
 

@@ -6,5 +6,5 @@
 # Wait for the other guy to finish booting.  We can't perform a foreground wait
 # in the other script because the other script opens to an interactive console.
 sleep 30
-cd ../uav/
-python main.py >> uav.log
+
+python ../uav/main.py >> uav.log
