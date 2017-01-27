@@ -1,10 +1,9 @@
 #### Simulator Start Script
 
-# Rover Simulator (ArduRover 3.0.0)
+bash _run_gcs.sh&
 
-cd ../../../ardupilot/APMrover2/
-#cd ../../../ardupilot/ArduCopter/
-bash sim_vehicle.sh -j4 -I 2 --map --console --out 127.0.0.1:14554 --out 127.0.0.1:14556
+# Rover Simulator (ArduRover 3.0.0)
+bash ../../../ardupilot/APMrover2/sim_vehicle.sh -j4 -I 2 --map --console --out 127.0.0.1:14554 --out 127.0.0.1:14556
 
 # map and console
 
