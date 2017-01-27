@@ -45,6 +45,7 @@ class MockPyMotorController:
         
     # Movement (throw an  exception on failure)
     def moveToPosition(self, position):
+        logging.info("Setting mock motor to %dQC"%position)
         self._target_pos = position
     def getPosition(self):
         return self._pos
