@@ -1,9 +1,13 @@
+"""
+A standalone pressure sensor logger utility.  Should not be used for sensor logging during flight;
+instead, run the UAV main executable.
+
+"""
+
 import time
 from sensors import DlvrPressureSensor, DlvPressureSensor, TemperatureSensor
 
 if __name__ == "__main__":
-    import time
-    
     # Settings
     FSP_lo = 0.5 #inH20, for DLVR-F50D-E2NS-C-NI3F
     FSP_hi = 2.0 #inH20, for DLVR-L05D-E3NS-C-NI3F
