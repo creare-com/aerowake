@@ -293,17 +293,6 @@ G_LAND = 2
 mode=None
 i=0
 
-# Initialize the flight data log.
-
-
-# Add an entry to the flight data log.
-def update_data_log(flight_data, airprobe_data):
-    try:
-        pass
-    except:
-        print("Problem saving data!")
-        pass
-
 #!# Start the main loop. 
 try:
     run = True

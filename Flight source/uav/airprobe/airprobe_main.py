@@ -2,8 +2,6 @@ import datetime
 import time
 
 class airprobe_main:
-
-
     def __init__(self,dt):
 
         # For easier testing, create mock objects if the real ones fail.

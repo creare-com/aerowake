@@ -74,6 +74,93 @@ logger.addHandler(fh)
 logger.addHandler(ch)
 
 
+# Initialize the flight data log.
+TELEM_INFO = [("self.uav_coord[0]", "%.6f"),
+              ("self.uav_coord[1]", "%.6f"),
+              ("self.gcs_coord[0]", "%.6f"),
+              ("self.gcs_coord[1]", "%.6f"),
+              ("self.uav_alt",      "%.6f"),
+              ("self.gcs_alt",      "%.6f"),
+              ("self.goal_pose[0]", "%.6f"),
+              ("self.goal_pose[1]", "%.6f"),
+              ("self.goal_pose[2]", "%.6f"),
+              ("self.uav_heading",  "%.6f"),
+              ("self.gcs_heading",  "%.6f"),
+              ("self.uav_vel[0]",   "%.6f"),
+              ("self.uav_vel[1]",   "%.6f"),
+              ("self.uav_vel[2]",   "%.6f"),
+              ("self.gcs_vel[0]",   "%.6f"),
+              ("self.gcs_vel[1]",   "%.6f"),
+              ("self.gcs_vel[2]",   "%.6f"),
+              ("self.uav_pose[0]",  "%.6f"),
+              ("self.uav_pose[1]",  "%.6f"),
+              ("self.uav_pose[2]",  "%.6f"),
+              ("self.goal_pose[0]", "%.6f"),
+              ("self.goal_pose[1]", "%.6f"),
+              ("self.goal_pose[2]", "%.6f"),
+              ("self.goal_mode",    "%.6f"),
+              ("self.L",            "%.6f"),
+              ("roll_cmd",          "%.6f"),
+              ("pitch_cmd",         "%.6f"),
+              ("yaw_cmd",           "%.6f"),
+              ("thr_cmd",           "%.6f"),
+              ("self.voltage",      "%.6f"),
+              ("self.current ",     "%.6f"),
+              ]
+AIRPROBE_INFO = [("Ch0  lo (inH2O)", "%.6f"), ("Ch0  hi (inH2O)", "%.6f"),
+                 ("Ch1  lo (inH2O)", "%.6f"), ("Ch1  hi (inH2O)", "%.6f"),
+                 ("Ch2  lo (inH2O)", "%.6f"), ("Ch2  hi (inH2O)", "%.6f"),
+                 ("Ch3  lo (inH2O)", "%.6f"), ("Ch3  hi (inH2O)", "%.6f"),
+                 ("Ch4  lo (inH2O)", "%.6f"), ("Ch4  hi (inH2O)", "%.6f"),
+                 ("Ch5  lo (inH2O)", "%.6f"), ("Ch5  hi (inH2O)", "%.6f"),
+                 ("Ch6  lo (inH2O)", "%.6f"), ("Ch6  hi (inH2O)", "%.6f"),
+                 ("Ch7  lo (inH2O)", "%.6f"), ("Ch7  hi (inH2O)", "%.6f"),
+                 ("Ch8  lo (inH2O)", "%.6f"), ("Ch8  hi (inH2O)", "%.6f"),
+                 ("Ch9  lo (inH2O)", "%.6f"), ("Ch9  hi (inH2O)", "%.6f"),
+                 ("Ch10 lo (inH2O)", "%.6f"), ("Ch10 hi (inH2O)", "%.6f"),
+                 ("Ch11 lo (inH2O)", "%.6f"), ("Ch11 hi (inH2O)", "%.6f"),
+                 ("Absolute pressure (PSIA)", "%.6f"),
+                 ("Ambient temperature (C)", "%.6f"),
+                 ("Absolute pressure was measured this cycle", "%d"),
+                 ("Ambient temperature was measured this cycle", "%d"),
+
+                 ]
+
+try:
+    FN_PATTERN = 'flight_data_log_%Y-%m-%d_%H%M%S.csv'
+    filename = datetime.datetime.fromtimestamp(time.time()).strftime(FN_PATTERN)
+    flight_data_log = open(filename, 'wc')
+
+    ti = zip(*TELEM_INFO)
+    ai = zip(*AIRPROBE_INFO)
+    # TODO: add timestamps
+    header_items = ti[0] + ai[0]
+    format_items = ti[1] + ai[1]
+    flight_data_header_str = ', '.join(header_items) + '\n'
+    flight_data_format_str = ', '.join(format_items) + '\n'
+
+    flight_data_log.write(flight_data_header_str)
+    flight_data_log.flush()
+except IOError:
+    logging.warning("Could not open flight data log!")
+except:
+    logging.warning("Could not initialize flight data log!")
+
+# Add an entry to the flight data log.
+# telem_data and airprobe_data must be lists corresponding to TELEM_INFO
+# and AIRPROBE_INFO.
+def update_flight_data_log(telem_data, airprobe_data):
+    try:
+        # TODO: add timestamps
+        log_str = flight_data_format_str%tuple(telem_data + airprobe_data)
+        flight_data_log.write(log_str)
+        flight_data_log.flush()
+    except:
+        print("Problem saving flight data.")
+
+
+
+
  #!# This function is called if there is a problem with the vehicle setup. It will kill the script. 
 
 def setup_abort(abort_reason=None):
