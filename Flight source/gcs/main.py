@@ -15,6 +15,7 @@ import time
 from multiprocessing import Queue
 from Queue import Empty
 
+import mission
 from dronekit import APIException, VehicleMode, connect, mavutil, Command
 from reel.reel import reel_run
 from interface.interface import interface_run
@@ -292,17 +293,16 @@ G_LAND = 2
 mode=None
 i=0
 
-
-#!# This is how the mission is currently specified. Angles are in Radians. 
-#!# Theta: 90 degrees is horizontal ( same altitude as boat )
-#!# Phi: 0 degrees is straight behind the boat. This is always relative to the stern of the ship.
-#!# This system can be replaced with a mission file or similiar. 
-MISSION_TH  = [1.2, 1.2, 1.4, 1.2,  1.3, 1.3, 1.3, 1.3]
-MISSION_PHI = [  0,  .5,   0, -.5,  -.5,   0,  .5,   0]
-MISSION_L   = [ 50,  50,  50,  60,   60,  70,  70, 100] 
+# Initialize the flight data log.
 
 
-
+# Add an entry to the flight data log.
+def update_data_log(flight_data, airprobe_data):
+    try:
+        pass
+    except:
+        print("Problem saving data!")
+        pass
 
 #!# Start the main loop. 
 try:
@@ -338,28 +338,28 @@ try:
             # # None = Do nothing. Initial state. Motors will be on safe, vehicle disarmed. 
             if GCS_cmd == "AUTO_CMD":
                 i=0
-                phi = MISSION_PHI[i]
-                theta = MISSION_TH[i]
-                L = MISSION_L[i]
+                phi = mission.PHI[i]
+                theta = mission.THETA[i]
+                L = mission.L[i]
                 mode = G_AUTO
                 set_waypoint(mode,theta,phi,L)
                 print "Auto Mode"
-                print "Mode: ",mode," Theta: %.1f  Phi: %.1f  L: %.1f" %(MISSION_TH[i],MISSION_PHI[i],MISSION_L[i])
+                print "Mode: ",mode," Theta: %.1f  Phi: %.1f  L: %.1f" %(mission.THETA[i],mission.PHI[i],mission.L[i])
                 print_mission()
 
             elif GCS_cmd == "ADV_CMD":
                 i+=1
-                if i==len(MISSION_TH):
+                if i==len(mission.THETA):
                     i=0
 
-                phi = MISSION_PHI[i]
-                theta = MISSION_TH[i]
-                L = MISSION_L[i]
+                phi = mission.PHI[i]
+                theta = mission.THETA[i]
+                L = mission.L[i]
                 mode = G_AUTO
                 set_waypoint(mode,theta,phi,L)
                 GCS_cmd = "AUTO_CMD"
                 print "Advance Goal Target"
-                print "Mode: ",mode," Theta: %.1f  Phi: %.1f  L: %.1f" %(MISSION_TH[i],MISSION_PHI[i],MISSION_L[i])
+                print "Mode: ",mode," Theta: %.1f  Phi: %.1f  L: %.1f" %(mission.THETA[i],mission.PHI[i],mission.L[i])
                 print_mission()
 
 
