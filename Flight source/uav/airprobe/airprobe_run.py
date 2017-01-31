@@ -8,7 +8,7 @@ import time
 import numpy as np
 from airprobe_main import airprobe_main
 
-SKIP_CYCLES=10 #only send the position every 10 cycles
+SKIP_CYCLES=10 #only send the airspeed data every 10 cycles
 
 class airprobe_run (Process):
     def __init__(self, cmd, data_out):

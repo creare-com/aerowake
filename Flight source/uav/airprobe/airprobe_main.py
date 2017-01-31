@@ -15,6 +15,8 @@ class airprobe_main:
 
         # USER CONFIGURABLE SETTINGS
         self.dt_des = dt
+        self.TEMP_READ_INTERVAL_S = 1.0 # Read temperature and absolute pressure every second
+
         FSP_lo = 0.5 #inH20, for DLVR-F50D-E2NS-C-NI3F
         FSP_hi = 2.0 #inH20, for DLVR-L05D-E3NS-C-NI3F
         # Descriptions will be used for column names, so the units are listed here too
@@ -38,8 +40,16 @@ class airprobe_main:
         csv_column_names=['System time (s)', 'Time since previous line (ms)'] \
             + [sensor.get_desc() for sensor in self._probe_sensors] + [self._absolute_sensor.get_desc(), self._temp_sensor.get_desc()]
         self._temp_read_interval_s = 1.0 # Read temperature and absolute pressure every second
-        logfile_name =  time.strftime('pressure_log_%Y-%m-%d_%H%M%S',time.localtime())
-        self.logfile = open(logfile_name, 'wc')
+        logfile_name = time.strftime('pressure_log_%Y-%m-%d_%H%M%S.csv',time.localtime())
+        self._logfile = open(logfile_name, 'wc')
+        self._logfile.write('"'+'","'.join(csv_column_names)+'"\n')
+        self._logfile.flush()
+        self._now = time.time()
+        self._dt = 0
+        self._elapsed_time_reading = 0
+        self._elapsed_time_parsing = 0
+        self._num_readings = 0
+        self._time_last_read_temp = time.time() - self.TEMP_READ_INTERVAL_S;
 
 ################################################################################
 ################################################################################
@@ -47,7 +57,29 @@ class airprobe_main:
 #This will get called at 200hz or whatever rate you want it to, as specified by the airprobe_run().
 
     def run(self):
-        airprobe_data = [0,0,0,0,0]        
-        #log data
-
-        return airprobe_data
+        probe_pressures = [] # apparently list append is fairly fast
+        # Read all data as close to simultaneously as possible
+        t0 = time.time()
+        for sensor in self._probe_sensors:
+            sensor.retrieve_p()
+        t1 = time.time()
+        # Do all the parsing overhead afterwards
+        for sensor in self._probe_sensors:
+            probe_pressures.append(sensor.parse_p())
+        t2 = time.time()
+        probe_pressure_str=','.join([str(p) for p in probe_pressures])
+        if self._now - self._time_last_read_temp >= self.TEMP_READ_INTERVAL_S:
+            t_str = str(self._temp_sensor.read_temp_c())
+            ap_str = str(self._absolute_sensor.read_p())
+            self._time_last_read_temp = self._now
+            log_str = '%.3f,%.3f,%s,%s,%s\n'%(self._now,self._dt*1000,probe_pressure_str,ap_str,t_str)
+        else:
+            log_str = '%.3f,%.3f,%s\n'%(self._now,self._dt*1000,probe_pressure_str)
+        self._elapsed_time_reading += (t1 - t0)
+        self._elapsed_time_parsing += (t2 - t1)
+        self._num_readings += 1
+        self._dt = time.time() - self._now
+        self._now = time.time()
+        self._logfile.write(log_str)
+        
+        return []# At some point it might be useful to report a summary of the airprobe data, but we don't currently.
