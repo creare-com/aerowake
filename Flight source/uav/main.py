@@ -385,7 +385,7 @@ if __name__ == '__main__':
 
         #if autopilot.mode.name=='GUIDED' and autopilot.armed and gcs.armed:
         if True:
-        pose_controller.goal_mode=G_AUTO
+            pose_controller.goal_mode=G_AUTO
 
             if pose_controller.goal_mode ==G_AUTO:
                 output = pose_controller.run_sph_pose_controller()
