@@ -234,7 +234,7 @@ class pose_controller_class:
         self.e_th = r*(self.goal_pose[0] - th)
         self.e_r = self.goal_pose[2] - r
         
-        print ">> Error:    %.2f, %.2f, %.2f" %(self.e_th,self.e_phi,self.e_r)
+        # print ">> Error:    %.2f, %.2f, %.2f" %(self.e_th,self.e_phi,self.e_r)
 
         # error integration
         self.e_phi_int += self.e_phi*control_dt
@@ -249,7 +249,7 @@ class pose_controller_class:
         th_in = (self.k_th[0]*self.e_th) +  (self.k_th[1] * e_th_dot) + (self.k_th[2]*self.e_th_int)
         r_in = self.k_r[0]*self.e_r + self.k_r[1]*e_r_dot 
 
-        print ">> PID Inputs:   %.2f, %.2f, %.2f" %(th_in,phi_in,r_in)
+        # print ">> PID Inputs:   %.2f, %.2f, %.2f" %(th_in,phi_in,r_in)
 
         # Convert spherical PID control to forces in XYZ
         fix = -phi_in*np.sin(phi)*np.sin(th) + th_in*np.cos(th)*np.cos(phi) + (r_in)*np.cos(phi)*np.sin(th)
@@ -257,8 +257,8 @@ class pose_controller_class:
         fiz = -th_in*np.sin(th) + (r_in)*np.cos(th)
         #TODO: Saturate fix, fiy, fiz
 
-        print ">> Convention: X, Y, Z" 
-        print ">> PID Forces:     %.2f, %.2f, %.2f" %(fix,fiy,fiz)
+        # print ">> Convention: X, Y, Z" 
+        # print ">> PID Forces:     %.2f, %.2f, %.2f" %(fix,fiy,fiz)
 
         #### Feed Forward Tether Model ####
 
@@ -268,13 +268,13 @@ class pose_controller_class:
         
         if self.SMART_TETHER:
             [ffx,ffy,ffz] = self.smart_tether_ff(th,phi,r,self.goal_pose[2],self.L)
-            print ">> Smart Tether:   %.2f, %.2f, %.2f" %(ffx,ffy,ffz)
+            # print ">> Smart Tether:   %.2f, %.2f, %.2f" %(ffx,ffy,ffz)
             if math.isnan(ffx) or math.isnan(ffy) or math.isnan(ffz):
-                print "Smart Tether NaN"
+                # print "Smart Tether NaN"
                 [ffx,ffy,ffz] = self.basic_tether_ff(th,phi,self.L)
         else:
             [ffx,ffy,ffz] = self.basic_tether_ff(th,phi,self.L) 
-            print ">> Basic Tether:   %.2f, %.2f, %.2f" %(ffx,ffy,ffz)
+            # print ">> Basic Tether:   %.2f, %.2f, %.2f" %(ffx,ffy,ffz)
         # Basic tether model uses the weight of the tether and position to determine forces. 
         # It uses trig, and not the ideal tether conditions, but should be more robust than the FF. 
 
@@ -292,20 +292,20 @@ class pose_controller_class:
         fty = fiy + ffy + fdy
         ftz = fiz + ffz + fdz + self.uav_weight #weight needs to be in newtons
 
-        print ">> Total:    %.2f, %.2f, %.2f" %(ftx,fty,ftz)
+        # print ">> Total:    %.2f, %.2f, %.2f" %(ftx,fty,ftz)
 
         #### Rotate Forces ####
         # This is to keep the front of the vehicle pointed at the ship
         ftx = ftx*np.cos(phi) + fty*np.sin(phi)
         fty = -ftx*np.sin(phi) + fty*np.cos(phi)
 
-        print ">> Total Rotated in BF:    %.2f, %.2f, %.2f" %(ftx,fty,ftz-self.uav_weight)
+        # print ">> Total Rotated in BF:    %.2f, %.2f, %.2f" %(ftx,fty,ftz-self.uav_weight)
 
         f_total = (ftx*ftx+fty*fty+ftz*ftz)**0.5
         pitch = np.arctan(ftx/ftz)
         roll = np.arctan(fty/ftz)
 
-        print ">> Roll, Pitch:     %.2f,   %.2f" %(roll*180/np.pi, pitch*180/np.pi)
+        # print ">> Roll, Pitch:     %.2f,   %.2f" %(roll*180/np.pi, pitch*180/np.pi)
 
         # Saturate
         ATT_MAX = 30*np.pi/180

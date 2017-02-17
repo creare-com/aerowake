@@ -27,6 +27,132 @@ from airprobe.airprobe_run import airprobe_run
 #from controller.pose_control_cart import pose_controller_class
 from controller.pose_control import pose_controller_class
 
+#######################################################
+##
+##               Function definitions
+##
+#######################################################
+
+ #!# This function is called if there is a problem with the vehicle setup. It will kill the script. 
+
+def setup_abort(abort_reason=None):
+    t = 0
+    #display items on screen
+    while t<10:
+        logging.critical("System aborting due to error: %s" %abort_reason) 
+        time.sleep(1)
+        t+=1
+    sys.exit(1)
+
+ #!# This is a functions that is part of DroneKit but is currently not used. 
+#def send_msg_to_gcs(message):
+#    msg = autopilot.message_factory.statustext_encode(mavutil.mavlink.MAV_SEVERITY_CRITICAL, message)
+#    autopilot.send_mavlink(msg)
+#    autopilot.flush()
+
+
+ #!# This Abort Mission function an be called ONCE in the event that the mission should be autonmously terminated. 
+ #!# It is important to NOT call this function multiple times or every control loop, as it will lock 
+ #!# the system into Altitude Hold mode, and the UAV operator might not be able to override it. 
+def abort_mission(reason):
+    global autopilot
+    logging.critical('%s! Aborting mission.' % reason)
+    autopilot.mode = VehicleMode("ALTHOLD")
+    #TODO: TEST THIS OUT to make sure it doesnt lock us in whatever mode we specify. 
+
+
+ #!#  This function is very important and is used to set the attitude of the vehicle. 
+ #!# The bitmask is set here to take in a quaternion and throttle setting from 0-1. 
+ #!# This throttle setting is that same as altitude hold mode. A value of .5 will maintain altitude. 
+def set_attitude_target(data_in):
+    global autopilot
+    quat = data_in[0:4]
+    thr = data_in[4]
+    msg = autopilot.message_factory.set_attitude_target_encode(
+        0, 0,0,
+        0b000000001,     # bitmask
+        quat,    # quat
+        0,              #roll rate
+        0,              #  pitch rate
+        0,              # yaw speed deg/s
+        thr)             # thrust
+    autopilot.send_mavlink(msg)
+
+ #!# This function is a legacy item, but will allow the system to commmand a yaw heading. 
+def condition_yaw(heading, relative=False):
+    global autopilot
+    if heading<0:
+        heading+=360
+
+    if relative:
+        is_relative=1 #yaw relative to direction of travel
+    else:
+        is_relative=0 #yaw is an absolute angle
+    # create the CONDITION_YAW command using command_long_encode()
+    msg = autopilot.message_factory.command_long_encode(
+        0, 0,    # target system, target component
+        mavutil.mavlink.MAV_CMD_CONDITION_YAW, #command
+        0, #confirmation
+        heading,    # param 1, yaw in degrees
+        0,          # param 2, yaw speed deg/s
+        1,          # param 3, direction -1 ccw, 1 cw
+        is_relative, # param 4, relative offset 1, absolute angle 0
+        0, 0, 0)    # param 5 ~ 7 not used
+    # send command to vehicle
+    autopilot.send_mavlink(msg)
+
+
+
+ #!#  This function downloads all of the current waypoints from the GCS pixhawk (if there are any), 
+ #!# clears the GCS pixhawk mission, and returns to mission information. 
+
+def download_mission():
+    """ Downloads the current mission and returns it in a list. """
+    global autopilot
+    missionlist=[]
+    cmds = gcs.commands
+    cmds.download()
+    #cmds.wait_ready()
+    for cmd in cmds:
+        missionlist.append(cmd)
+        #print "I See A Waypoint!"
+    for cmd in cmds:
+        cmds.clear()
+        cmds.upload()
+        #print "I Cleared The Waypoint"
+    return missionlist
+
+ #!#  This function takes the mission list from the  GCS pixhawk, and parses it into a command. 
+ #!# This system uses 2 waypoints to specify a command from the ground station. 
+ #!#  First waypoint holds goal and mode information.
+ #!#  Second waypoint holds tether information, and there is room for two extra parameters. 
+def read_mission():
+    global autopilot
+    missionlist = download_mission()
+    data=[]
+    for cmd in missionlist:
+        #(cmd.seq,cmd.current,cmd.frame,cmd.command,cmd.param1,cmd.param2,cmd.param3,cmd.param4,cmd.x,cmd.y,cmd.z,cmd.autocontinue)
+        data.append(cmd.param1)
+        data.append(cmd.x)
+        data.append(cmd.y)
+        data.append(cmd.z)
+
+    if data!=[]:
+        print  data
+        pose_controller.set_goal(data[1],data[2],data[3])# [theta,phi,L] in radians
+        pose_controller.goal_mode = data[0]
+        if len(data)>5:
+            extra1 = data[5]
+            pose_controller.gcs_tether_tension = data[6]
+            extra2 = data[7]
+    return None
+
+
+#######################################################
+##
+##               Main
+##
+#######################################################
 if __name__ == '__main__':
 
      #!# Setting up connection path for the Autopilots. 
@@ -76,17 +202,6 @@ if __name__ == '__main__':
     logger.addHandler(ch)
 
 
-
-     #!# This function is called if there is a problem with the vehicle setup. It will kill the script. 
-
-    def setup_abort(abort_reason=None):
-        t = 0
-        #display items on screen
-        while t<10:
-            logging.critical("System aborting due to error: %s" %abort_reason) 
-            time.sleep(1)
-            t+=1
-        sys.exit(1)
 
 
      #!# This prints out saying that we are starting the system initialization process. 
@@ -218,107 +333,6 @@ if __name__ == '__main__':
     #####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Main System !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     #####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-    #### !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Functions !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-     #!# This is a functions that is part of DroneKit but is currently not used. 
-    #def send_msg_to_gcs(message):
-    #    msg = autopilot.message_factory.statustext_encode(mavutil.mavlink.MAV_SEVERITY_CRITICAL, message)
-    #    autopilot.send_mavlink(msg)
-    #    autopilot.flush()
-
-
-     #!# This Abort Mission function an be called ONCE in the event that the mission should be autonmously terminated. 
-     #!# It is important to NOT call this function multiple times or every control loop, as it will lock 
-     #!# the system into Altitude Hold mode, and the UAV operator might not be able to override it. 
-    def abort_mission(reason):
-        logging.critical('%s! Aborting mission.' % reason)
-        autopilot.mode = VehicleMode("ALTHOLD")
-        #TODO: TEST THIS OUT to make sure it doesnt lock us in whatever mode we specify. 
-
-
-     #!#  This function is very important and is used to set the attitude of the vehicle. 
-     #!# The bitmask is set here to take in a quaternion and throttle setting from 0-1. 
-     #!# This throttle setting is that same as altitude hold mode. A value of .5 will maintain altitude. 
-    def set_attitude_target(data_in):
-        quat = data_in[0:4]
-        thr = data_in[4]
-        msg = autopilot.message_factory.set_attitude_target_encode(
-            0, 0,0,
-            0b000000001,     # bitmask
-            quat,    # quat
-            0,              #roll rate
-            0,              #  pitch rate
-            0,              # yaw speed deg/s
-            thr)             # thrust
-        autopilot.send_mavlink(msg)
-
-     #!# This function is a legacy item, but will allow the system to commmand a yaw heading. 
-    def condition_yaw(heading, relative=False):
-        if heading<0:
-            heading+=360
-
-        if relative:
-            is_relative=1 #yaw relative to direction of travel
-        else:
-            is_relative=0 #yaw is an absolute angle
-        # create the CONDITION_YAW command using command_long_encode()
-        msg = autopilot.message_factory.command_long_encode(
-            0, 0,    # target system, target component
-            mavutil.mavlink.MAV_CMD_CONDITION_YAW, #command
-            0, #confirmation
-            heading,    # param 1, yaw in degrees
-            0,          # param 2, yaw speed deg/s
-            1,          # param 3, direction -1 ccw, 1 cw
-            is_relative, # param 4, relative offset 1, absolute angle 0
-            0, 0, 0)    # param 5 ~ 7 not used
-        # send command to vehicle
-        autopilot.send_mavlink(msg)
-
-
-
-     #!#  This function downloads all of the current waypoints from the GCS pixhawk (if there are any), 
-     #!# clears the GCS pixhawk mission, and returns to mission information. 
-
-    def download_mission():
-        """ Downloads the current mission and returns it in a list. """
-        missionlist=[]
-        cmds = gcs.commands
-        cmds.download()
-        #cmds.wait_ready()
-        for cmd in cmds:
-            missionlist.append(cmd)
-            #print "I See A Waypoint!"
-        for cmd in cmds:
-            cmds.clear()
-            cmds.upload()
-            #print "I Cleared The Waypoint"
-        return missionlist
-
-     #!#  This function takes the mission list from the  GCS pixhawk, and parses it into a command. 
-     #!# This system uses 2 waypoints to specify a command from the ground station. 
-     #!#  First waypoint holds goal and mode information.
-     #!#  Second waypoint holds tether information, and there is room for two extra parameters. 
-    def read_mission():
-        missionlist = download_mission()
-        data=[]
-        for cmd in missionlist:
-            #(cmd.seq,cmd.current,cmd.frame,cmd.command,cmd.param1,cmd.param2,cmd.param3,cmd.param4,cmd.x,cmd.y,cmd.z,cmd.autocontinue)
-            data.append(cmd.param1)
-            data.append(cmd.x)
-            data.append(cmd.y)
-            data.append(cmd.z)
-
-        if data!=[]:
-            print  data
-            pose_controller.set_goal(data[1],data[2],data[3])# [theta,phi,L] in radians
-            pose_controller.goal_mode = data[0]
-            if len(data)>5:
-                extra1 = data[5]
-                pose_controller.gcs_tether_tension = data[6]
-                extra2 = data[7]
-        return None
-
-
      #!# Lastly, various variable initializations. 
 
     # Variable Initializations:
@@ -353,7 +367,7 @@ if __name__ == '__main__':
         pose_controller.gcs_alt = (gcs.location.global_relative_frame.alt )         # GCS Altitude from pixhawk (m)
         pose_controller.gcs_heading = gcs.attitude.yaw       # GCS Heading (rad)
         
-        print " ======== State Updated ========= "
+        # print " ======== State Updated ========= "
 
 
          #!# This block will read try to read any new mission commands from the GCS. 
@@ -378,8 +392,8 @@ if __name__ == '__main__':
      #!#  This set will only allow the control system to have control when both pixhawks are armed, and the UAV pixhawk is in GUIDED mode. 
      #!#  If the operator needs to recover the vehicle, he should change to ALTHOLD mode, and he will have full control of the vehicle. 
 
-        print "UAV mode: " + autopilot.mode.name + " Armed? " + str(autopilot.armed)
-        print "GCS mode: " + gcs.mode.name + " Armed? " + str(gcs.armed)
+        # print "UAV mode: " + autopilot.mode.name + " Armed? " + str(autopilot.armed)
+        # print "GCS mode: " + gcs.mode.name + " Armed? " + str(gcs.armed)
 
         #if autopilot.mode.name=='GUIDED' and autopilot.armed and gcs.armed:
         if True:
