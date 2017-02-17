@@ -300,7 +300,7 @@ if __name__ == '__main__':
             time.sleep(.2)
             gcs.mode = VehicleMode('GUIDED')
             gcs.armed=True
-            print "Run"
+            # print "Run"
             #Get Reel Info:
             try:
                  # Expected to return {"L": <length in meters, as double>, "T": <tension in newtons, as double>}

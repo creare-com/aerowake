@@ -378,10 +378,8 @@ if __name__ == '__main__':
      #!#  This set will only allow the control system to have control when both pixhawks are armed, and the UAV pixhawk is in GUIDED mode. 
      #!#  If the operator needs to recover the vehicle, he should change to ALTHOLD mode, and he will have full control of the vehicle. 
 
-        print autopilot.mode.name
-        print autopilot.armed
-        print gcs.mode.name
-        print gcs.armed
+        print "UAV mode: " + autopilot.mode.name + " Armed? " + str(autopilot.armed)
+        print "GCS mode: " + gcs.mode.name + " Armed? " + str(gcs.armed)
 
         #if autopilot.mode.name=='GUIDED' and autopilot.armed and gcs.armed:
         if True:

@@ -217,7 +217,7 @@ class pose_controller_class:
         phi = new_state[1]
         r = new_state[2]
 
-        print ">> Convens: Theta, Phi, R"
+        print ">> Convention: Theta, Phi, R"
         print ">> Pose:     %.2f, %.2f, %.2f, %.2f" %(th*180/np.pi,phi*180/np.pi,r,self.L)
         print ">> Goal:     %.2f, %.2f, %.2f" %(self.goal_pose[0]*180/np.pi,self.goal_pose[1]*180/np.pi,self.goal_pose[2])
         
@@ -259,7 +259,7 @@ class pose_controller_class:
         fiy = y_in
         fiz = z_in
 
-        print ">> Conves: X, Y, Z" 
+        print ">> Convention: X, Y, Z" 
         print ">> PID Forces:     %.2f, %.2f, %.2f" %(fix,fiy,fiz)
 
         #### Feed Forward Tether Model ####
