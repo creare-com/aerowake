@@ -6,11 +6,11 @@ from Queue import Empty
 import time
 
 import numpy as np
-from airprobe_main import airprobe_main
+from reel_main import reel_main
 
 SKIP_CYCLES=10 #only send the position every 10 cycles
 
-class airprobe_run (Process):
+class reel_run (Process):
     def __init__(self, cmd, data_out):
         Process.__init__(self)
         self.cmd = cmd

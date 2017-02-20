@@ -1,7 +1,7 @@
 import datetime
 import time
 
-class airprobe_run:
+class reel_run:
     def __init__(self,dt):
         
 
@@ -19,8 +19,8 @@ class airprobe_run:
 #This will get called at 200hz or whatever rate you want it to, as specified by the airprobe_run().
 
     def run(self):
-        airprobe_data = [0,0,0,0,0]        
+        reel_data = [0,0,0,0,0]        
         #log data
 
-        return airprobe_data
+        return reel_data
 

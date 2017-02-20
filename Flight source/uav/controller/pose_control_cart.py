@@ -217,9 +217,9 @@ class pose_controller_class:
         phi = new_state[1]
         r = new_state[2]
 
-        # print ">> Convention: Theta, Phi, R"
-        # print ">> Pose:     %.2f, %.2f, %.2f, %.2f" %(th*180/np.pi,phi*180/np.pi,r,self.L)
-        # print ">> Goal:     %.2f, %.2f, %.2f" %(self.goal_pose[0]*180/np.pi,self.goal_pose[1]*180/np.pi,self.goal_pose[2])
+        print ">> Convens: Theta, Phi, R"
+        print ">> Pose:     %.2f, %.2f, %.2f, %.2f" %(th*180/np.pi,phi*180/np.pi,r,self.L)
+        print ">> Goal:     %.2f, %.2f, %.2f" %(self.goal_pose[0]*180/np.pi,self.goal_pose[1]*180/np.pi,self.goal_pose[2])
         
         [x,y,z] = self.sph_to_cart(th,phi,r)
         [gx,gy,gz] = self.sph_to_cart(self.goal_pose[0],self.goal_pose[1],self.goal_pose[2])
@@ -235,7 +235,7 @@ class pose_controller_class:
         self.ey = gy-y
         self.ez = gz-z
         
-        # print ">> Error:    %.2f, %.2f, %.2f" %(self.ex,self.ey,self.ez)
+        print ">> Error:    %.2f, %.2f, %.2f" %(self.ex,self.ey,self.ez)
 
         # error integration
         self.eix += self.ex*control_dt
@@ -252,15 +252,15 @@ class pose_controller_class:
         y_in = (self.k_y[0]*self.ey) +  (self.k_y[1]*evy) + (self.k_y[2]*self.eiy)
         z_in = (self.k_z[0]*self.ez) +  (self.k_z[1]*evz) + (self.k_z[2]*self.eiz) 
 
-        # print ">> PID Inputs:   %.2f, %.2f, %.2f" %(x_in,y_in,z_in)
+        print ">> PID Inputs:   %.2f, %.2f, %.2f" %(x_in,y_in,z_in)
 
         # Convert spherical PID control to forces in XYZ
         fix = x_in
         fiy = y_in
         fiz = z_in
 
-        # print ">> Convention: X, Y, Z" 
-        # print ">> PID Forces:     %.2f, %.2f, %.2f" %(fix,fiy,fiz)
+        print ">> Conves: X, Y, Z" 
+        print ">> PID Forces:     %.2f, %.2f, %.2f" %(fix,fiy,fiz)
 
         #### Feed Forward Tether Model ####
 
@@ -268,12 +268,12 @@ class pose_controller_class:
         # Smart Tether FF uses the tether dynamics to figure out the forces.
         # It is a numerical solution, and not tested on outdoor conditions yet. 
         [ffx,ffy,ffz] = self.smart_tether_ff(th,phi,r,self.goal_pose[2],self.L)
-        # print ">> Smart Tether:   %.2f, %.2f, %.2f" %(ffx,ffy,ffz)
+        print ">> Smart Tether:   %.2f, %.2f, %.2f" %(ffx,ffy,ffz)
 
         # Basic tether model uses the weight of the tether and position to determine forces. 
         # It uses trig, and not the ideal tether conditions, but should be more robust than the FF. 
         [fbx,fby,fbz] = self.basic_tether_ff(th,phi,self.L)
-        # print ">> Basic Tether:   %.2f, %.2f, %.2f" %(fbx,fby,fbz)
+        print ">> Basic Tether:   %.2f, %.2f, %.2f" %(fbx,fby,fbz)
 
         #Set to zero for simulation
         [fx,fy,fz] = [0,0,0]
@@ -293,20 +293,20 @@ class pose_controller_class:
         fty = fiy + fy + fdy
         ftz = fiz + fz + fdz + self.uav_weight #weight needs to be in newtons
 
-        # print ">> Total:    %.2f, %.2f, %.2f" %(ftx,fty,ftz)
+        print ">> Total:    %.2f, %.2f, %.2f" %(ftx,fty,ftz)
 
         #### Rotate Forces ####
         # This is to keep the front of the vehicle pointed at the ship
         ftx = ftx*np.cos(phi) + fty*np.sin(phi)
         fty = -ftx*np.sin(phi) + fty*np.cos(phi)
 
-        # print ">> Total Rotated in BF:    %.2f, %.2f, %.2f" %(ftx,fty,ftz-self.uav_weight)
+        print ">> Total Rotated in BF:    %.2f, %.2f, %.2f" %(ftx,fty,ftz-self.uav_weight)
 
         f_total = (ftx*ftx+fty*fty+ftz*ftz)**0.5
         pitch = np.arctan(ftx/ftz)
         roll = np.arctan(fty/ftz)
 
-        # print ">> Roll, Pitch:     %.2f,   %.2f" %(roll*180/np.pi, pitch*180/np.pi)
+        print ">> Roll, Pitch:     %.2f,   %.2f" %(roll*180/np.pi, pitch*180/np.pi)
 
         # Saturate
         ATT_MAX = 30*np.pi/180
@@ -322,7 +322,7 @@ class pose_controller_class:
         thr_cmd = self.saturate(thr_cmd,0,1)
 
 
-        # print ">> Output Commands:  %.1f,  %.1f,  %.1f,  %.1f" %(roll_cmd,pitch_cmd,yaw_cmd,thr_cmd)
+        print ">> Output Commands:  %.1f,  %.1f,  %.1f,  %.1f" %(roll_cmd,pitch_cmd,yaw_cmd,thr_cmd)
 
         #roll_cmd = 0.0 # positive is a roll right. 
         #pitch_cmd = 0.0 # positive is pitch up

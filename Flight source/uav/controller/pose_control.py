@@ -2,7 +2,6 @@
 
 import numpy as np
 import imp
-import math
 import datetime
 from feedforward import feed_forward # Tether feed forward model. Might have robustness issues? 
 from referencecommand import reference_command # Tether reference location calculator
@@ -50,16 +49,14 @@ class pose_controller_class:
         self.log_n = 0
         self.human_time = 0
         self.log_file_name = 'log_generic.csv'
-
-
         # Controller Gains P D I
         # self.k_phi =[1.2, 2.0,  1.0] 
         # self.k_th  =[1,   2.0,  1.0]
         # self.k_r   =[.5,   3] 
 
-        self.k_phi =[1.0, .1,  0] 
-        self.k_th  =[1.0, .1,  0]
-        self.k_r   =[0.5, .1    ] 
+        self.k_phi =[1., .1,  0] 
+        self.k_th  =[1.,   .1,  0]
+        self.k_r   =[.5,  .1] 
 
         self.SMART_TETHER = True
 
@@ -159,7 +156,7 @@ class pose_controller_class:
             self.goal_pose = [g_th,g_phi,L]
         return None
 
-    def special_att_control(self,roll,pitch,thr_cmd): # Returns quaternion for proper yaw but specified roll/pitch. 
+    def special_att_control(self,roll,pitch,thr_cmd): # Returns quaternion for proper yaw but zero roll/pitch. 
         quat = self.eul2quat(roll,pitch,self.get_bearing())
         return [quat[0],quat[1],quat[2],quat[3],thr_cmd]       
 
@@ -219,7 +216,7 @@ class pose_controller_class:
         phi = new_state[1]
         r = new_state[2]
 
-        print ">> Convention: Theta, Phi, R"
+        print ">> Convens: Theta, Phi, R"
         print ">> Pose:     %.2f, %.2f, %.2f, %.2f" %(th*180/np.pi,phi*180/np.pi,r,self.L)
         print ">> Goal:     %.2f, %.2f, %.2f" %(self.goal_pose[0]*180/np.pi,self.goal_pose[1]*180/np.pi,self.goal_pose[2])
         
@@ -234,7 +231,7 @@ class pose_controller_class:
         self.e_th = r*(self.goal_pose[0] - th)
         self.e_r = self.goal_pose[2] - r
         
-        # print ">> Error:    %.2f, %.2f, %.2f" %(self.e_th,self.e_phi,self.e_r)
+        print ">> Error:    %.2f, %.2f, %.2f" %(self.e_th,self.e_phi,self.e_r)
 
         # error integration
         self.e_phi_int += self.e_phi*control_dt
@@ -249,7 +246,7 @@ class pose_controller_class:
         th_in = (self.k_th[0]*self.e_th) +  (self.k_th[1] * e_th_dot) + (self.k_th[2]*self.e_th_int)
         r_in = self.k_r[0]*self.e_r + self.k_r[1]*e_r_dot 
 
-        # print ">> PID Inputs:   %.2f, %.2f, %.2f" %(th_in,phi_in,r_in)
+        print ">> PID Inputs:   %.2f, %.2f, %.2f" %(th_in,phi_in,r_in)
 
         # Convert spherical PID control to forces in XYZ
         fix = -phi_in*np.sin(phi)*np.sin(th) + th_in*np.cos(th)*np.cos(phi) + (r_in)*np.cos(phi)*np.sin(th)
@@ -257,55 +254,54 @@ class pose_controller_class:
         fiz = -th_in*np.sin(th) + (r_in)*np.cos(th)
         #TODO: Saturate fix, fiy, fiz
 
-        # print ">> Convention: X, Y, Z" 
-        # print ">> PID Forces:     %.2f, %.2f, %.2f" %(fix,fiy,fiz)
+        print ">> Conves: X, Y, Z" 
+        print ">> PID Forces:     %.2f, %.2f, %.2f" %(fix,fiy,fiz)
 
         #### Feed Forward Tether Model ####
 
         #These are the forces that the vehicle needs to exert to balance the tether tension
         # Smart Tether FF uses the tether dynamics to figure out the forces.
         # It is a numerical solution, and not tested on outdoor conditions yet. 
-        
-        if self.SMART_TETHER:
-            [ffx,ffy,ffz] = self.smart_tether_ff(th,phi,r,self.goal_pose[2],self.L)
-            # print ">> Smart Tether:   %.2f, %.2f, %.2f" %(ffx,ffy,ffz)
-            if math.isnan(ffx) or math.isnan(ffy) or math.isnan(ffz):
-                # print "Smart Tether NaN"
-                [ffx,ffy,ffz] = self.basic_tether_ff(th,phi,self.L)
-        else:
-            [ffx,ffy,ffz] = self.basic_tether_ff(th,phi,self.L) 
-            # print ">> Basic Tether:   %.2f, %.2f, %.2f" %(ffx,ffy,ffz)
+        [ffx,ffy,ffz] = self.smart_tether_ff(th,phi,r,self.goal_pose[2],self.L)
+        print ">> Smart Tether:   %.2f, %.2f, %.2f" %(ffx,ffy,ffz)
+
         # Basic tether model uses the weight of the tether and position to determine forces. 
         # It uses trig, and not the ideal tether conditions, but should be more robust than the FF. 
+        [fbx,fby,fbz] = self.basic_tether_ff(th,phi,self.L)
+        print ">> Basic Tether:   %.2f, %.2f, %.2f" %(fbx,fby,fbz)
 
         #Set to zero for simulation
-        [ffx,ffy,ffz] = [0,0,0]
+        [fx,fy,fz] = [0,0,0]
 
         #TODO: Saturate tether model forces. 
+
+        if self.SMART_TETHER:
+            print "TODO: Need to Select Tether Model"
+
 
         #### Forces from Drag on Vehicle ####
         [fdx, fdy, fdz] = self.get_drag_vector()
 
 
         #### Total Forces for Output ####
-        ftx = fix + ffx + fdx
-        fty = fiy + ffy + fdy
-        ftz = fiz + ffz + fdz + self.uav_weight #weight needs to be in newtons
+        ftx = fix + fx + fdx
+        fty = fiy + fy + fdy
+        ftz = fiz + fz + fdz + self.uav_weight #weight needs to be in newtons
 
-        # print ">> Total:    %.2f, %.2f, %.2f" %(ftx,fty,ftz)
+        print ">> Total:    %.2f, %.2f, %.2f" %(ftx,fty,ftz)
 
         #### Rotate Forces ####
         # This is to keep the front of the vehicle pointed at the ship
         ftx = ftx*np.cos(phi) + fty*np.sin(phi)
         fty = -ftx*np.sin(phi) + fty*np.cos(phi)
 
-        # print ">> Total Rotated in BF:    %.2f, %.2f, %.2f" %(ftx,fty,ftz-self.uav_weight)
+        print ">> Total Rotated in BF:    %.2f, %.2f, %.2f" %(ftx,fty,ftz-self.uav_weight)
 
         f_total = (ftx*ftx+fty*fty+ftz*ftz)**0.5
         pitch = np.arctan(ftx/ftz)
         roll = np.arctan(fty/ftz)
 
-        # print ">> Roll, Pitch:     %.2f,   %.2f" %(roll*180/np.pi, pitch*180/np.pi)
+        print ">> Roll, Pitch:     %.2f,   %.2f" %(roll*180/np.pi, pitch*180/np.pi)
 
         # Saturate
         ATT_MAX = 30*np.pi/180
