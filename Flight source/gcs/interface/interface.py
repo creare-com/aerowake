@@ -43,12 +43,14 @@ class interface_run (Process):
         self.data_out.put("HALT_REEL_CMD")
 
     def update_curr(self):
-        print "updating"
+        # print "updating"
+        # self.l1.config(text = "done")
         try:
             self.curr_state = self.input_stream.get(False)
         except Empty:
             pass
 
+    
     def run(self):
         from Tkinter import * # To address the issue described in http://stackoverflow.com/questions/10755641/
 
@@ -56,35 +58,33 @@ class interface_run (Process):
         self.frame = Frame(root)
         self.frame.pack()
 
+        commandsFrame = LabelFrame(self.frame, text="Operations")
+        commandsFrame.grid(row=0, column=0)
 
 
-        b1 = Button(self.frame, text="QUIT", fg="red",command=self.callback_quit)
+        b1 = Button(commandsFrame, text="QUIT", fg="red",command=self.callback_quit)
         b1.pack(fill=X)
 
-        b2 = Button(self.frame, text="Takeoff", command=self.callback_takeoff)
-        b2.pack(fill=X)
+        self.buttonTakeoff = Button(commandsFrame, text="Takeoff", command=self.callback_takeoff)
+        self.buttonTakeoff.pack(fill=X)
 
-        b3 = Button(self.frame, text="Land", command=self.callback_land)
-        b3.pack(fill=X)
+        self.buttonLand = Button(commandsFrame, text="Land", command=self.callback_land)
+        self.buttonLand.pack(fill=X)
 
-        b6 = Button(self.frame, text="Auto Mode",command=self.callback_auto)
-        b6.pack(fill=X)
+        self.buttonAutoMode = Button(commandsFrame, text="Auto Mode",command=self.callback_auto)
+        self.buttonAutoMode.pack(fill=X)
 
-        b6 = Button(self.frame, text="Halt reel",command=self.callback_halt_reel)
-        b6.pack(fill=X)
+        self.buttonHaltReel = Button(commandsFrame, text="Halt reel",command=self.callback_halt_reel)
+        self.buttonHaltReel.pack(fill=X)
 
-        l1 = Label(root, fg="dark green")
-        l1.pack(fill=X)
+        # self.l1 = Label(root, fg="dark green")
+        # self.l1.pack(fill=X)
 
-        curr = str(self.curr_state)
-        l1.config(text=curr)
-        l1.after(1,self.update_curr)
+        # curr = str(self.curr_state)
+        # self.l1.config(text="eyyyyyy")
+        # self.l1.after(1000,self.update_curr)
 
-        b4 = Button(self.frame, text="Advance Target", command=self.callback_adv)
-        b4.pack(fill=X)
-
-
-        b5 = Button(self.frame, text="Update", command=self.update_curr)
-        b5.pack(fill=X)
-
+        self.buttonAdvTgt = Button(commandsFrame, text="Advance Target", command=self.callback_adv)
+        self.buttonAdvTgt.pack(fill=X)
+   
         root.mainloop()
