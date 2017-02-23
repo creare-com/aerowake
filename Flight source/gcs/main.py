@@ -285,13 +285,16 @@ if __name__ == '__main__':
 
 
     #!# These are the different modes that the UAV can be operating in. 
-    #!# i=0 is the index for the mission. 
+    #!# waypoint_num=0 is the index for the mission. 
     GCS_cmd = None
     G_AUTO = 0
     G_TAKEOFF = 1
     G_LAND = 2
     mode=None
-    i=0
+    waypoint_num=0
+    phi   = '-'
+    theta = '-'
+    L     = '-'
 
     #!# Start the main loop. 
     try:
@@ -312,7 +315,6 @@ if __name__ == '__main__':
 
             # # Determine flight mode and waypoints for the vehicle
 
-            display_vars['GCS Armed'] = gcs.armed
             if gcs.armed:
                 try:
                     GCS_cmd = data_from_interface.get(False)
@@ -326,29 +328,29 @@ if __name__ == '__main__':
                 # # Land = Landing vehicle: Maintain some throttle and reel the tether in.
                 # # None = Do nothing. Initial state. Motors will be on safe, vehicle disarmed. 
                 if GCS_cmd == "AUTO_CMD":
-                    i=0
-                    phi = mission.PHI[i]
-                    theta = mission.THETA[i]
-                    L = mission.L[i]
+                    waypoint_num=0
+                    phi = mission.PHI[waypoint_num]
+                    theta = mission.THETA[waypoint_num]
+                    L = mission.L[waypoint_num]
                     mode = G_AUTO
                     set_waypoint(mode,theta,phi,L)
                     print "Auto Mode"
-                    print "Mode: ",mode," Theta: %.1f  Phi: %.1f  L: %.1f" %(mission.THETA[i],mission.PHI[i],mission.L[i])
+                    print "Mode: ",mode," Theta: %.1f  Phi: %.1f  L: %.1f" %(mission.THETA[waypoint_num],mission.PHI[waypoint_num],mission.L[waypoint_num])
                     print_mission()
 
                 elif GCS_cmd == "ADV_CMD":
-                    i+=1
-                    if i==len(mission.THETA):
-                        i=0
+                    waypoint_num+=1
+                    if waypoint_num==len(mission.THETA):
+                        waypoint_num=0
 
-                    phi = mission.PHI[i]
-                    theta = mission.THETA[i]
-                    L = mission.L[i]
+                    phi = mission.PHI[waypoint_num]
+                    theta = mission.THETA[waypoint_num]
+                    L = mission.L[waypoint_num]
                     mode = G_AUTO
                     set_waypoint(mode,theta,phi,L)
                     GCS_cmd = "AUTO_CMD"
                     print "Advance Goal Target"
-                    print "Mode: ",mode," Theta: %.1f  Phi: %.1f  L: %.1f" %(mission.THETA[i],mission.PHI[i],mission.L[i])
+                    print "Mode: ",mode," Theta: %.1f  Phi: %.1f  L: %.1f" %(mission.THETA[waypoint_num],mission.PHI[waypoint_num],mission.L[waypoint_num])
                     print_mission()
 
 
@@ -363,9 +365,9 @@ if __name__ == '__main__':
                     print_mission()
 
                 elif GCS_cmd == "LAND_CMD":
-                    phi = 0
+                    phi   = 0
                     theta = 1.5
-                    L = 20
+                    L     = 20
                     mode = G_LAND
                     set_waypoint(mode,theta,phi,L)
                     print "Land Waypoint Set"
@@ -384,7 +386,12 @@ if __name__ == '__main__':
                 print "GCS Not Armed"
                 
             # Update the UI
-            display_vars['At war with'] = "eastasia"
+            display_vars = {
+                "Waypoint number":waypoint_num,
+                "Target Phi":  phi  ,
+                "Target Theta":theta,
+                "Target L":    L    ,
+                }
             status_to_interface.put(display_vars)
 
     except KeyboardInterrupt:
