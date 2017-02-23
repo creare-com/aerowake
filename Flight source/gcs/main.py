@@ -91,11 +91,11 @@ if __name__ == '__main__':
      #!# This block will start both the interface and the reel controller. 
     #!# Both of these systems use the multiprocessing infrastructure. 
 
-    commands_to_interface = Queue()
+    status_to_interface = Queue()
     data_from_interface = Queue()
 
     try:
-        ui = interface_run(commands_to_interface,data_from_interface)
+        ui = interface_run(status_to_interface,data_from_interface)
     except Exception:
         logging.critical('Problem connecting to UI')
         setup_abort("UI Failure")
@@ -297,6 +297,7 @@ if __name__ == '__main__':
     try:
         run = True
         while run:
+            display_vars = {}
             time.sleep(.2)
             gcs.mode = VehicleMode('GUIDED')
             gcs.armed=True
@@ -311,9 +312,8 @@ if __name__ == '__main__':
 
             # # Determine flight mode and waypoints for the vehicle
 
+            display_vars['GCS Armed'] = gcs.armed
             if gcs.armed:
-                commands_to_interface.put(001)
-
                 try:
                     GCS_cmd = data_from_interface.get(False)
                     print GCS_cmd
@@ -382,6 +382,10 @@ if __name__ == '__main__':
 
             else:
                 print "GCS Not Armed"
+                
+            # Update the UI
+            display_vars['At war with'] = "eastasia"
+            status_to_interface.put(display_vars)
 
     except KeyboardInterrupt:
         print("Got ^C, Cleaning up")

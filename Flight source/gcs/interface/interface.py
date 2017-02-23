@@ -13,12 +13,14 @@ class interface_run (Process):
     def __init__(self, status_in, data_out):
         """
         status_in and data_out must be queues.
+        status_in is expected to be populated with dictionaries, whose keys are 
+            displayed as labels.
         """
         Process.__init__(self)
         self.input_stream = status_in
-        self.curr_state = 999
         self.data_out = data_out
-        
+        self._UPDATE_INTERVAL_MS = 10
+        self._status_labels = {} # A dictionary, whose keys are strings and whose values are Tkinter label variables
 
 
     def callback_takeoff(self):
@@ -46,29 +48,40 @@ class interface_run (Process):
         print "Halt reel"
         self.data_out.put("HALT_REEL_CMD")
 
-    def update_curr(self):
-        # print "updating"
-        # self.l1.config(text = "done")
+    def update_status(self):
+        from Tkinter import * # To address the issue described in http://stackoverflow.com/questions/10755641/
         try:
-            self.curr_state = self.input_stream.get(False)
+            state_vars = self.input_stream.get(False)
         except Empty:
-            pass
+            state_vars = {}
+        
+        for var in state_vars:
+            if not var in self._status_labels:
+                # Make a new label
+                row_num = len(self._status_labels)
+                self._status_labels[var] = StringVar()
+                Label(self.statusFrame, text=var+":", justify=RIGHT).grid(row=row_num, column=0, sticky=N+S+E+W)
+                Label(self.statusFrame, textvariable=self._status_labels[var], justify=LEFT).grid(row=row_num, column=1, sticky=N+S+E+W)
+            self._status_labels[var].set(str(state_vars[var]))
+        
+        # Again
+        self.frame.after(self._UPDATE_INTERVAL_MS,self.update_status)
 
     
     def run(self):
         from Tkinter import * # To address the issue described in http://stackoverflow.com/questions/10755641/
 
         root = Tk()
+        
+        root.protocol("WM_DELETE_WINDOW", self.callback_quit)
         self.frame = Frame(root)
         self.frame.pack()
+        self.frame.after(self._UPDATE_INTERVAL_MS,self.update_status)
 
         ####################
         # Operations frame
         commandsFrame = LabelFrame(self.frame, text="Operations")
         commandsFrame.grid(row=0, column=0)
-
-        b1 = Button(commandsFrame, text="QUIT", fg="red",command=self.callback_quit)
-        b1.pack(fill=X)
 
         self.buttonTakeoff = Button(commandsFrame, text="Takeoff", command=self.callback_takeoff)
         self.buttonTakeoff.pack(fill=X)
@@ -82,41 +95,14 @@ class interface_run (Process):
         self.buttonHaltReel = Button(commandsFrame, text="Halt reel",command=self.callback_halt_reel)
         self.buttonHaltReel.pack(fill=X)
 
-        # self.l1 = Label(root, fg="dark green")
-        # self.l1.pack(fill=X)
-
-        # curr = str(self.curr_state)
-        # self.l1.config(text="eyyyyyy")
-        # self.l1.after(1000,self.update_curr)
-
         self.buttonAdvTgt = Button(commandsFrame, text="Advance Target", command=self.callback_adv)
         self.buttonAdvTgt.pack(fill=X)
    
         ####################
         # Status frame
-        statusFrame = LabelFrame(self.frame, text="Status", padx=5, pady=5)
-        statusFrame.grid(row=0, column=1)
-        
-        # Set up binding variables - all strings
-        self.tgtNum   = StringVar()
-        self.tgtTheta = StringVar()
-        self.tgtPhi   = StringVar()
-        self.tgtR     = StringVar()
-        
-        Label(statusFrame, text="Target Number", anchor=E, justify=RIGHT).grid(row=0, column=0)
-        Label(statusFrame, text="Target Theta",  anchor=E, justify=RIGHT).grid(row=1, column=0)
-        Label(statusFrame, text="Target Phi",    anchor=E, justify=RIGHT).grid(row=2, column=0)
-        Label(statusFrame, text="Target R",      anchor=E, justify=RIGHT).grid(row=3, column=0)
-
-        Label(statusFrame, textvariable=self.tgtNum  , anchor=W, justify=LEFT).grid(row=0, column=1)
-        Label(statusFrame, textvariable=self.tgtTheta, anchor=W, justify=LEFT).grid(row=1, column=1)
-        Label(statusFrame, textvariable=self.tgtPhi  , anchor=W, justify=LEFT).grid(row=2, column=1)
-        Label(statusFrame, textvariable=self.tgtR    , anchor=W, justify=LEFT).grid(row=3, column=1)
-   
-        self.tgtNum  .set("--")
-        self.tgtTheta.set("--")
-        self.tgtPhi  .set("--")
-        self.tgtR    .set("--")
-        
+        self.statusFrame = LabelFrame(self.frame, text="Status", padx=5, pady=5)
+        self.statusFrame.grid(row=0, column=1)
+        # Grid.columnconfigure(self.statusFrame, 0, weight=1)
+        # Grid.columnconfigure(self.statusFrame, 1, weight=1)
 
         root.mainloop()
