@@ -10,11 +10,15 @@ import numpy as np
 
 
 class interface_run (Process):
-    def __init__(self, cmd, data_out):
+    def __init__(self, status_in, data_out):
+        """
+        status_in and data_out must be queues.
+        """
         Process.__init__(self)
-        self.input_stream = cmd
+        self.input_stream = status_in
         self.curr_state = 999
         self.data_out = data_out
+        
 
 
     def callback_takeoff(self):
@@ -58,9 +62,10 @@ class interface_run (Process):
         self.frame = Frame(root)
         self.frame.pack()
 
+        ####################
+        # Operations frame
         commandsFrame = LabelFrame(self.frame, text="Operations")
         commandsFrame.grid(row=0, column=0)
-
 
         b1 = Button(commandsFrame, text="QUIT", fg="red",command=self.callback_quit)
         b1.pack(fill=X)
@@ -87,4 +92,31 @@ class interface_run (Process):
         self.buttonAdvTgt = Button(commandsFrame, text="Advance Target", command=self.callback_adv)
         self.buttonAdvTgt.pack(fill=X)
    
+        ####################
+        # Status frame
+        statusFrame = LabelFrame(self.frame, text="Status", padx=5, pady=5)
+        statusFrame.grid(row=0, column=1)
+        
+        # Set up binding variables - all strings
+        self.tgtNum   = StringVar()
+        self.tgtTheta = StringVar()
+        self.tgtPhi   = StringVar()
+        self.tgtR     = StringVar()
+        
+        Label(statusFrame, text="Target Number", anchor=E, justify=RIGHT).grid(row=0, column=0)
+        Label(statusFrame, text="Target Theta",  anchor=E, justify=RIGHT).grid(row=1, column=0)
+        Label(statusFrame, text="Target Phi",    anchor=E, justify=RIGHT).grid(row=2, column=0)
+        Label(statusFrame, text="Target R",      anchor=E, justify=RIGHT).grid(row=3, column=0)
+
+        Label(statusFrame, textvariable=self.tgtNum  , anchor=W, justify=LEFT).grid(row=0, column=1)
+        Label(statusFrame, textvariable=self.tgtTheta, anchor=W, justify=LEFT).grid(row=1, column=1)
+        Label(statusFrame, textvariable=self.tgtPhi  , anchor=W, justify=LEFT).grid(row=2, column=1)
+        Label(statusFrame, textvariable=self.tgtR    , anchor=W, justify=LEFT).grid(row=3, column=1)
+   
+        self.tgtNum  .set("--")
+        self.tgtTheta.set("--")
+        self.tgtPhi  .set("--")
+        self.tgtR    .set("--")
+        
+
         root.mainloop()
