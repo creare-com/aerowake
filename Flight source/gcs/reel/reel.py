@@ -6,7 +6,8 @@ from Queue import Empty
 import time
 import ReelController
 
-SKIP_CYCLES=10 #only send the position every 10 cycles
+SKIP_CYCLES=100 #only send the position every 10 cycles
+# SKIP_CYCLES=0
 
 class reel_run (Process):
     def __init__(self, cmd, data_out):

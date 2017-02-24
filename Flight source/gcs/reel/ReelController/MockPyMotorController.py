@@ -47,6 +47,7 @@ class MockPyMotorController:
     def moveToPosition(self, position):
         logging.info("Setting mock motor to %dQC"%position)
         self._target_pos = position
+        self.setActualPosition(position)
     def getPosition(self):
         return self._pos
     def getTargetPosition(self):

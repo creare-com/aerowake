@@ -55,6 +55,7 @@ class ReelController:
             logging.warning("Cannot connect to tension sensor!  Will be using mock sensor instead.")
             from MockTensionSensor import MockTensionSensor
             self._tension_sensor = MockTensionSensor()
+            self._tension_sensor.setTension(1)
 
         try:
             from PyMotorController import PyMotorController, SensorType
