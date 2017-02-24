@@ -13,8 +13,8 @@ class interface_run (Process):
     def __init__(self, status_in, data_out):
         """
         status_in and data_out must be queues.
-        status_in is expected to be populated with dictionaries, whose keys are 
-            displayed as labels.
+        status_in is expected to be populated with lists of pairs like [(name, value)],
+            where name is a string and value is anything that can be passed to str().
         """
         Process.__init__(self)
         self.input_stream = status_in
@@ -39,6 +39,14 @@ class interface_run (Process):
         print "Advance Target"
         self.data_out.put("ADV_CMD")
     
+    def callback_resend(self):
+        print "Resend a target"
+        self.data_out.put("RESEND_CMD")
+    
+    def callback_dec(self):
+        print "Go back a target"
+        self.data_out.put("DEC_CMD")
+    
     def callback_quit(self):
         print "Quit"
         self.data_out.put("QUIT_CMD")
@@ -53,16 +61,16 @@ class interface_run (Process):
         try:
             state_vars = self.input_stream.get(False)
         except Empty:
-            state_vars = {}
+            state_vars = []
         
-        for var in state_vars:
-            if not var in self._status_labels:
+        for name,val in state_vars:
+            if not name in self._status_labels:
                 # Make a new label
                 row_num = len(self._status_labels)
-                self._status_labels[var] = StringVar()
-                Label(self.statusFrame, text=var+":", justify=RIGHT).grid(row=row_num, column=0, sticky=N+S+E+W)
-                Label(self.statusFrame, textvariable=self._status_labels[var], justify=LEFT).grid(row=row_num, column=1, sticky=N+S+E+W)
-            self._status_labels[var].set(str(state_vars[var]))
+                self._status_labels[name] = StringVar()
+                Label(self.statusFrame, text=name+":", justify=RIGHT).grid(row=row_num, column=0, sticky=N+S+E+W)
+                Label(self.statusFrame, textvariable=self._status_labels[name], justify=LEFT).grid(row=row_num, column=1, sticky=N+S+E+W)
+            self._status_labels[name].set(str(val))
         
         # Again
         self.frame.after(self._UPDATE_INTERVAL_MS,self.update_status)
@@ -89,13 +97,19 @@ class interface_run (Process):
         self.buttonLand = Button(commandsFrame, text="Land", command=self.callback_land)
         self.buttonLand.pack(fill=X)
 
-        self.buttonAutoMode = Button(commandsFrame, text="Auto Mode",command=self.callback_auto)
+        self.buttonAutoMode = Button(commandsFrame, text="Enable positional seeking",command=self.callback_auto)
         self.buttonAutoMode.pack(fill=X)
 
         self.buttonHaltReel = Button(commandsFrame, text="Halt reel",command=self.callback_halt_reel)
         self.buttonHaltReel.pack(fill=X)
 
-        self.buttonAdvTgt = Button(commandsFrame, text="Advance Target", command=self.callback_adv)
+        self.buttonAdvTgt = Button(commandsFrame, text="Advance Target >>", command=self.callback_adv)
+        self.buttonAdvTgt.pack(fill=X)
+   
+        self.buttonAdvTgt = Button(commandsFrame, text="Resend Target", command=self.callback_resend)
+        self.buttonAdvTgt.pack(fill=X)
+   
+        self.buttonAdvTgt = Button(commandsFrame, text="<< Decrement Target", command=self.callback_dec)
         self.buttonAdvTgt.pack(fill=X)
    
         ####################

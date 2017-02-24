@@ -309,6 +309,7 @@ if __name__ == '__main__':
             try:
                  # Expected to return {"L": <length in meters, as double>, "T": <tension in newtons, as double>}
                  reel_reading = data_from_reel.get(False)
+                 # print("Got reel data:" + str(reel_reading))
                  # Currently not used anywhere
             except Empty:
                 pass
@@ -334,7 +335,7 @@ if __name__ == '__main__':
                     L = mission.L[waypoint_num]
                     mode = G_AUTO
                     set_waypoint(mode,theta,phi,L)
-                    print "Auto Mode"
+                    print "Entered Auto Mode"
                     print "Mode: ",mode," Theta: %.1f  Phi: %.1f  L: %.1f" %(mission.THETA[waypoint_num],mission.PHI[waypoint_num],mission.L[waypoint_num])
                     print_mission()
 
@@ -349,7 +350,33 @@ if __name__ == '__main__':
                     mode = G_AUTO
                     set_waypoint(mode,theta,phi,L)
                     GCS_cmd = "AUTO_CMD"
-                    print "Advance Goal Target"
+                    print "Advanced Goal Target"
+                    print "Mode: ",mode," Theta: %.1f  Phi: %.1f  L: %.1f" %(mission.THETA[waypoint_num],mission.PHI[waypoint_num],mission.L[waypoint_num])
+                    print_mission()
+
+                elif GCS_cmd == "DEC_CMD":
+                    waypoint_num -= 1
+                    if waypoint_num < 0:
+                        waypoint_num = 0
+
+                    phi = mission.PHI[waypoint_num]
+                    theta = mission.THETA[waypoint_num]
+                    L = mission.L[waypoint_num]
+                    mode = G_AUTO
+                    set_waypoint(mode,theta,phi,L)
+                    GCS_cmd = "AUTO_CMD"
+                    print "Decremented Goal Target"
+                    print "Mode: ",mode," Theta: %.1f  Phi: %.1f  L: %.1f" %(mission.THETA[waypoint_num],mission.PHI[waypoint_num],mission.L[waypoint_num])
+                    print_mission()
+
+                elif GCS_cmd == "RESEND_CMD":
+                    phi = mission.PHI[waypoint_num]
+                    theta = mission.THETA[waypoint_num]
+                    L = mission.L[waypoint_num]
+                    mode = G_AUTO
+                    set_waypoint(mode,theta,phi,L)
+                    GCS_cmd = "AUTO_CMD"
+                    print "Resent Goal Target"
                     print "Mode: ",mode," Theta: %.1f  Phi: %.1f  L: %.1f" %(mission.THETA[waypoint_num],mission.PHI[waypoint_num],mission.L[waypoint_num])
                     print_mission()
 
@@ -386,12 +413,20 @@ if __name__ == '__main__':
                 print "GCS Not Armed"
                 
             # Update the UI
-            display_vars = {
-                "Waypoint number":waypoint_num,
-                "Target Phi":  phi  ,
-                "Target Theta":theta,
-                "Target L":    L    ,
-                }
+            mode_string = "Auto position" if mode == G_AUTO else \
+                          "Takeoff"       if mode == G_TAKEOFF else \
+                          "Landing"       if mode == G_LAND else \
+                          "Invalid state"
+            display_vars = [
+                ("Connected to GCS PH",      not timed_out    ),
+                ("System mode",              mode_string      ),
+                ("Waypoint number",          waypoint_num     ),
+                ("Target Phi (Az, rad)",     phi              ),
+                ("Target Theta (el, rad)",   theta            ),
+                ("Target L (m)",             L                ),
+                ("Current reel L (m)",       reel_reading['L']),
+                ("Current reel tension (N)", reel_reading['T']),
+            ]
             status_to_interface.put(display_vars)
 
     except KeyboardInterrupt:
