@@ -1,5 +1,5 @@
 #!/usr/bin/env python2
-
+ 
 # GCS BASED MAIN LOOP
 
 import csv
