@@ -300,6 +300,7 @@ if __name__ == '__main__':
     #!# Start the main loop. 
     try:
         run = True
+        reel_reading = {'L':'-', 'T':'-'}
         while run:
             display_vars = {}
             time.sleep(.2)
@@ -313,7 +314,7 @@ if __name__ == '__main__':
                  # print("Got reel data:" + str(reel_reading))
                  # Currently not used anywhere
             except Empty:
-                reel_reading = {'L':'-', 'T':'-'}
+                 pass
 
             # # Determine flight mode and waypoints for the vehicle
 
