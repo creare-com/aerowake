@@ -313,7 +313,7 @@ if __name__ == '__main__':
                  # print("Got reel data:" + str(reel_reading))
                  # Currently not used anywhere
             except Empty:
-                pass
+                reel_reading = {'L':'-', 'T':'-'}
 
             # # Determine flight mode and waypoints for the vehicle
 
