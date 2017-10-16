@@ -9,4 +9,4 @@
 from math import pi
 THETA  = [ 0, pi/4,  pi/4,  pi/4,  pi/4, ]
 PHI    = [ 0,    0, +pi/4, -pi/4,     0, ]
-L      = [50,   50,    50,    50,    50, ] 
+L      = [50,   25,    30,    40,    20, ] 

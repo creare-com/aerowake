@@ -83,7 +83,7 @@ if __name__ == '__main__':
     print "\n\n\n\n\n\n"
     logging.info("------------ STARTING AEROWAKE SYSTEM ------------")
     logging.info("-------------------- GCS NODE --------------------")
-    time.sleep(2)
+#    time.sleep(2)
     #### External Drive Setup ####
 
 
