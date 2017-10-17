@@ -1,4 +1,5 @@
 # Simple test of branch and commit - Brandon
+# Simple test #2 of branch and commit - Brandon
 
 # This is how the mission is currently specified. Angles are in Radians. 
 # You must re-run the GCS application to reload this file.
