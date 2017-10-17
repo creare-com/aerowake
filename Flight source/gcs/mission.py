@@ -1,3 +1,5 @@
+# Simple test of branch and commit - Brandon
+
 # This is how the mission is currently specified. Angles are in Radians. 
 # You must re-run the GCS application to reload this file.
 # Theta: 90 degrees is horizontal ( same altitude as boat )
