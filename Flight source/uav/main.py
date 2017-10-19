@@ -5,27 +5,25 @@ import datetime
 import glob
 import logging
 import math
-
 import os
 import subprocess
 import sys
 import threading
 import time
+import numpy as np
 from multiprocessing import Queue
 from Queue import Empty
-import numpy as np
-
 from dronekit import APIException, VehicleMode, connect, mavutil
 from airprobe.airprobe_run import airprobe_run
 
- #!# All comments to explain system will be prefaced with "#!#"
+ #!# Comments explaining system prefaced with "#!#" - generally higher level understanding of process.
+ #!# Comments explaining code prefaced with '#'
 
-
- #!# Select which position controller to use. Pose_control is the spherical position controller. 
- #!# and pose_control_cart is the Cartesian based system. 
+ #!# Select which position controller to use. pose_control is the spherical position controller and pose_control_cart is the Cartesian based system. 
 
 #from controller.pose_control_cart import pose_controller_class
 from controller.pose_control import pose_controller_class
+
 
 #######################################################
 ##
@@ -50,20 +48,14 @@ def setup_abort(abort_reason=None):
 #    autopilot.send_mavlink(msg)
 #    autopilot.flush()
 
-
- #!# This Abort Mission function an be called ONCE in the event that the mission should be autonmously terminated. 
- #!# It is important to NOT call this function multiple times or every control loop, as it will lock 
- #!# the system into Altitude Hold mode, and the UAV operator might not be able to override it. 
+ #!# This Abort Mission function an be called ONCE in the event that the mission should be autonmously terminated. It is important to NOT call this function multiple times or every control loop, as it will lock the system into Altitude Hold mode, and the UAV operator might not be able to override it. 
 def abort_mission(reason):
     global autopilot
     logging.critical('%s! Aborting mission.' % reason)
     autopilot.mode = VehicleMode("ALTHOLD")
     #TODO: TEST THIS OUT to make sure it doesnt lock us in whatever mode we specify. 
 
-
- #!#  This function is very important and is used to set the attitude of the vehicle. 
- #!# The bitmask is set here to take in a quaternion and throttle setting from 0-1. 
- #!# This throttle setting is that same as altitude hold mode. A value of .5 will maintain altitude. 
+ #!#  This function is very important and is used to set the attitude of the vehicle. The bitmask is set here to take in a quaternion and throttle setting from 0-1. This throttle setting is that same as altitude hold mode. A value of .5 will maintain altitude. 
 def set_attitude_target(data_in):
     global autopilot
     quat = data_in[0:4]
@@ -101,13 +93,8 @@ def condition_yaw(heading, relative=False):
     # send command to vehicle
     autopilot.send_mavlink(msg)
 
-
-
- #!#  This function downloads all of the current waypoints from the GCS pixhawk (if there are any), 
- #!# clears the GCS pixhawk mission, and returns to mission information. 
-
+ #!#  This function downloads all of the current waypoints from the GCS pixhawk (if there are any), clears the GCS pixhawk mission, and returns to mission information. 
 def download_mission():
-    """ Downloads the current mission and returns it in a list. """
     global autopilot
     missionlist=[]
     cmds = gcs.commands
@@ -122,20 +109,21 @@ def download_mission():
         #print "I Cleared The Waypoint"
     return missionlist
 
- #!#  This function takes the mission list from the  GCS pixhawk, and parses it into a command. 
- #!# This system uses 2 waypoints to specify a command from the ground station. 
- #!#  First waypoint holds goal and mode information.
- #!#  Second waypoint holds tether information, and there is room for two extra parameters. 
+ #!#  This function takes the mission list from the  GCS pixhawk, and parses it into a command. This system uses 2 waypoints to specify a command from the ground station. 
+ #!#  First waypoint holds goal and mode information. Second waypoint holds tether information, and there is room for two extra parameters. 
 def read_mission():
     global autopilot
     missionlist = download_mission()
     data=[]
+
     for cmd in missionlist:
         #(cmd.seq,cmd.current,cmd.frame,cmd.command,cmd.param1,cmd.param2,cmd.param3,cmd.param4,cmd.x,cmd.y,cmd.z,cmd.autocontinue)
         data.append(cmd.param1)
         data.append(cmd.x)
         data.append(cmd.y)
         data.append(cmd.z)
+
+
 
     if data!=[]:
         print  data
@@ -153,12 +141,12 @@ def read_mission():
 ##               Main
 ##
 #######################################################
+
 if __name__ == '__main__':
 
      #!# Setting up connection path for the Autopilots. 
      #!# For Hardware operation, use the following. These baud rates must match those
-     #!# as established on the actual hardware. UAV wired connection should be 115200 and 
-     #!# the telemetry radio should be set up for 57600. Uncomment the following lines:
+     #!# as established on the actual hardware. UAV wired connection should be 115200 and the telemetry radio should be set up for 57600. Uncomment the following lines:
 
     #autopilot_connect_path = '/dev/ttyAMA0'
     autopilot_connect_path = '/dev/ttyS0' #USe for RaspPi3
@@ -177,8 +165,6 @@ if __name__ == '__main__':
     #####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     #####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! SYSTEM SETUP !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     #####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-
 
 
     ####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Local System Setup !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -202,28 +188,18 @@ if __name__ == '__main__':
     logger.addHandler(ch)
 
 
-
-
      #!# This prints out saying that we are starting the system initialization process. 
     print "\n\n\n\n"
     logging.info("------------ STARTING AEROWAKE SYSTEM ------------")
     logging.info("-------------------- UAV NODE --------------------")
-
-
     #### !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Start Position Controller !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
      #!# This establishes the position control system. 
-     #!# CONTROL_DT is the control loop speed and needed for calculating the control derivative terms. 
-     #!# This parameter might have to be updated each loop iteration, or else the derivative control term
-     #!# might give random large inputs when the control loop slows for random reasons. 
-
+     #!# CONTROL_DT is the control loop speed and needed for calculating the control derivative terms. This parameter might have to be updated each loop iteration, or else the derivative control term might give random large inputs when the control loop slows for random reasons. 
     CONTROL_DT = .1
-
     pose_controller = pose_controller_class(CONTROL_DT)
     pose_controller.log_file_name = time.strftime('telem_log_%Y-%m-%d_%H%M%S.csv',time.localtime())
     #pose_controller.run_sph_pose_controller()
-
-
 
     ####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Multiprocessing System Setup !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -232,14 +208,13 @@ if __name__ == '__main__':
     #### Start Air Probe Controller ####
     commands_to_airprobe = Queue()
     data_from_airprobe = Queue()
-    # try:
-    airprobe = airprobe_run(commands_to_airprobe, data_from_airprobe)
-    # except Exception:
-        # logging.critical('Problem connection to airprobe. Aborting.')
-        # setup_abort("Airprobe System Failure")
-        #sys.exit(1)
+    try:
+        airprobe = airprobe_run(commands_to_airprobe, data_from_airprobe)
+    except Exception:
+        logging.critical('Problem connection to airprobe. Aborting.')
+        setup_abort("Airprobe System Failure")
+        sys.exit(1)
     airprobe.start()
-
 
     ####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Pixhawk System Setup !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -287,8 +262,9 @@ if __name__ == '__main__':
 
     print "GCS PIXHAWK IS CONNECTED!!!!!!!"
 
+
     #### System Time Setup ####
-    human_time=0
+    logging_time=0
     # We need to get the time from the autopilot (which gets it via gps), because the raspi does not have a RTC
     autopilot_start_time = 0
     rasp_start_time = 0
@@ -297,13 +273,13 @@ if __name__ == '__main__':
         global autopilot_start_time
         if(autopilot_start_time is 0 and msg.time_unix_usec > 0):
             autopilot_start_time = msg.time_unix_usec/1000000
-            human_time = datetime.datetime.fromtimestamp(autopilot_start_time).strftime('%Y-%m-%d %H:%M:%S')
-            logging.info("Got GPS lock at %s" % human_time)
+            # logging_time = datetime.datetime.fromtimestamp(autopilot_start_time).strftime('%Y-%m-%d %H:%M:%S')
+            logging_time = "%0.4f" % time.time()
+            logging.info("Got GPS lock at %s" % logging_time)
             rasp_start_time = time.clock()
 
 
     #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Pixhawk Callback/Logging System !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 
      #!# Log if no MAVLink packets are heard for more than a second
      #!# Also log mode changes, and arm/disarm
@@ -337,6 +313,7 @@ if __name__ == '__main__':
 
     # Variable Initializations:
     prev_yaw=0
+
     prev_time = datetime.datetime.now()
 
      #!# These are the Modes that can be sent up by the GCS
@@ -349,10 +326,26 @@ if __name__ == '__main__':
     logging.info("------------------SYSTEM IS READY!!------------------")
     logging.info("-----------------------------------------------------")
 
+    if not autopilot.mode.name == "GUIDED":
+        autopilot.mode = VehicleMode("GUIDED")
+        while not autopilot.mode.name == "GUIDED":
+            print 'Waiting for UAV to sqitch to GUIDED mode: ', autopilot.mode
+            time.sleep(1)
+
+    if not autopilot.armed:
+        while not autopilot.is_armable:
+            print "UAV Not Armable"
+            time.sleep(.5)
+        autopilot.armed = True
+        while not autopilot.armed:
+            print 'Waiting for UAV to arm: ',autopilot.armed
+            time.sleep(0.5)
+
     while True:
 
+
         t0= datetime.datetime.now()
-        pose_controller.human_time = human_time
+        pose_controller.logging_time = logging_time
 
          #!#  Update State Information from the UAV pixhawk and GCS pixhawk. 
         pose_controller.uav_coord = [autopilot.location.global_frame.lat, autopilot.location.global_frame.lon]     # GPS Coordinates of UAV [lat,lon] from pixhawk (DD.DDDDDDD)
@@ -374,8 +367,8 @@ if __name__ == '__main__':
           #!# If there is a new set of commands, read_mission() will read, parse, and clear the mission. 
         curr_time = datetime.datetime.now()
         delta = (curr_time-prev_time).total_seconds()
-        if delta>2:
-    #UNDO THIS###        read_mission()
+        if delta>1:
+            read_mission()
             prev_time=curr_time
             #print "tried to read mission"
 
@@ -397,7 +390,7 @@ if __name__ == '__main__':
 
         #if autopilot.mode.name=='GUIDED' and autopilot.armed and gcs.armed:
         if True:
-            pose_controller.goal_mode=G_AUTO
+            # pose_controller.goal_mode=G_AUTO
 
             if pose_controller.goal_mode ==G_AUTO:
                 output = pose_controller.run_sph_pose_controller()
@@ -407,8 +400,8 @@ if __name__ == '__main__':
             if pose_controller.goal_mode ==G_TAKEOFF: 
                 #Special condition for takoff. Positive pitch is pitch up
                 roll = 0
-                pitch = 0
-                thr = .55
+                pitch = 0.25
+                thr = .6
                 output = pose_controller.special_att_control(roll,pitch,thr)
                 set_attitude_target(output)
                 print 'Take Off Mode. Roll: %.2f  Pitch: %.2f   Thr: %.2f'%(roll,pitch,thr)
