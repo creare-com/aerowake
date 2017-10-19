@@ -161,18 +161,12 @@ if __name__ == '__main__':
      #!# Also log mode changes, and arm/disarm
      #!# Normal Dronekit Callbacks. 
 
-    timed_out = False
-
+    last_heartbeat_dt = 0
     @gcs.on_attribute('last_heartbeat')   
     def last_heartbeat_listener(self, attr_name, value):
         if(attr_name is 'last_heartbeat'):
-            global timed_out
-            if value > 3 and not timed_out:
-                timed_out = True
-                logging.critical("Pixhawk connection lost!")
-            if value < 3 and timed_out:
-                timed_out = False;
-                logging.info("Pixhawk connection restored.")
+            global last_heartbeat_dt
+            last_heartbeat_dt = value
 
     @gcs.on_attribute('armed')
     def arm_disarm_callback(self,attr_name, msg):
@@ -420,7 +414,7 @@ if __name__ == '__main__':
                           "Landing"       if mode == G_LAND else \
                           "Invalid state"
             display_vars = [
-                ("Connected to GCS PH",      not timed_out    ),
+                ("GCS PH heartbeat time",    last_heartbeat_dt),
                 ("System mode",              mode_string      ),
                 ("Waypoint number",          waypoint_num     ),
                 ("Target Phi (Az, rad)",     phi              ),
