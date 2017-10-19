@@ -222,23 +222,33 @@ if __name__ == '__main__':
 
      #!# This is the important function that sends commands to the UAV. 
     def set_waypoint(mode,theta,phi,L,extra1=-1,tether_t=-1,extra2=-1):
-        # Store waypoints in GCS PixHawk.  The UAV Pi will read them out and maneuver the UAV to that position.
-        # Waypoints here are not in a format that ether PixHawk can usefully interpret directly (theta, phi, L).
-        cmds = gcs.commands
-        cmds.download()
-        cmds.wait_ready()
-        cmds.clear()
-        cmd1=Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, 
-            mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, mode, 0, 0, 0, theta, phi, L)
-        cmd3=Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, 
-            mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, -1,  0, 0, 0, extra1, tether_t, extra2)
-        cmds.add(cmd1)
-        cmds.add(cmd3)
-        cmds.upload()
-        
         # Command the tether to spool out/reel in to the appropriate length
         commands_to_reel.put({"cmd":"goto", "L":L})
 
+        try:
+            # Store waypoints in GCS PixHawk.  The UAV Pi will read them out and maneuver the UAV to that position.
+            # Waypoints here are not in a format that ether PixHawk can usefully interpret directly (theta, phi, L).
+            cmds = gcs.commands
+            # I don't know why Mike put this in here.  It could be important.
+            # But for now I'm just gonna comment it out.  -JDW
+            # logging.info("Downloading current waypoints...")
+            # cmds.download()
+            # cmds.wait_ready()
+            # logging.info("Done downloading.")
+            cmds.clear()
+            cmd1=Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, 
+                mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, mode, 0, 0, 0, theta, phi, L)
+            cmd2=Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, 
+                mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, -1,  0, 0, 0, extra1, tether_t, extra2)
+            cmds.add(cmd1)
+            cmds.add(cmd2)
+            logging.info("Uploading new waypoints...")
+            cmds.upload() # Asynchronous
+            cmds.wait_ready() # Make it synchronous
+            logging.info("Done uploading.")
+        except dronekit.APIException as err:
+            logging.error("Couldn't set waypoint on GCS: " + str(err))
+        
     def print_mission():
         missionlist = download_mission()
         for cmd in missionlist:
