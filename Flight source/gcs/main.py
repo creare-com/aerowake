@@ -20,6 +20,9 @@ from dronekit import APIException, VehicleMode, connect, mavutil, Command
 from reel.reel import reel_run
 from interface.interface import interface_run
 
+# Constants
+GCS_PH_WAYPOINTS_TIMEOUT = 5
+
 
  #!# All comments to explain system will be prefaced with "#!#"
 
@@ -213,11 +216,17 @@ if __name__ == '__main__':
         It is used in save_mission() to get the file information to save.
         """
         missionlist=[]
-        cmds = gcs.commands
-        cmds.download()
-        cmds.wait_ready()
-        for cmd in cmds:
-            missionlist.append(cmd)
+        try:
+            cmds = gcs.commands
+            logging.info("Downloading current waypoints...")
+            cmds.download()
+            cmds.wait_ready(timeout=GCS_PH_WAYPOINTS_TIMEOUT)
+            logging.info("Done downloading.")
+            for cmd in cmds:
+                missionlist.append(cmd)
+        except APIException as err:
+            logging.error("Couldn't get waypoints on GCS: " + str(err))
+            
         return missionlist
 
      #!# This is the important function that sends commands to the UAV. 
@@ -233,7 +242,7 @@ if __name__ == '__main__':
             # But for now I'm just gonna comment it out.  -JDW
             # logging.info("Downloading current waypoints...")
             # cmds.download()
-            # cmds.wait_ready()
+            # cmds.wait_ready(timeout=GCS_PH_WAYPOINTS_TIMEOUT)
             # logging.info("Done downloading.")
             cmds.clear()
             cmd1=Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, 
@@ -244,9 +253,9 @@ if __name__ == '__main__':
             cmds.add(cmd2)
             logging.info("Uploading new waypoints...")
             cmds.upload() # Asynchronous
-            cmds.wait_ready() # Make it synchronous
+            cmds.wait_ready(timeout=GCS_PH_WAYPOINTS_TIMEOUT) # Make it synchronous
             logging.info("Done uploading.")
-        except dronekit.APIException as err:
+        except APIException as err:
             logging.error("Couldn't set waypoint on GCS: " + str(err))
         
     def print_mission():
@@ -259,11 +268,22 @@ if __name__ == '__main__':
             print cmd.z
 
     def clear_mission():
-        cmds = gcs.commands
-        cmds.download()
-        cmds.wait_ready()
-        cmds.clear()
-        cmds.upload()
+        try:
+            cmds = gcs.commands
+            # I don't know why Mike put this in here.  It could be important.
+            # But for now I'm just gonna comment it out.  -JDW
+            # logging.info("Downloading current waypoints...")
+            # cmds.download()
+            # cmds.wait_ready(timeout=GCS_PH_WAYPOINTS_TIMEOUT)
+            # logging.info("Done downloading.")
+            cmds.clear()
+            logging.info("Uploading empty waypoint list...")
+            cmds.upload() # Asynchronous
+            cmds.wait_ready(timeout=GCS_PH_WAYPOINTS_TIMEOUT) # Make it synchronous
+            logging.info("Done uploading.")
+        except APIException as err:
+            logging.error("Couldn't clear waypoints on GCS: " + str(err))
+        
 
     #!# At this point, arm the GCS pixhawk and place it into guided mode. 
     #1# Might have to set the ARMING CHECK parameter to 0 in the GCS pixhawk. 
@@ -423,8 +443,9 @@ if __name__ == '__main__':
                           "Takeoff"       if mode == G_TAKEOFF else \
                           "Landing"       if mode == G_LAND else \
                           "Invalid state"
+            display_hb_dt = round(last_heartbeat_dt, 2)
             display_vars = [
-                ("GCS PH heartbeat time",    last_heartbeat_dt),
+                ("GCS PH heartbeat time",    display_hb_dt    ),
                 ("System mode",              mode_string      ),
                 ("Waypoint number",          waypoint_num     ),
                 ("Target Phi (Az, rad)",     phi              ),
