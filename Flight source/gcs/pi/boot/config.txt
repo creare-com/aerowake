@@ -51,10 +51,17 @@
 #dtoverlay=lirc-rpi
 
 # Additional overlays and parameters are documented /boot/overlays/README
+
+# Turn off bluetooth and assign it to /dev/ttyS0 rather than /dev/ttyAMA0
+# See https://www.raspberrypi.org/documentation/configuration/uart.md
 dtoverlay=pi3-disable-bt
 dtoverlay=pi3-miniuart-bt
 
 # Enable audio (loads snd_bcm2835)
 dtparam=audio=on
 dtparam=i2c_arm=on
-#enable_uart=1
+
+# You would think this enables the UART port.  It actually enables OS console 
+# output to the UART port, which isn't desirable if you want to use the UART port
+# for something else.
+#enable_uart=1 
