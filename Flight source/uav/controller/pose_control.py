@@ -131,20 +131,20 @@ class pose_controller_class:
         # Phi Calc
         phi=self.gcs_heading-self.get_bearing()
 
-        print '\n\n\n'
-        print 'UAV'
-        print '\theading: ',self.uav_heading
+        # print '\n\n\n'
+        # print 'UAV'
+        # print '\theading: ',self.uav_heading
         # print '\tcoord: ',self.uav_coord
         # print '\talt: ',self.uav_alt
-        print '\nGCS'
-        print '\theading: ',self.gcs_heading
+        # print '\nGCS'
+        # print '\theading: ',self.gcs_heading
         # print '\tcoord: ',self.gcs_coord
         # print '\talt: ',self.gcs_alt
-        print '\nBEARING: ', self.get_bearing()
+        # print '\nBEARING: ', self.get_bearing()
         # print '\nTheta: ', theta*180/np.pi
         # print 'Phi: ', phi
         # print 'r: ', r
-        print '\n\n\n'
+        # print '\n\n\n'
 
         if phi>np.pi:
             phi=phi-2*np.pi
@@ -262,7 +262,6 @@ class pose_controller_class:
         th = new_state[0] # rad
         phi = new_state[1] # rad
         r = new_state[2] # m
-        heading = self.uav_heading # rad
 
         print ">> Pose: Theta %.2f, Phi %.2f, R %.2f, L %.2f" %(th*180/np.pi,phi*180/np.pi,r,self.L)
         print ">> Goal: Theta %.2f, Phi %.2f, R %.2f" %(self.goal_pose[0]*180/np.pi,self.goal_pose[1]*180/np.pi,self.goal_pose[2])
@@ -357,10 +356,28 @@ class pose_controller_class:
         # fty = -ftx*np.sin(phi) + fty*np.cos(phi)
         # print ">> Total Rotated in BF: X %.2f, Y %.2f, Z %.2f" %(ftx,fty,ftz-self.uav_weight)
 
-        # f_total never used, so commented out
+        # the variable f_total is never used, so commented out
         # f_total = (ftx*ftx+fty*fty+ftz*ftz)**0.5
 
-        # determine pitch and roll (assuming heading of uav and heading of gcs are identical). Scale by ftz to add preference to altitude before x,y location
+        # The forces have so far been calculated independent of the uav heading. If the uav heading is aligned with the gcs axes (i.e. aligned with the gcs heading), then these forces are correct. This is not always the case, so now rotate the forces to be aligned with the uav heading.
+        yaw = self.uav_heading # rad
+        yaw_goal = self.get_bearing() # rad
+        delta_yaw = yaw_goal - yaw
+        # Limit delta yaw to be within +- pi from the uav's current heading (ensures uav will turn in optimal direction)
+        if delta_yaw < -np.pi:
+            delta_yaw = delta_yaw + 2*np.pi
+        elif delta_yaw > np.pi:
+            delta_yaw = delta_yaw - 2*np.pi
+        R = np.array([[np.cos(delta_yaw), -np.sin(delta_yaw), 0], \
+                      [np.sin(delta_yaw),  np.cos(delta_yaw), 0], \
+                      [                0,                  0, 1]])
+        arr_ft = np.array([ftx, fty, ftz])
+        ft_new = R.dot(arr_ft)
+        ftx = ft_new[0]
+        fty = ft_new[1]
+        ftz = ft_new[2]
+
+        # determine pitch and roll. Scale by ftz to add preference to altitude before x,y location
         pitch = np.arctan(ftx/ftz) # rad
         roll = np.arctan(fty/ftz) # rad
 
@@ -374,7 +391,11 @@ class pose_controller_class:
         pitch_cmd = self.saturate(pitch,-ATT_MAX,ATT_MAX) # rad
         roll_cmd = self.saturate(roll,-ATT_MAX,ATT_MAX) # rad
         yaw_cmd = self.get_bearing() # rad
-        yaw_rate = 0
+
+        # Determine yaw rate based upon required change in yaw (CW positive). Also limit the maximum yaw rate.
+        max_yaw_rate = 10 # [deg/s]
+        max_yaw_rate = max_yaw_rate*np.pi/180 # [rad/s]
+        yaw_rate = self.saturate(delta_yaw,-max_yaw_rate,max_yaw_rate)
 
         K_THROTTLE = .05
         thr_cmd = ((ftz-self.uav_weight)*K_THROTTLE)+.5
@@ -382,11 +403,11 @@ class pose_controller_class:
 
         print ">> Output Commands : roll %.1f, pitch %.1f, yaw %.1f, thrust %.1f, yaw_rate %.1f" %(roll_cmd,pitch_cmd,yaw_cmd,thr_cmd, yaw_rate)
 
-        roll_cmd = 0
-        pitch_cmd = 0
-        yaw_cmd = 90.0
-        thr_cmd = 0.7
-        yaw_rate = 0
+        # roll_cmd = 0
+        # pitch_cmd = 0
+        # yaw_cmd = 90.0
+        # thr_cmd = 0.7
+        # yaw_rate = 0
 
         print ">> Actual Commands : roll %.1f, pitch %.1f, yaw %.1f, thrust %.1f, yaw_rate %.1f" %(roll_cmd,pitch_cmd,yaw_cmd,thr_cmd, yaw_rate)
 

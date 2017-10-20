@@ -170,7 +170,7 @@ def read_mission():
             extra1 = data[5]
             pose_controller.gcs_tether_tension = data[6]
             extra2 = data[7]
-    return None
+    return pose_controller.goal_mode
 
 
 #######################################################
@@ -378,7 +378,8 @@ if __name__ == '__main__':
             print 'Waiting for UAV to arm: ',autopilot.armed
             time.sleep(0.5)
 
-    while True:
+    run = True
+    while run:
 
 
         t0= datetime.datetime.now()
@@ -400,8 +401,8 @@ if __name__ == '__main__':
         # print " ======== State Updated ========= "
 
 
-         #!# This block will read try to read any new mission commands from the GCS. 
-          #!# If there is a new set of commands, read_mission() will read, parse, and clear the mission. 
+        #!# This block will read try to read any new mission commands from the GCS. 
+        #!# If there is a new set of commands, read_mission() will read, parse, and clear the mission. 
         curr_time = datetime.datetime.now()
         delta = (curr_time-prev_time).total_seconds()
         if delta>1:
@@ -409,47 +410,45 @@ if __name__ == '__main__':
             prev_time=curr_time
             #print "tried to read mission"
 
-         #!# This block will read the Airprobe information from the multiprocessing queue. 
+        #!# This block will read the Airprobe information from the multiprocessing queue. 
         # #Get AirProbe Info:
         # try:
         #     air_probe_reading = data_from_airprobe.get(False)
         # except Empty:
         #     pass
 
-        
-
-     #!# ###### CONTROLLER MANAGEMENT
-     #!#  This set will only allow the control system to have control when both pixhawks are armed, and the UAV pixhawk is in GUIDED mode. 
-     #!#  If the operator needs to recover the vehicle, he should change to ALTHOLD mode, and he will have full control of the vehicle. 
+        #!# ###### CONTROLLER MANAGEMENT
+        #!#  This set will only allow the control system to have control when both pixhawks are armed, and the UAV pixhawk is in GUIDED mode. 
+        #!#  If the operator needs to recover the vehicle, he should change to ALTHOLD mode, and he will have full control of the vehicle. 
 
         # print "UAV mode: " + autopilot.mode.name + " Armed? " + str(autopilot.armed)
         # print "GCS mode: " + gcs.mode.name + " Armed? " + str(gcs.armed)
 
-        #if autopilot.mode.name=='GUIDED' and autopilot.armed and gcs.armed:
-        if True:
+        #if autopilot.mode.name=='GUIDED' and autopilot.armed and gcs.armed and run:
+        if True and run:
             # pose_controller.goal_mode=G_AUTO
 
-            if not yaw_editable:
-                heading_orig = autopilot.attitude.yaw*180/np.pi # degrees
-                while not yaw_editable:
-                    send_global_velocity(0, 0, 0)
-                    time.sleep(1)
-                    print 'Forcing yaw to be editable'
-                    roll_cmd = 0
-                    pitch_cmd = 0
-                    yaw_cmd = 90*np.pi/180
-                    thr_cmd = 0.75
-                    tol = 0.001
-                    quat = pose_controller.eul2quat(roll_cmd,pitch_cmd,yaw_cmd)
-                    output = [quat[0],quat[1],quat[2],quat[3],thr_cmd,yaw_cmd]
-                    set_attitude_target(output[0:5])
-                    heading_desired_absolute = yaw_cmd*180/np.pi # degrees
-                    condition_yaw(heading_desired_absolute)
-                    # Send position (in this case velocity) command to allow the condition_yaw() function to work
-                    time.sleep(2)
-                    print '\n\n\n',autopilot.attitude.yaw, (autopilot.attitude.yaw - yaw_cmd*np.pi/180)**2,'\n\n\n'
-                    if (autopilot.attitude.yaw - yaw_cmd)**2 < tol:
-                        yaw_editable = True
+            # if not yaw_editable:
+            #     heading_orig = autopilot.attitude.yaw*180/np.pi # degrees
+            #     while not yaw_editable:
+            #         send_global_velocity(0, 0, 0)
+            #         time.sleep(1)
+            #         print 'Forcing yaw to be editable'
+            #         roll_cmd = 0
+            #         pitch_cmd = 0
+            #         yaw_cmd = 270*np.pi/180
+            #         thr_cmd = 0.75
+            #         tol = 0.001
+            #         quat = pose_controller.eul2quat(roll_cmd,pitch_cmd,yaw_cmd)
+            #         output = [quat[0],quat[1],quat[2],quat[3],thr_cmd,yaw_cmd]
+            #         set_attitude_target(output[0:5])
+            #         heading_desired_absolute = yaw_cmd*180/np.pi # degrees
+            #         condition_yaw(heading_desired_absolute)
+            #         # Send position (in this case velocity) command to allow the condition_yaw() function to work
+            #         time.sleep(2)
+            #         print '\n\n\n',autopilot.attitude.yaw, (autopilot.attitude.yaw - yaw_cmd*np.pi/180)**2,'\n\n\n'
+            #         if autopilot.attitude.yaw**2 - yaw_cmd**2 < tol:
+            #             yaw_editable = True
 
             uav_heading = pose_controller.uav_heading
             gcs_heading = pose_controller.gcs_heading
@@ -457,6 +456,9 @@ if __name__ == '__main__':
             relative_yaw_cmd = uav_to_gcs_bearing - uav_heading
             if relative_yaw_cmd < -np.pi:
                 relative_yaw_cmd = relative_yaw_cmd + 2*np.pi
+            elif relative_yaw_cmd > np.pi:
+                relative_yaw_cmd = relative_yaw_cmd - 2*np.pi
+
             print '\n\n\n'
             print 'UAV'
             print '\theading: ',uav_heading*180/np.pi
@@ -467,7 +469,7 @@ if __name__ == '__main__':
             # print '\tcoord: ',pose_controller.gcs_coord
             # print '\talt: ',pose_controller.gcs_alt
             print '\nBEARING (uav2gcs): ', uav_to_gcs_bearing*180/np.pi
-            print '\nDelta Yaw Command (CW): ', relative_yaw_cmd*180/np.pi
+            print '\Yaw Rate Command (CW): ', relative_yaw_cmd*180/np.pi
             print '\n\n\n'
 
             if pose_controller.goal_mode == G_AUTO:
@@ -503,8 +505,6 @@ if __name__ == '__main__':
         else:
             print "Mode Not Guided: Manual Control"
 
-
-
          #!# Timing system to keep the control around CONTROL_DT
          #!# If the script is consistently too slow, the Control DT will have to be updated every loop iteration
         t1 = datetime.datetime.now()
@@ -513,8 +513,6 @@ if __name__ == '__main__':
             time.sleep(CONTROL_DT-dtc)
         else:
             print "Control Too Slow: ",dtc
-
-
 
         
 
