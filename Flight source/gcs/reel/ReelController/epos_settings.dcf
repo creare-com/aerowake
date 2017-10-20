@@ -5,18 +5,18 @@
 ;******************************************************************
 
 [FileInfo]
-FileName=epos_settings.dcf
+FileName=settings.dcf
 FileVersion=2
 FileRevision=0
 Description=
 EDSVersion=4.0
 
-CreationTime=12:35PM
-CreationDate=10-16-2017
+CreationTime=03:21PM
+CreationDate=10-20-2017
 CreatedBy=Wake Swarm
 
-ModificationTime=12:35PM
-ModificationDate=10-16-2017
+ModificationTime=03:21PM
+ModificationDate=10-20-2017
 ModifiedBy=Wake Swarm
 
 [ToolInfos]
@@ -1989,7 +1989,7 @@ DataType=0x6
 AccessType=rw
 PDOMapping=0
 ObjFlags=0
-ParameterValue=0x0001
+ParameterValue=0x0003
 
 [2012]
 ParameterName=Internal DataRecorder Sampling Period
@@ -1998,7 +1998,7 @@ DataType=0x6
 AccessType=rw
 PDOMapping=0
 ObjFlags=0
-ParameterValue=0x0028
+ParameterValue=0x000A
 
 [2013]
 ParameterName=Internal DataRecorder Number of Preceding Samples
@@ -2007,7 +2007,7 @@ DataType=0x6
 AccessType=rw
 PDOMapping=0
 ObjFlags=0
-ParameterValue=0x0005
+ParameterValue=0x0000
 
 [2014]
 ParameterName=Internal DataRecorder Number of Sampling Variables
@@ -2016,7 +2016,7 @@ DataType=0x6
 AccessType=rw
 PDOMapping=0
 ObjFlags=0
-ParameterValue=0x0002
+ParameterValue=0x0000
 
 [2015]
 SubNumber=5
@@ -2039,7 +2039,7 @@ DataType=0x6
 AccessType=rw
 PDOMapping=0
 ObjFlags=0
-ParameterValue=0x6062
+ParameterValue=0x0000
 
 [2015sub2]
 ParameterName=Internal DataRecorder Index of Variable 2
@@ -2048,7 +2048,7 @@ DataType=0x6
 AccessType=rw
 PDOMapping=0
 ObjFlags=0
-ParameterValue=0x6064
+ParameterValue=0x0000
 
 [2015sub3]
 ParameterName=Internal DataRecorder Index of Variable 3
@@ -2057,7 +2057,7 @@ DataType=0x6
 AccessType=rw
 PDOMapping=0
 ObjFlags=0
-ParameterValue=0x98D4
+ParameterValue=0x0000
 
 [2015sub4]
 ParameterName=Internal DataRecorder Index of Variable 4
@@ -2066,7 +2066,7 @@ DataType=0x6
 AccessType=rw
 PDOMapping=0
 ObjFlags=0
-ParameterValue=0x98D4
+ParameterValue=0x0000
 
 [2016]
 SubNumber=5
@@ -2107,7 +2107,7 @@ DataType=0x6
 AccessType=rw
 PDOMapping=0
 ObjFlags=0
-ParameterValue=0x0001
+ParameterValue=0x0000
 
 [2016sub4]
 ParameterName=Internal DataRecorder SubIndex of Variable 4
@@ -2116,7 +2116,7 @@ DataType=0x6
 AccessType=rw
 PDOMapping=0
 ObjFlags=0
-ParameterValue=0x0001
+ParameterValue=0x0000
 
 [2017]
 ParameterName=Internal DataRecorder Status
@@ -2320,7 +2320,7 @@ DataType=0x3
 AccessType=ro
 PDOMapping=0
 ObjFlags=1
-ParameterValue=0x16EA
+ParameterValue=0x167C
 
 [202Dsub2]
 ParameterName=Internal Object Minimum measured angle difference
@@ -2329,7 +2329,7 @@ DataType=0x3
 AccessType=ro
 PDOMapping=0
 ObjFlags=1
-ParameterValue=0xE9DC
+ParameterValue=0xE9FC
 
 [202Dsub3]
 ParameterName=Internal Object Angle difference overflow counter
@@ -2540,7 +2540,7 @@ AccessType=rw
 DefaultValue=15
 PDOMapping=0
 ObjFlags=0
-ParameterValue=15
+ParameterValue=5
 
 [2070sub2]
 ParameterName=Configuration of Digital Input2
@@ -2550,7 +2550,7 @@ AccessType=rw
 DefaultValue=14
 PDOMapping=0
 ObjFlags=0
-ParameterValue=14
+ParameterValue=4
 
 [2070sub3]
 ParameterName=Configuration of Digital Input3
@@ -2654,7 +2654,7 @@ AccessType=rw
 DefaultValue=0xE387
 PDOMapping=0
 ObjFlags=0
-ParameterValue=0xE387
+ParameterValue=0xE3B7
 
 [2071sub3]
 ParameterName=Digital Input Functionalities Polarity
@@ -2674,7 +2674,7 @@ AccessType=rw
 DefaultValue=0x0008
 PDOMapping=0
 ObjFlags=0
-ParameterValue=0x0008
+ParameterValue=0x0038
 
 [2074]
 SubNumber=7
@@ -4148,7 +4148,7 @@ AccessType=rww
 DefaultValue=1000
 PDOMapping=1
 ObjFlags=0
-ParameterValue=60
+ParameterValue=34
 
 [6083]
 ParameterName=Profile Acceleration
@@ -4168,7 +4168,7 @@ AccessType=rww
 DefaultValue=10000
 PDOMapping=1
 ObjFlags=0
-ParameterValue=100
+ParameterValue=300
 
 [6085]
 ParameterName=QuickStop Deceleration
