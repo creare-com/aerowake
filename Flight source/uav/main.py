@@ -58,28 +58,67 @@ def abort_mission(reason):
  #!#  This function is very important and is used to set the attitude of the vehicle. The bitmask is set here to take in a quaternion and throttle setting from 0-1. This throttle setting is that same as altitude hold mode. A value of .5 will maintain altitude. 
 def set_attitude_target(data_in):
     global autopilot
+
+    if np.size(data_in) == 6:
+        # Then in G_AUTO mode and commanding yaw
+        yaw_rate = data_in[5]
+    else:
+        # Then in G_TAKEOFF or G_LAND or None mode and not commanding yaw
+        yaw_rate = 0
+
     quat = data_in[0:4]
     thr = data_in[4]
     msg = autopilot.message_factory.set_attitude_target_encode(
         0, 0,0,
-        0b000000001,     # bitmask
-        quat,    # quat
+        0b00000001,    # bitmask
+        # 0b000000001,    # bitmask
+        quat,           # quat
         0,              #roll rate
         0,              #  pitch rate
-        0,              # yaw speed deg/s
-        thr)             # thrust
+        # 0,       # yaw speed rad/s
+        yaw_rate,       # yaw speed rad/s
+        thr)            # thrust
+    autopilot.send_mavlink(msg)
+
+def send_global_velocity(velocity_x, velocity_y, velocity_z):
+    """
+    Move vehicle in direction based on specified velocity vectors.
+
+    This uses the SET_POSITION_TARGET_GLOBAL_INT command with type mask enabling only 
+    velocity components 
+    (http://dev.ardupilot.com/wiki/copter-commands-in-guided-mode/#set_position_target_global_int).
+    
+    Note that from AC3.3 the message should be re-sent every second (after about 3 seconds
+    with no message the velocity will drop back to zero). In AC3.2.1 and earlier the specified
+    velocity persists until it is canceled. The code below should work on either version 
+    (sending the message multiple times does not cause problems).
+    
+    See the above link for information on the type_mask (0=enable, 1=ignore). 
+    At time of writing, acceleration and yaw bits are ignored.
+    """
+    msg = autopilot.message_factory.set_position_target_global_int_encode(
+        0,       # time_boot_ms (not used)
+        0, 0,    # target system, target component
+        mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT_INT, # frame
+        0b0000111111000111, # type_mask (only speeds enabled)
+        0, # lat_int - X Position in WGS84 frame in 1e7 * meters
+        0, # lon_int - Y Position in WGS84 frame in 1e7 * meters
+        0, # alt - Altitude in meters in AMSL altitude(not WGS84 if absolute or relative)
+        # altitude above terrain if GLOBAL_TERRAIN_ALT_INT
+        velocity_x, # X velocity in NED frame in m/s
+        velocity_y, # Y velocity in NED frame in m/s
+        velocity_z, # Z velocity in NED frame in m/s
+        0, 0, 0, # afx, afy, afz acceleration (not supported yet, ignored in GCS_Mavlink)
+        0, 0)    # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink) 
+
     autopilot.send_mavlink(msg)
 
  #!# This function is a legacy item, but will allow the system to commmand a yaw heading. 
-def condition_yaw(heading, relative=False):
+def condition_yaw(heading, is_relative=False):
     global autopilot
-    if heading<0:
-        heading+=360
 
-    if relative:
-        is_relative=1 #yaw relative to direction of travel
-    else:
-        is_relative=0 #yaw is an absolute angle
+    print '\n\n\nCONDITIONING YAW TO HEADING OF: ', heading,'\n\n\n'
+
     # create the CONDITION_YAW command using command_long_encode()
     msg = autopilot.message_factory.command_long_encode(
         0, 0,    # target system, target component
@@ -122,8 +161,6 @@ def read_mission():
         data.append(cmd.x)
         data.append(cmd.y)
         data.append(cmd.z)
-
-
 
     if data!=[]:
         print  data
@@ -313,7 +350,7 @@ if __name__ == '__main__':
 
     # Variable Initializations:
     prev_yaw=0
-
+    yaw_editable = False
     prev_time = datetime.datetime.now()
 
      #!# These are the Modes that can be sent up by the GCS
@@ -351,7 +388,7 @@ if __name__ == '__main__':
         pose_controller.uav_coord = [autopilot.location.global_frame.lat, autopilot.location.global_frame.lon]     # GPS Coordinates of UAV [lat,lon] from pixhawk (DD.DDDDDDD)
         pose_controller.uav_vel = [autopilot.velocity[0],autopilot.velocity[1],autopilot.velocity[2]]      # UAV velocity [x,y,z] from pixhawk (m/s)
         pose_controller.uav_alt = (autopilot.location.global_relative_frame.alt )       # UAV Alt from pixhawk (m)
-        pose_controller.uav_heading = autopilot.attitude.yaw        # UAV Heading (degrees)
+        pose_controller.uav_heading = autopilot.attitude.yaw        # UAV Heading (rad)
         pose_controller.uav_voltage = autopilot.battery.voltage     # UAV Voltage
         pose_controller.uav_current = autopilot.battery.current/10 # UAV Current in mA
 
@@ -392,12 +429,52 @@ if __name__ == '__main__':
         if True:
             # pose_controller.goal_mode=G_AUTO
 
-            if pose_controller.goal_mode ==G_AUTO:
+            if not yaw_editable:
+                heading_orig = autopilot.attitude.yaw*180/np.pi # degrees
+                while not yaw_editable:
+                    send_global_velocity(0, 0, 0)
+                    time.sleep(1)
+                    print 'Forcing yaw to be editable'
+                    roll_cmd = 0
+                    pitch_cmd = 0
+                    yaw_cmd = 90*np.pi/180
+                    thr_cmd = 0.75
+                    tol = 0.001
+                    quat = pose_controller.eul2quat(roll_cmd,pitch_cmd,yaw_cmd)
+                    output = [quat[0],quat[1],quat[2],quat[3],thr_cmd,yaw_cmd]
+                    set_attitude_target(output[0:5])
+                    heading_desired_absolute = yaw_cmd*180/np.pi # degrees
+                    condition_yaw(heading_desired_absolute)
+                    # Send position (in this case velocity) command to allow the condition_yaw() function to work
+                    time.sleep(2)
+                    print '\n\n\n',autopilot.attitude.yaw, (autopilot.attitude.yaw - yaw_cmd*np.pi/180)**2,'\n\n\n'
+                    if (autopilot.attitude.yaw - yaw_cmd)**2 < tol:
+                        yaw_editable = True
+
+            uav_heading = pose_controller.uav_heading
+            gcs_heading = pose_controller.gcs_heading
+            uav_to_gcs_bearing = pose_controller.get_bearing()
+            relative_yaw_cmd = uav_to_gcs_bearing - uav_heading
+            if relative_yaw_cmd < -np.pi:
+                relative_yaw_cmd = relative_yaw_cmd + 2*np.pi
+            print '\n\n\n'
+            print 'UAV'
+            print '\theading: ',uav_heading*180/np.pi
+            # print '\tcoord: ',pose_controller.uav_coord
+            # print '\talt: ',pose_controller.uav_alt
+            # print '\nGCS'
+            # print '\theading: ',gcs_heading*180/np.pi
+            # print '\tcoord: ',pose_controller.gcs_coord
+            # print '\talt: ',pose_controller.gcs_alt
+            print '\nBEARING (uav2gcs): ', uav_to_gcs_bearing*180/np.pi
+            print '\nDelta Yaw Command (CW): ', relative_yaw_cmd*180/np.pi
+            print '\n\n\n'
+
+            if pose_controller.goal_mode == G_AUTO:
                 output = pose_controller.run_sph_pose_controller()
                 set_attitude_target(output)
-                #condition_yaw(.5)
 
-            if pose_controller.goal_mode ==G_TAKEOFF: 
+            if pose_controller.goal_mode == G_TAKEOFF: 
                 #Special condition for takoff. Positive pitch is pitch up
                 roll = 0
                 pitch = 0.25
@@ -406,16 +483,16 @@ if __name__ == '__main__':
                 set_attitude_target(output)
                 print 'Take Off Mode. Roll: %.2f  Pitch: %.2f   Thr: %.2f'%(roll,pitch,thr)
 
-            if pose_controller.goal_mode ==G_LAND:
+            if pose_controller.goal_mode == G_LAND:
                 #Special condition for Landing. Positive pitch is pitch up
                 roll = 0
                 pitch = 0
-                thr = .5
+                thr = 0.1
                 output = pose_controller.special_att_control(roll,pitch,thr)
                 set_attitude_target(output)
                 print 'Land Mode. Roll: %.2f  Pitch: %.2f   Thr: %.2f'%(roll,pitch,thr)
 
-            if pose_controller.goal_mode ==None:
+            if pose_controller.goal_mode == None:
                 #Special condition for takoff. Positive pitch is pitch up
                 roll = 0
                 pitch = 0

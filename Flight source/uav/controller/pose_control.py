@@ -17,12 +17,12 @@ class pose_controller_class:
         self.uav_pose = [0,0,0]		# UAV Position [theta,phi,r] (radians)
         self.uav_vel = [0,0,0]		# UAV velocity [x,y,z] from pixhawk (m/s)
         self.uav_alt = 0			# UAV Alt from pixhawk (m)
-        self.uav_heading = 0		# UAV Heading (degrees)
+        self.uav_heading = 0		# UAV Heading (radians)
 
         self.gcs_coord = [0,0]   	# GPS Coordinates of GCS [lat,lon] from pixhawk (DD.DDDDDD)
         self.gcs_vel = [0,0,0]		# GCS Velocity [x,y,z] from pixhawk (m/s)
         self.gcs_alt = 0			# GCS Altitude from pixhawk (m)
-        self.gcs_heading = 0		# GCS Heading (degrees)
+        self.gcs_heading = 0		# GCS Heading (rad)
         self.L = 0		            # GCS Tether Length (m)
         self.gcs_tether_tension = 0 # GCS Tether Tension (newtons)
 
@@ -130,6 +130,22 @@ class pose_controller_class:
         theta = np.arctan2(xy_dist,z_dist)
         # Phi Calc
         phi=self.gcs_heading-self.get_bearing()
+
+        print '\n\n\n'
+        print 'UAV'
+        print '\theading: ',self.uav_heading
+        # print '\tcoord: ',self.uav_coord
+        # print '\talt: ',self.uav_alt
+        print '\nGCS'
+        print '\theading: ',self.gcs_heading
+        # print '\tcoord: ',self.gcs_coord
+        # print '\talt: ',self.gcs_alt
+        print '\nBEARING: ', self.get_bearing()
+        # print '\nTheta: ', theta*180/np.pi
+        # print 'Phi: ', phi
+        # print 'r: ', r
+        print '\n\n\n'
+
         if phi>np.pi:
             phi=phi-2*np.pi
 
@@ -246,6 +262,7 @@ class pose_controller_class:
         th = new_state[0] # rad
         phi = new_state[1] # rad
         r = new_state[2] # m
+        heading = self.uav_heading # rad
 
         print ">> Pose: Theta %.2f, Phi %.2f, R %.2f, L %.2f" %(th*180/np.pi,phi*180/np.pi,r,self.L)
         print ">> Goal: Theta %.2f, Phi %.2f, R %.2f" %(self.goal_pose[0]*180/np.pi,self.goal_pose[1]*180/np.pi,self.goal_pose[2])
@@ -267,16 +284,16 @@ class pose_controller_class:
 
         # error integration
         self.e_phi_int += self.e_phi*control_dt
-        self.e_th_int += self.e_th*control_dt 
+        self.e_th_int += self.e_th*control_dt
 
         # saturate integration
         self.e_phi_int = self.saturate(self.e_phi_int,-5,5)
-        self.e_th_int = self.saturate(self.e_th,-5,5)
+        self.e_th_int = self.saturate(self.e_th_int,-5,5)
 
         #PID control
         phi_in = (self.k_phi[0]*self.e_phi) +  (self.k_phi[1]*e_phi_dot) + (self.k_phi[2]*self.e_phi_int)
         th_in = (self.k_th[0]*self.e_th) +  (self.k_th[1] * e_th_dot) + (self.k_th[2]*self.e_th_int)
-        r_in = self.k_r[0]*self.e_r + self.k_r[1]*e_r_dot 
+        r_in = self.k_r[0]*self.e_r + self.k_r[1]*e_r_dot
 
         # print ">> PID Inputs: Theta %.2f, Phi %.2f, R %.2f" %(th_in,phi_in,r_in)
 
@@ -299,16 +316,6 @@ class pose_controller_class:
         #TODO: Saturate fix, fiy, fiz
 
         print ">> PID Forces: X %.2f, Y %.2f, Z %.2f" %(fix,fiy,fiz) #
-
-        #######################
-        ##                   ##
-        #######################
-        ##                   ##
-        ##  CORRECT TO HERE  ##
-        ##                   ##
-        #######################
-        ##                   ##
-        #######################
 
         #### Feed Forward Tether Model ####
 
@@ -354,8 +361,8 @@ class pose_controller_class:
         # f_total = (ftx*ftx+fty*fty+ftz*ftz)**0.5
 
         # determine pitch and roll (assuming heading of uav and heading of gcs are identical). Scale by ftz to add preference to altitude before x,y location
-        pitch = np.arctan(ftx/ftz)
-        roll = np.arctan(fty/ftz)
+        pitch = np.arctan(ftx/ftz) # rad
+        roll = np.arctan(fty/ftz) # rad
 
         # print ">> Roll %.2f, Pitch %.2f" %(roll*180/np.pi, pitch*180/np.pi)
 
@@ -364,28 +371,30 @@ class pose_controller_class:
 
         #Outputs
 
-        pitch_cmd = self.saturate(pitch,-ATT_MAX,ATT_MAX)
-        roll_cmd = self.saturate(roll,-ATT_MAX,ATT_MAX)
-        yaw_cmd = self.get_bearing()
+        pitch_cmd = self.saturate(pitch,-ATT_MAX,ATT_MAX) # rad
+        roll_cmd = self.saturate(roll,-ATT_MAX,ATT_MAX) # rad
+        yaw_cmd = self.get_bearing() # rad
+        yaw_rate = 0
 
         K_THROTTLE = .05
         thr_cmd = ((ftz-self.uav_weight)*K_THROTTLE)+.5
         thr_cmd = self.saturate(thr_cmd,0,1)
 
-        print ">> Output Commands : roll %.1f, pitch %.1f, yaw %.1f, thrust %.1f" %(roll_cmd,pitch_cmd,yaw_cmd,thr_cmd)
+        print ">> Output Commands : roll %.1f, pitch %.1f, yaw %.1f, thrust %.1f, yaw_rate %.1f" %(roll_cmd,pitch_cmd,yaw_cmd,thr_cmd, yaw_rate)
 
-        # roll_cmd = 0
-        # pitch_cmd = 0
-        # yaw_cmd = 90.0
-        # thr_cmd = 0.5
+        roll_cmd = 0
+        pitch_cmd = 0
+        yaw_cmd = 90.0
+        thr_cmd = 0.7
+        yaw_rate = 0
 
-        print ">> Actual Commands : roll %.1f, pitch %.1f, yaw %.1f, thrust %.1f" %(roll_cmd,pitch_cmd,yaw_cmd,thr_cmd)
+        print ">> Actual Commands : roll %.1f, pitch %.1f, yaw %.1f, thrust %.1f, yaw_rate %.1f" %(roll_cmd,pitch_cmd,yaw_cmd,thr_cmd, yaw_rate)
 
         log_data = "%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f " %(self.uav_coord[0],self.uav_coord[1],self.gcs_coord[0],self.gcs_coord[1],self.uav_alt,self.gcs_alt,self.goal_pose[0],self.goal_pose[1],self.goal_pose[2],self.uav_heading,self.gcs_heading,self.uav_vel[0],self.uav_vel[1],self.uav_vel[2],self.gcs_vel[0],self.gcs_vel[1],self.gcs_vel[2],self.uav_pose[0],self.uav_pose[1],self.uav_pose[2],self.goal_pose[0],self.goal_pose[1],self.goal_pose[2],self.goal_mode,self.L, roll_cmd,pitch_cmd,yaw_cmd,thr_cmd,self.uav_voltage,self.uav_current ) 
         self.write_to_log(log_data)
          
         quat = self.eul2quat(roll_cmd,pitch_cmd,yaw_cmd)
 
-        return [quat[0],quat[1],quat[2],quat[3],thr_cmd]
+        return [quat[0],quat[1],quat[2],quat[3],thr_cmd,yaw_rate]
 
 
