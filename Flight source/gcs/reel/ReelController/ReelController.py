@@ -76,7 +76,7 @@ class ReelController:
         
         # Initialize tether system
         self.youAreHome()
-        self._mc.clearFaultAndEnable() # movement may occur after this point
+        self._mc.clearFault() # movement may occur after this point
 
     # Conversion functions
     def motorPositionFromTetherLength(self, tether_length_m):
