@@ -1,5 +1,5 @@
 #!/usr/bin/env python2
-
+ 
 # GCS BASED MAIN LOOP
 
 import csv
@@ -20,12 +20,15 @@ from dronekit import APIException, VehicleMode, connect, mavutil, Command
 from reel.reel import reel_run
 from interface.interface import interface_run
 
+# Constants
+GCS_PH_WAYPOINTS_TIMEOUT = 5
+
 
  #!# All comments to explain system will be prefaced with "#!#"
 
  #!# Setting up connection path for the Autopilots. 
-#gcs_connect_path = '/dev/ttyAMA0' #Choose which ever is applicable
-gcs_connect_path = '/dev/ttyS0' #For the RaspPi3 
+gcs_connect_path = '/dev/ttyAMA0' #Choose which ever is applicable
+#gcs_connect_path = '/dev/ttyS0' #For the RaspPi3 
 #gcs_connect_path = '/dev/ttyUSB0'
 #gcs_connect_path = '/dev/ttyACM0'
 gcs_baud = 115200
@@ -64,6 +67,7 @@ if __name__ == '__main__':
     ch.setFormatter(form_ch)
     logger.addHandler(fh)
     logger.addHandler(ch)
+    logging.getLogger('Adafruit_I2C').setLevel(logging.ERROR)
 
 
 
@@ -82,7 +86,7 @@ if __name__ == '__main__':
     print "\n\n\n\n\n\n"
     logging.info("------------ STARTING AEROWAKE SYSTEM ------------")
     logging.info("-------------------- GCS NODE --------------------")
-    time.sleep(2)
+#    time.sleep(2)
     #### External Drive Setup ####
 
 
@@ -160,18 +164,12 @@ if __name__ == '__main__':
      #!# Also log mode changes, and arm/disarm
      #!# Normal Dronekit Callbacks. 
 
-    timed_out = False
-
+    last_heartbeat_dt = 0
     @gcs.on_attribute('last_heartbeat')   
     def last_heartbeat_listener(self, attr_name, value):
         if(attr_name is 'last_heartbeat'):
-            global timed_out
-            if value > 3 and not timed_out:
-                timed_out = True
-                logging.critical("Pixhawk connection lost!")
-            if value < 3 and timed_out:
-                timed_out = False;
-                logging.info("Pixhawk connection restored.")
+            global last_heartbeat_dt
+            last_heartbeat_dt = value
 
     @gcs.on_attribute('armed')
     def arm_disarm_callback(self,attr_name, msg):
@@ -218,32 +216,46 @@ if __name__ == '__main__':
         It is used in save_mission() to get the file information to save.
         """
         missionlist=[]
-        cmds = gcs.commands
-        cmds.download()
-        cmds.wait_ready()
-        for cmd in cmds:
-            missionlist.append(cmd)
+        try:
+            cmds = gcs.commands
+            logging.info("Downloading current waypoints...")
+            cmds.download()
+            cmds.wait_ready(timeout=GCS_PH_WAYPOINTS_TIMEOUT)
+            logging.info("Done downloading.")
+            for cmd in cmds:
+                missionlist.append(cmd)
+        except APIException as err:
+            logging.critical("Couldn't get waypoints on GCS: " + str(err) + "TO=" + str(GCS_PH_WAYPOINTS_TIMEOUT))
+            
         return missionlist
 
      #!# This is the important function that sends commands to the UAV. 
     def set_waypoint(mode,theta,phi,L,extra1=-1,tether_t=-1,extra2=-1):
-        # Store waypoints in GCS PixHawk.  The UAV Pi will read them out and maneuver the UAV to that position.
-        # Waypoints here are not in a format that ether PixHawk can usefully interpret directly (theta, phi, L).
-        cmds = gcs.commands
-        cmds.download()
-        cmds.wait_ready()
-        cmds.clear()
-        cmd1=Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, 
-            mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, mode, 0, 0, 0, theta, phi, L)
-        cmd3=Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, 
-            mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, -1,  0, 0, 0, extra1, tether_t, extra2)
-        cmds.add(cmd1)
-        cmds.add(cmd3)
-        cmds.upload()
-        
         # Command the tether to spool out/reel in to the appropriate length
         commands_to_reel.put({"cmd":"goto", "L":L})
 
+        try:
+            # Store waypoints in GCS PixHawk.  The UAV Pi will read them out and maneuver the UAV to that position.
+            # Waypoints here are not in a format that ether PixHawk can usefully interpret directly (theta, phi, L).
+            cmds = gcs.commands
+            # logging.info("Downloading current waypoints...")
+            # cmds.download()
+            # cmds.wait_ready(timeout=GCS_PH_WAYPOINTS_TIMEOUT)
+            # logging.info("Done downloading.")
+            cmds.clear()
+            cmd1=Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, 
+                mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, mode, 0, 0, 0, theta, phi, L)
+            cmd3=Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, 
+                mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, -1,  0, 0, 0, extra1, tether_t, extra2)
+            cmds.add(cmd1)
+            cmds.add(cmd3)
+            logging.info("Uploading new waypoints...")
+            cmds.upload() # Asynchronous
+            # cmds.wait_ready(timeout=GCS_PH_WAYPOINTS_TIMEOUT) # Make it synchronous
+            logging.info("Done uploading.")
+        except APIException as err:
+            logging.critical("Couldn't set waypoint on GCS: " + str(err) + "TO=" + str(GCS_PH_WAYPOINTS_TIMEOUT))
+        
     def print_mission():
         missionlist = download_mission()
         for cmd in missionlist:
@@ -254,11 +266,20 @@ if __name__ == '__main__':
             print cmd.z
 
     def clear_mission():
-        cmds = gcs.commands
-        cmds.download()
-        cmds.wait_ready()
-        cmds.clear()
-        cmds.upload()
+        try:
+            cmds = gcs.commands
+            # logging.info("Downloading current waypoints...")
+            # cmds.download()
+            # cmds.wait_ready(timeout=GCS_PH_WAYPOINTS_TIMEOUT)
+            # logging.info("Done downloading.")
+            cmds.clear()
+            logging.info("Uploading empty waypoint list...")
+            cmds.upload() # Asynchronous
+            # cmds.wait_ready(timeout=GCS_PH_WAYPOINTS_TIMEOUT) # Make it synchronous
+            logging.info("Done uploading.")
+        except APIException as err:
+            logging.critical("Couldn't clear waypoints on GCS: " + str(err) + "TO=" + str(GCS_PH_WAYPOINTS_TIMEOUT))
+        
 
     #!# At this point, arm the GCS pixhawk and place it into guided mode. 
     #1# Might have to set the ARMING CHECK parameter to 0 in the GCS pixhawk. 
@@ -299,6 +320,7 @@ if __name__ == '__main__':
     #!# Start the main loop. 
     try:
         run = True
+        reel_reading = {'L':'-', 'T':'-'}
         while run:
             display_vars = {}
             time.sleep(.2)
@@ -312,7 +334,7 @@ if __name__ == '__main__':
                  # print("Got reel data:" + str(reel_reading))
                  # Currently not used anywhere
             except Empty:
-                pass
+                 pass
 
             # # Determine flight mode and waypoints for the vehicle
 
@@ -417,8 +439,9 @@ if __name__ == '__main__':
                           "Takeoff"       if mode == G_TAKEOFF else \
                           "Landing"       if mode == G_LAND else \
                           "Invalid state"
+            display_hb_dt = round(last_heartbeat_dt, 2)
             display_vars = [
-                ("Connected to GCS PH",      not timed_out    ),
+                ("GCS PH heartbeat time",    display_hb_dt    ),
                 ("System mode",              mode_string      ),
                 ("Waypoint number",          waypoint_num     ),
                 ("Target Phi (Az, rad)",     phi              ),

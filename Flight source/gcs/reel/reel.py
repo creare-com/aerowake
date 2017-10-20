@@ -7,6 +7,7 @@ import logging
 import sys
 import time
 import ReelController
+import logging
 
 SKIP_CYCLES=100 #only send the position every 10 cycles
 # SKIP_CYCLES=0
@@ -18,7 +19,6 @@ class reel_run (Process):
         self._data_out = data_out
         self._dt_des =1/200.0
         self._cycles = 0
-        self._rc = ReelController.ReelController()
 
         #### Logging Setup. ####
 
@@ -41,6 +41,7 @@ class reel_run (Process):
 
     def run(self):
         run = True
+        self._rc = ReelController.ReelController()
         while run:
             #check if any new cmds
             try:
@@ -62,8 +63,10 @@ class reel_run (Process):
                     logging.info("Homing tether")
                     self._rc.youAreHome()
                 elif cmd['cmd'] == 'halt':
+                    logging.info("Halting reel")
                     self._rc.stopMoving()
                 elif cmd['cmd'] == 'exit':
+                    logging.info("Halting reel")
                     self._rc.stopMoving()
                     del self._rc
                     run = False

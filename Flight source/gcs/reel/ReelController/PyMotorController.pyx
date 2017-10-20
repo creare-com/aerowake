@@ -1,4 +1,5 @@
 """ Adapter classes used to interface with the C++ EposMotorController class """
+#import logging
 from enum import Enum
 from libcpp.string cimport string
 from libcpp cimport bool
