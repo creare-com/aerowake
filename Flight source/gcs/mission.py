@@ -13,6 +13,10 @@
 # You must re-run the GCS main.py to reload this file.
 
 from math import pi
-THETA  = [ 0, pi/4,  pi/4,  pi/4,  pi/4, ] # [rad]
-PHI    = [ 0,    0, +pi/4, -pi/4,     0, ] # [rad]
-L      = [50,   50,    50,    50,    50, ] # [m]
+THETA  = [pi/4,  pi/4,  pi/4,  pi/4] # [rad]
+PHI    = [   0, +pi/4, -pi/4,     0] # [rad]
+L      = [  50,    50,    50,    50] # [m]
+
+# THETA  = [pi/4,   pi/4,   pi/4,   pi/4, pi/4,    pi/4,    pi/4,    pi/4, pi/4] # [rad]
+# PHI    = [   0, 1*pi/8, 2*pi/8, 1*pi/8,    0, -1*pi/8, -2*pi/8, -1*pi/8,    0] # [rad]
+# L      = [  50,     50,     50,     50,   50,      50,      50,      50,   50] # [m]
