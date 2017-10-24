@@ -58,9 +58,9 @@ class pose_controller_class:
         # self.k_th  =[1,   2.0,  1.0]
         # self.k_r   =[.5,   3] 
 
-        self.k_phi =[1.0, .1,  0] 
-        self.k_th  =[1.0, .1,  0]
-        self.k_r   =[0.5, .1    ] 
+        self.k_phi =[ 0.5, 1,  0.25] # P, D, then I
+        self.k_th  =[ 0.5, 1,  0.25] # P, D, then I
+        self.k_r   =[0.75, .5      ] # P, D, then I
 
         self.SMART_TETHER = False
 
@@ -346,31 +346,28 @@ class pose_controller_class:
         #### Total Forces for Output ####
         ftx = fix + ffx + fdx
         fty = fiy + ffy + fdy
-        ftz = fiz + ffz + fdz + self.uav_weight #weight needs to be in newtons
+        ftz = fiz + ffz + fdz + self.uav_weight # weight needs to be in newtons
 
         # print ">> Total: X %.2f, Y %.2f, Z %.2f" %(ftx,fty,ftz)
 
-        # #### Rotate Forces #### # Pretty sure this doesn't do what was originally intended for it to do
-        # # This is to keep the front of the vehicle pointed at the ship
-        # ftx = ftx*np.cos(phi) + fty*np.sin(phi)
-        # fty = -ftx*np.sin(phi) + fty*np.cos(phi)
-        # print ">> Total Rotated in BF: X %.2f, Y %.2f, Z %.2f" %(ftx,fty,ftz-self.uav_weight)
-
-        # the variable f_total is never used, so commented out
-        # f_total = (ftx*ftx+fty*fty+ftz*ftz)**0.5
-
         # The forces have so far been calculated independent of the uav heading. If the uav heading is aligned with the gcs axes (i.e. aligned with the gcs heading), then these forces are correct. This is not always the case, so now rotate the forces to be aligned with the uav heading.
+
+        # Calculate the required difference in heading
         yaw = self.uav_heading # rad
         yaw_goal = self.get_bearing() # rad
         delta_yaw = yaw_goal - yaw
+
         # Limit delta yaw to be within +- pi from the uav's current heading (ensures uav will turn in optimal direction)
         if delta_yaw < -np.pi:
             delta_yaw = delta_yaw + 2*np.pi
         elif delta_yaw > np.pi:
             delta_yaw = delta_yaw - 2*np.pi
-        R = np.array([[np.cos(delta_yaw), -np.sin(delta_yaw), 0], \
-                      [np.sin(delta_yaw),  np.cos(delta_yaw), 0], \
-                      [                0,                  0, 1]])
+
+        # Calculate the rotation matrix for the forces. Note that the forces are defined with respect to the gcs reference frame, so the rotation matrix uses the relatice gcs and uav headings.
+        relative_heading = -(self.gcs_heading - self.uav_heading)
+        R = np.array([[np.cos(relative_heading), -np.sin(relative_heading), 0],\
+                      [np.sin(relative_heading),  np.cos(relative_heading), 0],\
+                      [                       0,                         0, 1]])
         arr_ft = np.array([ftx, fty, ftz])
         ft_new = R.dot(arr_ft)
         ftx = ft_new[0]
