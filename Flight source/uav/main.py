@@ -227,7 +227,7 @@ if __name__ == '__main__':
 
      #!# This prints out saying that we are starting the system initialization process. 
     print "\n\n\n\n"
-    logging.info("------------ STARTING AEROWAKE SYSTEM ------------")
+    logging.info("\n\n\n------------ STARTING AEROWAKE SYSTEM ------------")
     logging.info("-------------------- UAV NODE --------------------")
     #### !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Start Position Controller !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -459,18 +459,18 @@ if __name__ == '__main__':
             elif relative_yaw_cmd > np.pi:
                 relative_yaw_cmd = relative_yaw_cmd - 2*np.pi
 
-            print '\n\n\n'
-            print 'UAV'
-            print '\theading: ',uav_heading*180/np.pi
+            # print '\n\n\n'
+            # print 'UAV'
+            # print '\theading: ',uav_heading*180/np.pi
             # print '\tcoord: ',pose_controller.uav_coord
             # print '\talt: ',pose_controller.uav_alt
             # print '\nGCS'
             # print '\theading: ',gcs_heading*180/np.pi
             # print '\tcoord: ',pose_controller.gcs_coord
             # print '\talt: ',pose_controller.gcs_alt
-            print '\nBEARING (uav2gcs): ', uav_to_gcs_bearing*180/np.pi
-            print '\Yaw Rate Command (CW): ', relative_yaw_cmd*180/np.pi
-            print '\n\n\n'
+            # print '\nBEARING (uav2gcs): ', uav_to_gcs_bearing*180/np.pi
+            # print '\nYaw Rate Command (CW): ', relative_yaw_cmd*180/np.pi
+            # print '\n\n\n'
 
             if pose_controller.goal_mode == G_AUTO:
                 output = pose_controller.run_sph_pose_controller()
@@ -513,6 +513,7 @@ if __name__ == '__main__':
             time.sleep(CONTROL_DT-dtc)
         else:
             print "Control Too Slow: ",dtc
+
 
         
 
