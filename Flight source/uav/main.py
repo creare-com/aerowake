@@ -186,8 +186,11 @@ if __name__ == '__main__':
      #!# as established on the actual hardware. UAV wired connection should be 115200 and the telemetry radio should be set up for 57600. Uncomment the following lines:
 
     #autopilot_connect_path = '/dev/ttyAMA0'
-    autopilot_connect_path = '/dev/ttyS0' #USe for RaspPi3
-    uav_baud = 115200
+    #autopilot_connect_path = '/dev/ttyS0' #USe for RaspPi3
+    #autopilot_connect_path = '/dev/ttyACM0' # Use for odroid through usb hub through pixhawk usb cord
+    #autopilot_connect_path = '/dev/ttyUSB0' # Use for odroid through usb to serial converter
+    autopilot_connect_path = '/dev/ttySAC0' # Use for odroid through GPIO pins
+    uav_baud = 57600
     gcs_connect_path = '/dev/ttyUSB0'
     gcs_baud = 57600
 
@@ -263,7 +266,6 @@ if __name__ == '__main__':
      #!# are blinking, that indicates that the radios are not properly communicating. A solid green light on the
      #!# telemetry radios indicates they are connected. 
 
-
     #### Autopilot Connection ####
     logging.info("Waiting for Autopilot")
     while True:
@@ -294,6 +296,7 @@ if __name__ == '__main__':
             time.sleep(5)
         except APIException:
             logging.critical("GCS connection timed out. Retrying...")
+ 
     logging.info("GCS Connected")
 
 
@@ -391,7 +394,7 @@ if __name__ == '__main__':
         pose_controller.uav_alt = (autopilot.location.global_relative_frame.alt )       # UAV Alt from pixhawk (m)
         pose_controller.uav_heading = autopilot.attitude.yaw        # UAV Heading (rad)
         pose_controller.uav_voltage = autopilot.battery.voltage     # UAV Voltage
-        pose_controller.uav_current = autopilot.battery.current/10 # UAV Current in mA
+        pose_controller.uav_current = 0#autopilot.battery.current/10 # UAV Current in mA
 
         pose_controller.gcs_coord = [gcs.location.global_frame.lat, gcs.location.global_frame.lon]       # GPS Coordinates of GCS [lat,lon] from pixhawk (DD.DDDDDD)
         pose_controller.gcs_vel = [gcs.velocity[0], gcs.velocity[1], gcs.velocity[2]]        # GCS Velocity [x,y,z] from pixhawk (m/s)
@@ -408,7 +411,7 @@ if __name__ == '__main__':
         if delta>1:
             read_mission()
             prev_time=curr_time
-            #print "tried to read mission"
+            print "tried to read mission"
 
         #!# This block will read the Airprobe information from the multiprocessing queue. 
         # #Get AirProbe Info:

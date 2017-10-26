@@ -1,3 +1,6 @@
 *.pyc
 *.log
 *.csv
+*.tlog
+*.tlog.raw
+*.parm
