@@ -363,7 +363,7 @@ if __name__ == '__main__':
         pose_controller.uav_alt = (autopilot.location.global_relative_frame.alt )       # UAV Alt from pixhawk (m)
         pose_controller.uav_heading = autopilot.attitude.yaw        # UAV Heading (degrees)
         pose_controller.uav_voltage = autopilot.battery.voltage     # UAV Voltage
-        pose_controller.uav_current = autopilot.battery.current/10 # UAV Current in mA
+        pose_controller.uav_current = 0#autopilot.battery.current/10 # UAV Current in mA
 
         pose_controller.gcs_coord = [gcs.location.global_frame.lat, gcs.location.global_frame.lon]       # GPS Coordinates of GCS [lat,lon] from pixhawk (DD.DDDDDD)
         pose_controller.gcs_vel = [gcs.velocity[0], gcs.velocity[1], gcs.velocity[2]]        # GCS Velocity [x,y,z] from pixhawk (m/s)
@@ -377,10 +377,10 @@ if __name__ == '__main__':
           #!# If there is a new set of commands, read_mission() will read, parse, and clear the mission. 
         curr_time = datetime.datetime.now()
         delta = (curr_time-prev_time).total_seconds()
-        if delta>2:
-    #UNDO THIS###        read_mission()
+        if delta>1:
+            read_mission()
             prev_time=curr_time
-            #print "tried to read mission"
+            print "tried to read mission"
 
          #!# This block will read the Airprobe information from the multiprocessing queue. 
         # #Get AirProbe Info:
