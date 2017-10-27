@@ -114,12 +114,24 @@ def read_mission():
         print  data
         pose_controller.set_goal(data[1],data[2],data[3])# [theta,phi,L] in radians
         pose_controller.goal_mode = data[0]
+        print 'goal mode:', pose_controller.goal_mode
         if len(data)>5:
             extra1 = data[5]
             pose_controller.gcs_tether_tension = data[6]
             extra2 = data[7]
     return pose_controller.goal_mode
 
+def arm_uav():
+    global autopilot
+
+    if not autopilot.armed:
+        while not autopilot.is_armable:
+            print "UAV Not Armable"
+            time.sleep(.5)
+        autopilot.armed = True
+        while not autopilot.armed:
+            print 'Waiting for UAV to arm. UAV Armed: ',autopilot.armed
+            time.sleep(0.5)
 
 #######################################################
 ##
@@ -307,6 +319,7 @@ if __name__ == '__main__':
     G_AUTO = 0
     G_TAKEOFF = 1
     G_LAND = 2
+    G_INITIALIZE = 3
 
      #!#  Start the main loop
     logging.info("------------------SYSTEM IS READY!!------------------")
@@ -371,22 +384,19 @@ if __name__ == '__main__':
         # print "UAV mode: " + autopilot.mode.name + " Armed? " + str(autopilot.armed)
         # print "GCS mode: " + gcs.mode.name + " Armed? " + str(gcs.armed)
 
-        if autopilot.mode.name=='GUIDED' and autopilot.armed and gcs.armed:
+        if autopilot.mode.name=='GUIDED' and gcs.armed:
         # if True:
-            # pose_controller.goal_mode=G_AUTO
+            # print 'goal mode:', pose_controller.goal_mode
 
             if pose_controller.goal_mode == G_AUTO:
                 output = pose_controller.run_sph_pose_controller()
                 set_attitude_target(output)
 
             if pose_controller.goal_mode == G_TAKEOFF: 
-                #Special condition for takoff. Positive pitch is pitch up
-                roll = 0
-                pitch = 0.25
-                thr = .6
-                output = pose_controller.special_att_control(roll,pitch,thr)
-                set_attitude_target(output)
-                print 'Take Off Mode. Roll: %.2f  Pitch: %.2f   Thr: %.2f'%(roll,pitch,thr)
+                # Modified takeoff command for first round of flight testing. The gui command "Takeoff" will now arm the drone
+                if not autopilot.armed:
+                    arm_uav()
+                print 'Arm UAV Mode. UAV armed: %s' %(autopilot.armed)
 
             if pose_controller.goal_mode == G_LAND:
                 #Special condition for Landing. Positive pitch is pitch up
@@ -405,8 +415,14 @@ if __name__ == '__main__':
                 output = pose_controller.special_att_control(roll,pitch,thr)
                 set_attitude_target(output)
                 print 'No Mode. Roll: %.2f  Pitch: %.2f   Thr: %.2f'%(roll,pitch,thr)
+
+            if pose_controller.goal_mode == G_INITIALIZE:
+                print "Status\n\tMode Guided: %s\n\tUAV Armed: %s\n\tGCS Armed: %s" %(autopilot.mode.name=='GUIDED',autopilot.armed,gcs.armed)
+
+            if not autopilot.armed:
+                print "Status\n\tMode Guided: %s\n\tUAV Armed: %s\n\tGCS Armed: %s" %(autopilot.mode.name=='GUIDED',autopilot.armed,gcs.armed)
         else:
-            print "Manual Control\n\tMode Guided: %s\n\tUAV Armed: %s\n\tGCS Armed: %s" %(autopilot.mode.name=='GUIDED',autopilot.armed,gcs.armed)
+            print "Status\n\tMode Guided: %s\n\tUAV Armed: %s\n\tGCS Armed: %s" %(autopilot.mode.name=='GUIDED',autopilot.armed,gcs.armed)
 
          #!# Timing system to keep the control around CONTROL_DT
          #!# If the script is consistently too slow, the Control DT will have to be updated every loop iteration
