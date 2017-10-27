@@ -424,7 +424,7 @@ if __name__ == '__main__':
         else:
             print "Status\n\tMode Guided: %s\n\tUAV Armed: %s\n\tGCS Armed: %s" %(autopilot.mode.name=='GUIDED',autopilot.armed,gcs.armed)
 
-         #!# Timing system to keep the control around CONTROL_DT
+         #!# Timing system to keep the control around CONTROL_DT 
          #!# If the script is consistently too slow, the Control DT will have to be updated every loop iteration
         t1 = datetime.datetime.now()
         dtc = (t1-t0).total_seconds()
