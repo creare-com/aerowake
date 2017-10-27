@@ -381,7 +381,7 @@ class pose_controller_class:
         # print ">> Roll %.2f, Pitch %.2f" %(roll*180/np.pi, pitch*180/np.pi)
 
         # Saturate
-        ATT_MAX = 30*np.pi/180
+        ATT_MAX = 15*np.pi/180
 
         #Outputs
 
@@ -406,7 +406,7 @@ class pose_controller_class:
         # thr_cmd = 0.7
         # yaw_rate = 0
 
-        print ">> Actual Commands : roll %.1f, pitch %.1f, yaw %.1f, thrust %.1f, yaw_rate %.1f" %(roll_cmd,pitch_cmd,yaw_cmd,thr_cmd, yaw_rate)
+        # print ">> Actual Commands : roll %.1f, pitch %.1f, yaw %.1f, thrust %.1f, yaw_rate %.1f" %(roll_cmd,pitch_cmd,yaw_cmd,thr_cmd, yaw_rate)
 
         log_data = "%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f " %(self.uav_coord[0],self.uav_coord[1],self.gcs_coord[0],self.gcs_coord[1],self.uav_alt,self.gcs_alt,self.goal_pose[0],self.goal_pose[1],self.goal_pose[2],self.uav_heading,self.gcs_heading,self.uav_vel[0],self.uav_vel[1],self.uav_vel[2],self.gcs_vel[0],self.gcs_vel[1],self.gcs_vel[2],self.uav_pose[0],self.uav_pose[1],self.uav_pose[2],self.goal_pose[0],self.goal_pose[1],self.goal_pose[2],self.goal_mode,self.L, roll_cmd,pitch_cmd,yaw_cmd,thr_cmd,self.uav_voltage,self.uav_current ) 
         self.write_to_log(log_data)
