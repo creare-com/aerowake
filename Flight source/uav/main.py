@@ -134,8 +134,11 @@ if __name__ == '__main__':
      #!# as established on the actual hardware. UAV wired connection should be 115200 and the telemetry radio should be set up for 57600. Uncomment the following lines:
 
     #autopilot_connect_path = '/dev/ttyAMA0'
-    autopilot_connect_path = '/dev/ttyS0' #USe for RaspPi3
-    uav_baud = 115200
+    #autopilot_connect_path = '/dev/ttyS0' #USe for RaspPi3
+    #autopilot_connect_path = '/dev/ttyACM0' # Use for odroid through usb hub through pixhawk usb cord
+    #autopilot_connect_path = '/dev/ttyUSB0' # Use for odroid through usb to serial converter
+    autopilot_connect_path = '/dev/ttySAC0' # Use for odroid through GPIO pins
+    uav_baud = 57600
     gcs_connect_path = '/dev/ttyUSB0'
     gcs_baud = 57600
 
@@ -241,6 +244,7 @@ if __name__ == '__main__':
             time.sleep(5)
         except APIException:
             logging.critical("GCS connection timed out. Retrying...")
+ 
     logging.info("GCS Connected")
 
 
