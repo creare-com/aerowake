@@ -80,59 +80,7 @@ def set_attitude_target(data_in):
         thr)            # thrust
     autopilot.send_mavlink(msg)
 
-def send_global_velocity(velocity_x, velocity_y, velocity_z):
-    """
-    Move vehicle in direction based on specified velocity vectors.
-
-    This uses the SET_POSITION_TARGET_GLOBAL_INT command with type mask enabling only 
-    velocity components 
-    (http://dev.ardupilot.com/wiki/copter-commands-in-guided-mode/#set_position_target_global_int).
-    
-    Note that from AC3.3 the message should be re-sent every second (after about 3 seconds
-    with no message the velocity will drop back to zero). In AC3.2.1 and earlier the specified
-    velocity persists until it is canceled. The code below should work on either version 
-    (sending the message multiple times does not cause problems).
-    
-    See the above link for information on the type_mask (0=enable, 1=ignore). 
-    At time of writing, acceleration and yaw bits are ignored.
-    """
-    msg = autopilot.message_factory.set_position_target_global_int_encode(
-        0,       # time_boot_ms (not used)
-        0, 0,    # target system, target component
-        mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT_INT, # frame
-        0b0000111111000111, # type_mask (only speeds enabled)
-        0, # lat_int - X Position in WGS84 frame in 1e7 * meters
-        0, # lon_int - Y Position in WGS84 frame in 1e7 * meters
-        0, # alt - Altitude in meters in AMSL altitude(not WGS84 if absolute or relative)
-        # altitude above terrain if GLOBAL_TERRAIN_ALT_INT
-        velocity_x, # X velocity in NED frame in m/s
-        velocity_y, # Y velocity in NED frame in m/s
-        velocity_z, # Z velocity in NED frame in m/s
-        0, 0, 0, # afx, afy, afz acceleration (not supported yet, ignored in GCS_Mavlink)
-        0, 0)    # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink) 
-
-    autopilot.send_mavlink(msg)
-
- #!# This function is a legacy item, but will allow the system to commmand a yaw heading. 
-def condition_yaw(heading, is_relative=False):
-    global autopilot
-
-    print '\n\n\nCONDITIONING YAW TO HEADING OF: ', heading,'\n\n\n'
-
-    # create the CONDITION_YAW command using command_long_encode()
-    msg = autopilot.message_factory.command_long_encode(
-        0, 0,    # target system, target component
-        mavutil.mavlink.MAV_CMD_CONDITION_YAW, #command
-        0, #confirmation
-        heading,    # param 1, yaw in degrees
-        0,          # param 2, yaw speed deg/s
-        1,          # param 3, direction -1 ccw, 1 cw
-        is_relative, # param 4, relative offset 1, absolute angle 0
-        0, 0, 0)    # param 5 ~ 7 not used
-    # send command to vehicle
-    autopilot.send_mavlink(msg)
-
- #!#  This function downloads all of the current waypoints from the GCS pixhawk (if there are any), clears the GCS pixhawk mission, and returns to mission information. 
+#!#  This function downloads all of the current waypoints from the GCS pixhawk (if there are any), clears the GCS pixhawk mission, and returns to mission information. 
 def download_mission():
     global autopilot
     missionlist=[]
@@ -263,7 +211,6 @@ if __name__ == '__main__':
      #!# are blinking, that indicates that the radios are not properly communicating. A solid green light on the
      #!# telemetry radios indicates they are connected. 
 
-
     #### Autopilot Connection ####
     logging.info("Waiting for Autopilot")
     while True:
@@ -298,7 +245,6 @@ if __name__ == '__main__':
 
 
     print "GCS PIXHAWK IS CONNECTED!!!!!!!"
-
 
     #### System Time Setup ####
     logging_time=0
@@ -350,7 +296,6 @@ if __name__ == '__main__':
 
     # Variable Initializations:
     prev_yaw=0
-    yaw_editable = False
     prev_time = datetime.datetime.now()
 
      #!# These are the Modes that can be sent up by the GCS
@@ -369,18 +314,16 @@ if __name__ == '__main__':
             print 'Waiting for UAV to sqitch to GUIDED mode: ', autopilot.mode
             time.sleep(1)
 
-    if not autopilot.armed:
-        while not autopilot.is_armable:
-            print "UAV Not Armable"
-            time.sleep(.5)
-        autopilot.armed = True
-        while not autopilot.armed:
-            print 'Waiting for UAV to arm: ',autopilot.armed
-            time.sleep(0.5)
+    # if not autopilot.armed:
+    #     while not autopilot.is_armable:
+    #         print "UAV Not Armable"
+    #         time.sleep(.5)
+    #     autopilot.armed = True
+    #     while not autopilot.armed:
+    #         print 'Waiting for UAV to arm: ',autopilot.armed
+    #         time.sleep(0.5)
 
-    run = True
-    while run:
-
+    while True:
 
         t0= datetime.datetime.now()
         pose_controller.logging_time = logging_time
@@ -424,53 +367,9 @@ if __name__ == '__main__':
         # print "UAV mode: " + autopilot.mode.name + " Armed? " + str(autopilot.armed)
         # print "GCS mode: " + gcs.mode.name + " Armed? " + str(gcs.armed)
 
-        #if autopilot.mode.name=='GUIDED' and autopilot.armed and gcs.armed and run:
-        if True and run:
+        if autopilot.mode.name=='GUIDED' and autopilot.armed and gcs.armed:
+        # if True:
             # pose_controller.goal_mode=G_AUTO
-
-            # if not yaw_editable:
-            #     heading_orig = autopilot.attitude.yaw*180/np.pi # degrees
-            #     while not yaw_editable:
-            #         send_global_velocity(0, 0, 0)
-            #         time.sleep(1)
-            #         print 'Forcing yaw to be editable'
-            #         roll_cmd = 0
-            #         pitch_cmd = 0
-            #         yaw_cmd = 270*np.pi/180
-            #         thr_cmd = 0.75
-            #         tol = 0.001
-            #         quat = pose_controller.eul2quat(roll_cmd,pitch_cmd,yaw_cmd)
-            #         output = [quat[0],quat[1],quat[2],quat[3],thr_cmd,yaw_cmd]
-            #         set_attitude_target(output[0:5])
-            #         heading_desired_absolute = yaw_cmd*180/np.pi # degrees
-            #         condition_yaw(heading_desired_absolute)
-            #         # Send position (in this case velocity) command to allow the condition_yaw() function to work
-            #         time.sleep(2)
-            #         print '\n\n\n',autopilot.attitude.yaw, (autopilot.attitude.yaw - yaw_cmd*np.pi/180)**2,'\n\n\n'
-            #         if autopilot.attitude.yaw**2 - yaw_cmd**2 < tol:
-            #             yaw_editable = True
-
-            uav_heading = pose_controller.uav_heading
-            gcs_heading = pose_controller.gcs_heading
-            uav_to_gcs_bearing = pose_controller.get_bearing()
-            relative_yaw_cmd = uav_to_gcs_bearing - uav_heading
-            if relative_yaw_cmd < -np.pi:
-                relative_yaw_cmd = relative_yaw_cmd + 2*np.pi
-            elif relative_yaw_cmd > np.pi:
-                relative_yaw_cmd = relative_yaw_cmd - 2*np.pi
-
-            # print '\n\n\n'
-            # print 'UAV'
-            # print '\theading: ',uav_heading*180/np.pi
-            # print '\tcoord: ',pose_controller.uav_coord
-            # print '\talt: ',pose_controller.uav_alt
-            # print '\nGCS'
-            # print '\theading: ',gcs_heading*180/np.pi
-            # print '\tcoord: ',pose_controller.gcs_coord
-            # print '\talt: ',pose_controller.gcs_alt
-            # print '\nBEARING (uav2gcs): ', uav_to_gcs_bearing*180/np.pi
-            # print '\nYaw Rate Command (CW): ', relative_yaw_cmd*180/np.pi
-            # print '\n\n\n'
 
             if pose_controller.goal_mode == G_AUTO:
                 output = pose_controller.run_sph_pose_controller()
@@ -503,7 +402,7 @@ if __name__ == '__main__':
                 set_attitude_target(output)
                 print 'No Mode. Roll: %.2f  Pitch: %.2f   Thr: %.2f'%(roll,pitch,thr)
         else:
-            print "Mode Not Guided: Manual Control"
+            print "Manual Control\n\tMode Guided: %s\n\tUAV Armed: %s\n\tGCS Armed: %s" %(autopilot.mode.name=='GUIDED',autopilot.armed,gcs.armed)
 
          #!# Timing system to keep the control around CONTROL_DT
          #!# If the script is consistently too slow, the Control DT will have to be updated every loop iteration
@@ -515,15 +414,6 @@ if __name__ == '__main__':
             print "Control Too Slow: ",dtc
 
 
-        
 
 
 
-
-
-
-
-
-
-
-      
