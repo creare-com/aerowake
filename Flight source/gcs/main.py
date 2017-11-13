@@ -239,8 +239,8 @@ if __name__ == '__main__':
             # Waypoints here are not in a format that ether PixHawk can usefully interpret directly (theta, phi, L).
             cmds = gcs.commands
             # logging.info("Downloading current waypoints...")
-            # cmds.download()
-            # cmds.wait_ready(timeout=GCS_PH_WAYPOINTS_TIMEOUT)
+            cmds.download()
+            cmds.wait_ready(timeout=GCS_PH_WAYPOINTS_TIMEOUT)
             # logging.info("Done downloading.")
             cmds.clear()
             cmd1=Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, 
@@ -269,8 +269,8 @@ if __name__ == '__main__':
         try:
             cmds = gcs.commands
             # logging.info("Downloading current waypoints...")
-            # cmds.download()
-            # cmds.wait_ready(timeout=GCS_PH_WAYPOINTS_TIMEOUT)
+            cmds.download()
+            cmds.wait_ready(timeout=GCS_PH_WAYPOINTS_TIMEOUT)
             # logging.info("Done downloading.")
             cmds.clear()
             logging.info("Uploading empty waypoint list...")

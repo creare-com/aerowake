@@ -3,6 +3,8 @@
 import datetime
 from multiprocessing import Process, Queue
 from Queue import Empty
+import logging
+import sys
 import time
 import ReelController
 import logging
@@ -17,6 +19,25 @@ class reel_run (Process):
         self._data_out = data_out
         self._dt_des =1/200.0
         self._cycles = 0
+
+        #### Logging Setup. ####
+
+         #!# This logger will create a 'system.log', which will allow debugging later if the UAV system is not 
+         #!# not working properly for some reason or another. Messages will be printed to the console, and to the 
+         #!# log file. Messages shoudl be priorities with 'info', 'critical', or 'debug'. 
+         
+        self.logger = logging.getLogger()
+        self.logger.setLevel(logging.DEBUG)
+        fh = logging.FileHandler('system.log')
+        fh.setLevel(logging.DEBUG)
+        ch = logging.StreamHandler(sys.stdout)
+        ch.setLevel(logging.DEBUG)
+        form_fh = logging.Formatter('%(relativeCreated)s,%(levelname)s: %(message)s')
+        form_ch = logging.Formatter('%(levelname)s: %(message)s')
+        fh.setFormatter(form_fh)
+        ch.setFormatter(form_ch)
+        self.logger.addHandler(fh)
+        self.logger.addHandler(ch)
 
     def run(self):
         run = True
