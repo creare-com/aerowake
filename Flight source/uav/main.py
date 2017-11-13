@@ -234,6 +234,8 @@ if __name__ == '__main__':
     print "AUTOPILOT PIXHAWK IS CONNECTED!!!!"
 
     #### GCS Connection ####
+    # This link explains how to fix the 'link lost ... link restored ...' loop that occurs when connecting to gcs over telem radio. It involves changing a hard-coded timeout value from 30 seconds to longer than 30 seconds, and is required because it takes >30 seconds to download pixhawk parameters over telem radio at 57600 baud.
+    # https://stackoverflow.com/questions/46210013/dronekit-python-vehicle-connection-timeout
     logging.info("Waiting for GCS")
     while True:
         try:
