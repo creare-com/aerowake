@@ -287,6 +287,7 @@ if __name__ == '__main__':
 
     #### GCS Connection ####
     logging.info("Waiting for GCS")
+    # this link explains how to fix wait_ready timeout error, which manifests as link lost ... link restored ... loop: https://stackoverflow.com/questions/46210013/dronekit-python-vehicle-connection-timeout
     while True:
         try:
             gcs = connect(gcs_connect_path,baud=gcs_baud,heartbeat_timeout=60, rate=20, wait_ready=True)
@@ -372,14 +373,14 @@ if __name__ == '__main__':
             print 'Waiting for UAV to sqitch to GUIDED mode: ', autopilot.mode
             time.sleep(1)
 
-    if not autopilot.armed:
-        while not autopilot.is_armable:
-            print "UAV Not Armable"
-            time.sleep(.5)
-        autopilot.armed = True
-        while not autopilot.armed:
-            print 'Waiting for UAV to arm: ',autopilot.armed
-            time.sleep(0.5)
+#    if not autopilot.armed:
+#        while not autopilot.is_armable:
+#            print "UAV Not Armable"
+#            time.sleep(.5)
+#        autopilot.armed = True
+#        while not autopilot.armed:
+#            print 'Waiting for UAV to arm: ',autopilot.armed
+#            time.sleep(0.5)
 
     run = True
     while run:
