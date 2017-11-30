@@ -29,10 +29,10 @@ GCS_PH_WAYPOINTS_TIMEOUT = 5
  #!# All comments to explain system will be prefaced with "#!#"
 
  #!# Setting up connection path for the Autopilots. 
-gcs_connect_path = '/dev/ttyAMA0' #Choose which ever is applicable
+#gcs_connect_path = '/dev/ttyAMA0' #Choose which ever is applicable
 #gcs_connect_path = '/dev/ttyS0' #For the RaspPi3 
 #gcs_connect_path = '/dev/ttyUSB0'
-#gcs_connect_path = '/dev/ttyACM0'
+gcs_connect_path = '/dev/ttyACM0'
 gcs_baud = 115200
 
 if len(sys.argv) >= 2 and sys.argv[1].startswith('sim'):
