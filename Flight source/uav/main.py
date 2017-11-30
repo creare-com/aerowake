@@ -15,7 +15,7 @@ from multiprocessing import Queue
 from Queue import Empty
 from dronekit import APIException, VehicleMode, connect, mavutil
 from airprobe.airprobe_run import airprobe_run
-
+ 
  #!# Comments explaining system prefaced with "#!#" - generally higher level understanding of process.
  #!# Comments explaining code prefaced with '#'
 
