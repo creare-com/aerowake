@@ -138,9 +138,9 @@ if __name__ == '__main__':
 
         #autopilot_connect_path = '/dev/ttyAMA0'
         #autopilot_connect_path = '/dev/ttyS0' #USe for RaspPi3
-        #autopilot_connect_path = '/dev/ttyACM0' # Use for odroid through usb hub through pixhawk usb cord
+        autopilot_connect_path = '/dev/ttyACM0' # Use for odroid through usb hub through pixhawk usb cord
         #autopilot_connect_path = '/dev/ttyUSB0' # Use for odroid through usb to serial converter
-        autopilot_connect_path = '/dev/ttySAC0' # Use for odroid through GPIO pins
+        #autopilot_connect_path = '/dev/ttySAC0' # Use for odroid through GPIO pins
         uav_baud = 57600
         gcs_connect_path = '/dev/ttyUSB0'
         gcs_baud = 57600
@@ -238,6 +238,7 @@ if __name__ == '__main__':
 
         #### GCS Connection ####
         # This link explains how to fix the 'link lost ... link restored ...' loop that occurs when connecting to gcs over telem radio. It involves changing a hard-coded timeout value from 30 seconds to longer than 30 seconds, and is required because it takes >30 seconds to download pixhawk parameters over telem radio at 57600 baud.
+        # Change the file at /usr/local/lib/python2.7/dist-packages/dronekit/__init__.py from timeout = kwargs(...,30) to 180
         # https://stackoverflow.com/questions/46210013/dronekit-python-vehicle-connection-timeout
         logging.info("Waiting for GCS")
         while True:
@@ -339,6 +340,16 @@ if __name__ == '__main__':
             pr = cProfile.Profile()
             pr.enable()
 
+        # Begin threading to continuously read and update the desired waypoint
+        #!# This block will read try to read any new mission commands from the GCS. 
+        #!# If there is a new set of commands, read_mission() will read, parse, and clear the mission. 
+        curr_time = datetime.datetime.now()
+        delta = (curr_time-prev_time).total_seconds()
+        if delta>1:
+            read_mission()
+            prev_time=curr_time
+            # print "tried to read mission"
+
         while True:
 
             t0= datetime.datetime.now()
@@ -360,14 +371,14 @@ if __name__ == '__main__':
             # print " ======== State Updated ========= "
 
 
-            #!# This block will read try to read any new mission commands from the GCS. 
-            #!# If there is a new set of commands, read_mission() will read, parse, and clear the mission. 
-            curr_time = datetime.datetime.now()
-            delta = (curr_time-prev_time).total_seconds()
-            if delta>1:
-                read_mission()
-                prev_time=curr_time
-                # print "tried to read mission"
+            # #!# This block will read try to read any new mission commands from the GCS. 
+            # #!# If there is a new set of commands, read_mission() will read, parse, and clear the mission. 
+            # curr_time = datetime.datetime.now()
+            # delta = (curr_time-prev_time).total_seconds()
+            # if delta>1:
+            #     read_mission()
+            #     prev_time=curr_time
+            #     # print "tried to read mission"
 
             #!# This block will read the Airprobe information from the multiprocessing queue. 
             # #Get AirProbe Info:
