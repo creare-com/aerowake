@@ -29,12 +29,33 @@ from controller.pose_control import pose_controller_class
 
 #######################################################
 ##
-##               Function definitions
+##               Class and Function definitions
 ##
 #######################################################
 
- #!# This function is called if there is a problem with the vehicle setup. It will kill the script. 
+class Waypoint(object):
+    def __init__(self):
+        self._lock = threading.Lock()
+        self._value = [] # Initialize with empty value
 
+    def set_mission(self, data):
+        try:
+            self._lock.acquire()
+            self._value = data
+            print 'SET MISSION TO DATA:',self._value
+        finally:
+            self._lock.release()
+        return
+
+    def get_mission(self):
+        try:
+            self._lock.acquire()
+            val = self._value
+        finally:
+            self._lock.release()
+        return val
+
+#!# This function is called if there is a problem with the vehicle setup. It will kill the script. 
 def setup_abort(abort_reason=None):
     t = 0
     #display items on screen
@@ -100,27 +121,53 @@ def download_mission():
 
  #!#  This function takes the mission list from the  GCS pixhawk, and parses it into a command. This system uses 2 waypoints to specify a command from the ground station. 
  #!#  First waypoint holds goal and mode information. Second waypoint holds tether information, and there is room for two extra parameters. 
-def read_mission():
+def read_mission(w):
     global autopilot
-    missionlist = download_mission()
-    data=[]
+    read_period = 0.5 # seconds between each attempt to read the gcs mission
+    while True:
+        t0 = datetime.datetime.now()
+        missionlist = download_mission()
+        # print 'MISSIONLIST:',missionlist
+        data=[]
 
-    for cmd in missionlist:
-        #(cmd.seq,cmd.current,cmd.frame,cmd.command,cmd.param1,cmd.param2,cmd.param3,cmd.param4,cmd.x,cmd.y,cmd.z,cmd.autocontinue)
-        data.append(cmd.param1)
-        data.append(cmd.x)
-        data.append(cmd.y)
-        data.append(cmd.z)
+        for cmd in missionlist:
+            #(cmd.seq,cmd.current,cmd.frame,cmd.command,cmd.param1,cmd.param2,cmd.param3,cmd.param4,cmd.x,cmd.y,cmd.z,cmd.autocontinue)
+            data.append(cmd.param1)
+            data.append(cmd.x)
+            data.append(cmd.y)
+            data.append(cmd.z)
+    
+        if data!=[]:
+            w.set_mission(data)
 
-    if data!=[]:
-        print  data
-        pose_controller.set_goal(data[1],data[2],data[3])# [theta,phi,L] in radians
-        pose_controller.goal_mode = data[0]
-        if len(data)>5:
-            extra1 = data[5]
-            pose_controller.gcs_tether_tension = data[6]
-            extra2 = data[7]
-    return pose_controller.goal_mode
+        t1 = datetime.datetime.now()
+        dtc = (t1-t0).total_seconds()
+        if dtc < read_period:
+            time.sleep(read_period - dtc)
+
+#  #!#  This function takes the mission list from the  GCS pixhawk, and parses it into a command. This system uses 2 waypoints to specify a command from the ground station. 
+#  #!#  First waypoint holds goal and mode information. Second waypoint holds tether information, and there is room for two extra parameters. 
+# def read_mission():
+#     global autopilot
+#     missionlist = download_mission()
+#     data=[]
+
+#     for cmd in missionlist:
+#         #(cmd.seq,cmd.current,cmd.frame,cmd.command,cmd.param1,cmd.param2,cmd.param3,cmd.param4,cmd.x,cmd.y,cmd.z,cmd.autocontinue)
+#         data.append(cmd.param1)
+#         data.append(cmd.x)
+#         data.append(cmd.y)
+#         data.append(cmd.z)
+
+#     if data!=[]:
+#         print  data
+#         pose_controller.set_goal(data[1],data[2],data[3])# [theta,phi,L] in radians
+#         pose_controller.goal_mode = data[0]
+#         if len(data)>5:
+#             extra1 = data[5]
+#             pose_controller.gcs_tether_tension = data[6]
+#             extra2 = data[7]
+#     return pose_controller.goal_mode
 
 
 #######################################################
@@ -343,12 +390,10 @@ if __name__ == '__main__':
         # Begin threading to continuously read and update the desired waypoint
         #!# This block will read try to read any new mission commands from the GCS. 
         #!# If there is a new set of commands, read_mission() will read, parse, and clear the mission. 
-        curr_time = datetime.datetime.now()
-        delta = (curr_time-prev_time).total_seconds()
-        if delta>1:
-            read_mission()
-            prev_time=curr_time
-            # print "tried to read mission"
+        current_waypoint = Waypoint()
+        gcs_reader_thread = threading.Thread(target=read_mission, args=(current_waypoint,))
+        gcs_reader_thread.daemon = True
+        gcs_reader_thread.start()
 
         while True:
 
@@ -369,6 +414,24 @@ if __name__ == '__main__':
             pose_controller.gcs_heading = gcs.attitude.yaw       # GCS Heading (rad)
             
             # print " ======== State Updated ========= "
+
+
+            # #!# This block will set the pose_controller's goal_pose and goal_mode. 
+            curr_time = datetime.datetime.now()
+            delta = (curr_time-prev_time).total_seconds()
+            if delta > 1:
+                data = current_waypoint.get_mission()
+                # print 'DATA:',data
+                if data!=[]:
+                    # print  data
+                    pose_controller.set_goal(data[1],data[2],data[3])# [theta,phi,L] in radians
+                    pose_controller.goal_mode = data[0]
+                    if len(data) > 5:
+                        extra1 = data[5]
+                        pose_controller.gcs_tether_tension = data[6]
+                        extra2 = data[7]
+                    # print "UPDATED CURRENT WAYPOINT TO mo:%s,th:%0.4f,ph:%0.4f,r:%0.4f" %(pose_controller.goal_mode, pose_controller.goal_pose[0],pose_controller.goal_pose[1],pose_controller.goal_pose[2])
+                prev_time=curr_time
 
 
             # #!# This block will read try to read any new mission commands from the GCS. 
@@ -439,8 +502,10 @@ if __name__ == '__main__':
                 time.sleep(CONTROL_DT-dtc)
             else:
                 print "Control Too Slow: ",dtc
+
     except KeyboardInterrupt:
         print 'Got CTRL-C, cleaning up.'
+        
         if profiler_on:
             # Stop the profiler and print the results
             pr.disable()
@@ -449,6 +514,8 @@ if __name__ == '__main__':
             ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
             ps.print_stats()
             print s.getvalue()
+
+        sys.exit()
 
 
 
