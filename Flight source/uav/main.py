@@ -185,7 +185,7 @@ if __name__ == '__main__':
 
         #autopilot_connect_path = '/dev/ttyAMA0'
         #autopilot_connect_path = '/dev/ttyS0' #USe for RaspPi3
-        autopilot_connect_path = '/dev/ttyACM0' # Use for odroid through usb hub through pixhawk usb cord
+        autopilot_connect_path = '/dev/ttyACM1' # Use for odroid through usb hub through pixhawk usb cord
         #autopilot_connect_path = '/dev/ttyUSB0' # Use for odroid through usb to serial converter
         #autopilot_connect_path = '/dev/ttySAC0' # Use for odroid through GPIO pins
         uav_baud = 57600
