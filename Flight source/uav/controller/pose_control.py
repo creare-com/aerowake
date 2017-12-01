@@ -64,7 +64,10 @@ class pose_controller_class:
 
         self.SMART_TETHER = False
 
-        self.uav_weight = 2*9.81 #weight of the UAV in Newtons. 
+        self.uav_weight = 2*9.81 #weight of the UAV in Newtons.
+
+        self.epoch = datetime.datetime.utcfromtimestamp(0)
+ 
 
 
 
@@ -236,13 +239,14 @@ class pose_controller_class:
             self.log_n+=1
             if self.log_n ==1:
                 header = "self.uav_coord[0],self.uav_coord[1],self.gcs_coord[0],self.gcs_coord[1],self.uav_alt,self.gcs_alt,self.goal_pose[0],self.goal_pose[1],self.goal_pose[2],self.uav_heading,self.gcs_heading,self.uav_vel[0],self.uav_vel[1],self.uav_vel[2],self.gcs_vel[0],self.gcs_vel[1],self.gcs_vel[2],self.uav_pose[0],self.uav_pose[1],self.uav_pose[2],self.goal_pose[0],self.goal_pose[1],self.goal_pose[2],self.goal_mode,self.L, roll_cmd,pitch_cmd,yaw_cmd,thr_cmd,self.voltage,self.current "
-                header_text = "log N,time,"+header+" \n"
+                header_text = "log N,datetime,time [s],time [ns],"+header+" \n"
                 f.write(header_text)            
                 
-                
-            #now= datetime.datetime.now()
+            now = datetime.datetime.now()
+            now_s = int((now - self.epoch).total_seconds())
+            now_ns = int(((now - self.epoch).total_seconds() - now_s)*10000)
             #timestamp = now.strftime("%H:%M:%S")
-            outstr = str(self.log_n) + ","+ str(self.logging_time)+","+ str(dataPkt)+ "\n"
+            outstr = str(self.log_n) + ","+ str(now)+","+ str(now_s)+","+ str(now_ns)+","+ str(dataPkt)+ "\n"
             try:
                 f.write(outstr)
             except KeyboardInterrupt:
