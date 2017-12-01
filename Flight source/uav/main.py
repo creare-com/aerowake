@@ -397,8 +397,8 @@ if __name__ == '__main__':
 
         while True:
 
-            t0= datetime.datetime.now()
-            pose_controller.logging_time = logging_time
+            t0 = datetime.datetime.now()
+            pose_controller.logging_time = t0
 
              #!#  Update State Information from the UAV pixhawk and GCS pixhawk. 
             pose_controller.uav_coord = [autopilot.location.global_frame.lat, autopilot.location.global_frame.lon]     # GPS Coordinates of UAV [lat,lon] from pixhawk (DD.DDDDDDD)
