@@ -291,15 +291,15 @@ if __name__ == '__main__':
 
         gcs.mode = VehicleMode("GUIDED")
 
-        if not gcs.armed:
-            while not gcs.is_armable:
-                print "GCS Not Armable"
-                time.sleep(.5)
-            gcs.armed = True
-            while not gcs.armed:
-                print 'Waiting for GCS to arm: ',gcs.armed
-                time.sleep(1)
-        gcs.mode = VehicleMode("GUIDED")
+        # if not gcs.armed:
+        #     while not gcs.is_armable:
+        #         print "GCS Not Armable"
+        #         time.sleep(.5)
+        #     gcs.armed = True
+        #     while not gcs.armed:
+        #         print 'Waiting for GCS to arm: ',gcs.armed
+        #         time.sleep(1)
+        # gcs.mode = VehicleMode("GUIDED")
 
 
         #!# System is ready!
