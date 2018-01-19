@@ -127,7 +127,7 @@ def read_mission(w):
     while True:
         t0 = datetime.datetime.now()
         missionlist = download_mission()
-        print '\n\nMISSIONLIST:',missionlist,'\n\n'
+        # print 'MISSIONLIST:',missionlist
         data=[]
 
         for cmd in missionlist:
@@ -185,9 +185,9 @@ if __name__ == '__main__':
 
         #autopilot_connect_path = '/dev/ttyAMA0'
         #autopilot_connect_path = '/dev/ttyS0' #USe for RaspPi3
-        #autopilot_connect_path = '/dev/ttyACM1' # Use for odroid through usb hub through pixhawk usb cord
+        autopilot_connect_path = '/dev/ttyACM0' # Use for odroid through usb hub through pixhawk usb cord
         #autopilot_connect_path = '/dev/ttyUSB0' # Use for odroid through usb to serial converter
-        autopilot_connect_path = '/dev/ttySAC0' # Use for odroid through GPIO pins
+        #autopilot_connect_path = '/dev/ttySAC0' # Use for odroid through GPIO pins
         uav_baud = 57600
         gcs_connect_path = '/dev/ttyUSB0'
         gcs_baud = 57600
@@ -381,7 +381,7 @@ if __name__ == '__main__':
         #         time.sleep(0.5)
 
         # Enable the profiler
-        profiler_on = False
+        profiler_on = True
         if profiler_on:
             # Start the profiler (if desired)
             pr = cProfile.Profile()
@@ -397,25 +397,21 @@ if __name__ == '__main__':
 
         while True:
 
-            #print '\nInside control loop\n'
-
             t0 = datetime.datetime.now()
             pose_controller.logging_time = t0
 
              #!#  Update State Information from the UAV pixhawk and GCS pixhawk. 
             pose_controller.uav_coord = [autopilot.location.global_frame.lat, autopilot.location.global_frame.lon]     # GPS Coordinates of UAV [lat,lon] from pixhawk (DD.DDDDDDD)
-            print '\nuav',autopilot.location.global_frame,'\n'
             pose_controller.uav_vel = [autopilot.velocity[0],autopilot.velocity[1],autopilot.velocity[2]]      # UAV velocity [x,y,z] from pixhawk (m/s)
             pose_controller.uav_alt = (autopilot.location.global_relative_frame.alt )       # UAV Alt from pixhawk (m)
             pose_controller.uav_heading = autopilot.attitude.yaw        # UAV Heading (rad)
             pose_controller.uav_voltage = autopilot.battery.voltage     # UAV Voltage
             pose_controller.uav_current = 0#autopilot.battery.current/10 # UAV Current in mA
 
-            pose_controller.gcs_coord = [gcs.location.global_frame.lat, gcs.location.global_frame.lon]       # GPS Coordinates of GCS [lat,lon] from pixhawk (DD.DDDDDD)
-            print '\ngcs',gcs.location.global_frame,'\n'
-            pose_controller.gcs_vel = [gcs.velocity[0], gcs.velocity[1], gcs.velocity[2]]        # GCS Velocity [x,y,z] from pixhawk (m/s)
-            pose_controller.gcs_alt = (gcs.location.global_relative_frame.alt )         # GCS Altitude from pixhawk (m)
-            pose_controller.gcs_heading = gcs.attitude.yaw       # GCS Heading (rad)
+            # pose_controller.gcs_coord = [gcs.location.global_frame.lat, gcs.location.global_frame.lon]       # GPS Coordinates of GCS [lat,lon] from pixhawk (DD.DDDDDD)
+            # pose_controller.gcs_vel = [gcs.velocity[0], gcs.velocity[1], gcs.velocity[2]]        # GCS Velocity [x,y,z] from pixhawk (m/s)
+            # pose_controller.gcs_alt = (gcs.location.global_relative_frame.alt )         # GCS Altitude from pixhawk (m)
+            # pose_controller.gcs_heading = gcs.attitude.yaw       # GCS Heading (rad)
             
             # print " ======== State Updated ========= "
 
@@ -461,8 +457,8 @@ if __name__ == '__main__':
             # print "UAV mode: " + autopilot.mode.name + " Armed? " + str(autopilot.armed)
             # print "GCS mode: " + gcs.mode.name + " Armed? " + str(gcs.armed)
 
-            #if autopilot.mode.name=='GUIDED' and autopilot.armed and gcs.armed:
-            if True:
+            if autopilot.mode.name=='GUIDED' and autopilot.armed:# and gcs.armed:
+            # if True:
                 # pose_controller.goal_mode=G_AUTO
 
                 if pose_controller.goal_mode == G_AUTO:
@@ -496,7 +492,7 @@ if __name__ == '__main__':
                     set_attitude_target(output)
                     print 'No Mode. Roll: %.2f  Pitch: %.2f   Thr: %.2f'%(roll,pitch,thr)
             else:
-                print "Manual Control\n\tMode Guided: %s\n\tUAV Armed: %s\n\tGCS Armed: %s" %(autopilot.mode.name=='GUIDED',autopilot.armed,gcs.armed)
+                print "Manual Control\n\tMode Guided: %s\n\tUAV Armed: %s\n\tGCS Armed: %s" %(autopilot.mode.name=='GUIDED',autopilot.armed)#,gcs.armed)
 
              #!# Timing system to keep the control around CONTROL_DT
              #!# If the script is consistently too slow, the Control DT will have to be updated every loop iteration
