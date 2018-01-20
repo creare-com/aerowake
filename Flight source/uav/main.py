@@ -125,6 +125,7 @@ def read_mission(w):
     global autopilot
     read_period = 0.5 # seconds between each attempt to read the gcs mission
     while True:
+	print "\n\nThread alive\n\n"
         t0 = datetime.datetime.now()
         missionlist = download_mission()
         # print 'MISSIONLIST:',missionlist
@@ -140,10 +141,10 @@ def read_mission(w):
         if data!=[]:
             w.set_mission(data)
 
-        t1 = datetime.datetime.now()
-        dtc = (t1-t0).total_seconds()
-        if dtc < read_period:
-            time.sleep(read_period - dtc)
+        #t1 = datetime.datetime.now()
+        #dtc = (t1-t0).total_seconds()
+        #if dtc < read_period:
+        #    time.sleep(read_period - dtc)
 
 #  #!#  This function takes the mission list from the  GCS pixhawk, and parses it into a command. This system uses 2 waypoints to specify a command from the ground station. 
 #  #!#  First waypoint holds goal and mode information. Second waypoint holds tether information, and there is room for two extra parameters. 
@@ -185,9 +186,9 @@ if __name__ == '__main__':
 
         #autopilot_connect_path = '/dev/ttyAMA0'
         #autopilot_connect_path = '/dev/ttyS0' #USe for RaspPi3
-        autopilot_connect_path = '/dev/ttyACM1' # Use for odroid through usb hub through pixhawk usb cord
+        #autopilot_connect_path = '/dev/ttyACM0' # Use for odroid through usb hub through pixhawk usb cord
         #autopilot_connect_path = '/dev/ttyUSB0' # Use for odroid through usb to serial converter
-        #autopilot_connect_path = '/dev/ttySAC0' # Use for odroid through GPIO pins
+        autopilot_connect_path = '/dev/ttySAC0' # Use for odroid through GPIO pins
         uav_baud = 57600
         gcs_connect_path = '/dev/ttyUSB0'
         gcs_baud = 57600
@@ -396,7 +397,6 @@ if __name__ == '__main__':
         gcs_reader_thread.start()
 
         while True:
-
             t0 = datetime.datetime.now()
             pose_controller.logging_time = t0
 
@@ -457,13 +457,14 @@ if __name__ == '__main__':
             # print "UAV mode: " + autopilot.mode.name + " Armed? " + str(autopilot.armed)
             # print "GCS mode: " + gcs.mode.name + " Armed? " + str(gcs.armed)
 
-            if autopilot.mode.name=='GUIDED' and autopilot.armed and gcs.armed:
-            # if True:
+            #if autopilot.mode.name=='GUIDED' and autopilot.armed:# and gcs.armed:
+            if True:
                 # pose_controller.goal_mode=G_AUTO
 
                 if pose_controller.goal_mode == G_AUTO:
                     output = pose_controller.run_sph_pose_controller()
                     set_attitude_target(output)
+                    print 'Doing pose control things...'
 
                 if pose_controller.goal_mode == G_TAKEOFF: 
                     #Special condition for takoff. Positive pitch is pitch up

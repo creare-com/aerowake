@@ -267,8 +267,8 @@ class pose_controller_class:
         phi = new_state[1] # rad
         r = new_state[2] # m
 
-        print ">> Pose: Theta %.2f, Phi %.2f, R %.2f, L %.2f" %(th*180/np.pi,phi*180/np.pi,r,self.L)
-        print ">> Goal: Theta %.2f, Phi %.2f, R %.2f" %(self.goal_pose[0]*180/np.pi,self.goal_pose[1]*180/np.pi,self.goal_pose[2])
+        #print ">> Pose: Theta %.2f, Phi %.2f, R %.2f, L %.2f" %(th*180/np.pi,phi*180/np.pi,r,self.L)
+        #print ">> Goal: Theta %.2f, Phi %.2f, R %.2f" %(self.goal_pose[0]*180/np.pi,self.goal_pose[1]*180/np.pi,self.goal_pose[2])
         
 
 
@@ -318,7 +318,7 @@ class pose_controller_class:
         fiz = r_input_z + phi_input_z + th_input_z
         #TODO: Saturate fix, fiy, fiz
 
-        print ">> PID Forces: X %.2f, Y %.2f, Z %.2f" %(fix,fiy,fiz) #
+        #print ">> PID Forces: X %.2f, Y %.2f, Z %.2f" %(fix,fiy,fiz) #
 
         #### Feed Forward Tether Model ####
 
@@ -402,7 +402,7 @@ class pose_controller_class:
         thr_cmd = ((ftz-self.uav_weight)*K_THROTTLE)+.5
         thr_cmd = self.saturate(thr_cmd,0,1)
 
-        print ">> Output Commands : roll %.1f, pitch %.1f, yaw %.1f, thrust %.1f, yaw_rate %.1f" %(roll_cmd,pitch_cmd,yaw_cmd,thr_cmd, yaw_rate)
+        #print ">> Output Commands : roll %.1f, pitch %.1f, yaw %.1f, thrust %.1f, yaw_rate %.1f" %(roll_cmd,pitch_cmd,yaw_cmd,thr_cmd, yaw_rate)
 
         # roll_cmd = 0
         # pitch_cmd = 0
