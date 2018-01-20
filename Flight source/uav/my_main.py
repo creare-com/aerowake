@@ -1,12 +1,14 @@
 #!/usr/bin/env python2
 
 import sys
+sys.path.append('../')
 import math
 import time
 import logging
-from pymavlink import mavutil
-from dronekit import connect, VehicleMode, LocationGlobalRelative, LocationGlobal, Command
 from airprobe.airprobe_run import airprobe_run
+from dronekit import connect, VehicleMode, LocationGlobalRelative, LocationGlobal, Command
+from helper_functions import arm_and_takeoff
+from pymavlink import mavutil
 
 #-------------------------------------------------------------------------------
 #
@@ -27,38 +29,6 @@ gcs_baud = 115200
 # Define Helper Functions
 #
 #-------------------------------------------------------------------------------
-
-def arm_and_takeoff(aTargetAltitude):
-	"""
-	Arms uav and fly to aTargetAltitude.
-	"""
-
-	print "Basic pre-arm checks"
-	# Don't let the user try to arm until uav is ready
-	while not uav.is_armable:
-		print " Waiting for uav to initialise..."
-		time.sleep(1)
-
-	print "Arming motors"
-	# Copter should arm in GUIDED mode
-	uav.mode = VehicleMode("GUIDED")
-	uav.armed = True
-
-	while not uav.armed:
-		print " Waiting for arming..."
-		time.sleep(1)
-
-	print "Taking off!"
-	uav.simple_takeoff(aTargetAltitude) # Take off to target altitude
-
-	# Wait until the uav reaches a safe height before processing the goto (otherwise the command 
-	#  after uav.simple_takeoff will execute immediately).
-	while True:
-		print " Altitude: ", uav.location.global_relative_frame.alt
-		if uav.location.global_relative_frame.alt>=aTargetAltitude*0.95: #Trigger just below target alt.
-			print "Reached target altitude"
-			break
-		time.sleep(1)
 
 """
 Convenience functions for sending immediate/guided mode commands to control the Copter.
@@ -125,78 +95,6 @@ def set_roi(location):
 	# send command to uav
 	uav.send_mavlink(msg)
 
-"""
-Functions to make it easy to convert between the different frames-of-reference. In particular these
-make it easy to navigate in terms of "metres from the current position" when using commands that take 
-absolute positions in decimal degrees.
-
-The methods are approximations only, and may be less accurate over longer distances, and when close 
-to the Earth's poles.
-
-Specifically, it provides:
-* get_location_metres - Get LocationGlobal (decimal degrees) at distance (m) North & East of a given LocationGlobal.
-* get_distance_metres - Get the distance between two LocationGlobal objects in metres
-* get_bearing - Get the bearing in degrees to a LocationGlobal
-"""
-
-def get_location_metres(original_location, dNorth, dEast):
-	"""
-	Returns a LocationGlobal object containing the latitude/longitude `dNorth` and `dEast` metres from the 
-	specified `original_location`. The returned LocationGlobal has the same `alt` value
-	as `original_location`.
-
-	The function is useful when you want to move the uav around specifying locations relative to 
-	the current uav position.
-
-	The algorithm is relatively accurate over small distances (10m within 1km) except close to the poles.
-
-	For more information see:
-	http://gis.stackexchange.com/questions/2951/algorithm-for-offsetting-a-latitude-longitude-by-some-amount-of-meters
-	"""
-	earth_radius = 6378137.0 #Radius of "spherical" earth
-	#Coordinate offsets in radians
-	dLat = dNorth/earth_radius
-	dLon = dEast/(earth_radius*math.cos(math.pi*original_location.lat/180))
-
-	#New position in decimal degrees
-	newlat = original_location.lat + (dLat * 180/math.pi)
-	newlon = original_location.lon + (dLon * 180/math.pi)
-	if type(original_location) is LocationGlobal:
-		targetlocation=LocationGlobal(newlat, newlon,original_location.alt)
-	elif type(original_location) is LocationGlobalRelative:
-		targetlocation=LocationGlobalRelative(newlat, newlon,original_location.alt)
-	else:
-		raise Exception("Invalid Location object passed")
-		
-	return targetlocation;
-
-
-def get_distance_metres(aLocation1, aLocation2):
-	"""
-	Returns the ground distance in metres between two LocationGlobal objects.
-
-	This method is an approximation, and will not be accurate over large distances and close to the 
-	earth's poles. It comes from the ArduPilot test code: 
-	https://github.com/diydrones/ardupilot/blob/master/Tools/autotest/common.py
-	"""
-	dlat = aLocation2.lat - aLocation1.lat
-	dlong = aLocation2.lon - aLocation1.lon
-	return math.sqrt((dlat*dlat) + (dlong*dlong)) * 1.113195e5
-
-def get_bearing(aLocation1, aLocation2):
-	"""
-	Returns the bearing between the two LocationGlobal objects passed as parameters.
-
-	This method is an approximation, and may not be accurate over large distances and close to the 
-	earth's poles. It comes from the ArduPilot test code: 
-	https://github.com/diydrones/ardupilot/blob/master/Tools/autotest/common.py
-	""" 
-	off_x = aLocation2.lon - aLocation1.lon
-	off_y = aLocation2.lat - aLocation1.lat
-	bearing = 90.00 + math.atan2(-off_y, off_x) * 57.2957795
-	if bearing < 0:
-		bearing += 360.00
-	return bearing;
 
 """
 Functions to move the uav to a specified position (as opposed to controlling movement by setting velocity components).
@@ -377,7 +275,7 @@ def send_global_velocity(velocity_x, velocity_y, velocity_z, duration):
 
 #-------------------------------------------------------------------------------
 #
-# Start main process
+# Start Main Process
 #
 #-------------------------------------------------------------------------------
 
@@ -476,7 +374,7 @@ if __name__ == '__main__':
 	#		- ROI or yaw command
 
 	# Arm and take of to altitude of 5 meters
-	# arm_and_takeoff(10)
+	arm_and_takeoff(uav,10,'UAV')
 
 	DURATION = 20 #Set duration for each segment.
 	continue_loop = True
