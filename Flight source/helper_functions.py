@@ -1,7 +1,9 @@
 #!/usr/bin/env python2
 
+import numpy as np
 import time
 from dronekit import LocationGlobal, LocationGlobalRelative, VehicleMode
+from pymavlink import mavutil
 
 #-------------------------------------------------------------------------------
 #
@@ -10,66 +12,73 @@ from dronekit import LocationGlobal, LocationGlobalRelative, VehicleMode
 #-------------------------------------------------------------------------------
 
 #-------------------------------------------------------------------------------
-# Arming and Disarming
+# Arming, Disarming, Takeoffs, and Landings
 #-------------------------------------------------------------------------------
 
 def arm_vehicle(vehicle,name):
-	"""
+	'''
 	Arms vehicle.
-	"""
+	'''
+	print 'Attempting to arm %s' %(name)
 	if not vehicle.armed:
-		print "Basic pre-arm checks"
 		while not vehicle.is_armable:
-			print " Waiting for %s to initialise..." %(name)
+			print ' Waiting for %s to initialise...' %(name)
 			time.sleep(1)
-		print "Arming motors"
-		vehicle.mode = VehicleMode("GUIDED")
+		print ' Arming motors on %s' %(name)
+		vehicle.mode = VehicleMode('GUIDED')
 		vehicle.armed = True
 		while not vehicle.armed:
-			print " Waiting for arming..."
+			print ' Waiting for %s to arm...' %(name)
 			time.sleep(1)
-		print "%s armed." %(name)
+		print ' %s armed\n' %(name)
 	else:
-		print '%s already armed.' %(name)
-
-
-def arm_and_takeoff(vehicle,aTargetAltitude,name):
-	"""
-	Arms vehicle and flies to aTargetAltitude.
-	"""
-	print "Basic pre-arm checks"
-	# Don't let the user try to arm until uav is ready
-	while not vehicle.is_armable:
-		print " Waiting for %s to initialise..." %(name)
-		time.sleep(1)
-	print "Arming motors"
-	# Vehicle should arm in GUIDED mode
-	vehicle.mode = VehicleMode("GUIDED")
-	vehicle.armed = True
-	while not vehicle.armed:
-		print " Waiting for arming..."
-		time.sleep(1)
-	print "Taking off!"
-	vehicle.simple_takeoff(aTargetAltitude) # Take off to target altitude
-	# Wait until the vehicle reaches a safe height before processing the goto (otherwise the command after vehicle.simple_takeoff will execute immediately).
-	while vehicle.location.global_relative_frame.alt <= aTargetAltitude*0.95: #Trigger just below target alt.
-		print " Altitude: ", vehicle.location.global_relative_frame.alt 
-		time.sleep(1)
-	print "Reached target altitude"
+		print ' %s is already armed\n' %(name)
 
 
 def disarm_vehicle(vehicle,name):
-	"""
+	'''
 	Disarms vehicle.
-	"""
+	'''
+	print 'Attempting to disarm %s...' %(name)
 	if vehicle.armed:
 		vehicle.armed = False
 		while vehicle.armed:
-			print " Waiting for disarming..."
+			print ' Waiting for %s to disarm...' %(name)
 			time.sleep(1)
-		print "%s disarmed." %(name)
+		print ' %s disarmed\n' %(name)
 	else:
-		print '%s already disarmed.' %(name)
+		print ' %s is already disarmed\n' %(name)
+
+
+def land(vehicle,name):
+	'''
+	Lands vehicle.
+	'''
+	print '%s attempting to land' %(name)
+	print ' Setting LAND mode on %s...' %(name)
+	vehicle.mode = VehicleMode('LAND')
+	# Copter vehicle will automatically disarm after so many seconds of inactivity
+	while vehicle.armed:
+		print ' Waiting for %s landing confirmed...' %(name)
+		time.sleep(3)
+	print ' %s disarmed after landing\n' %(name)
+
+
+def takeoff(vehicle,name,aTargetAltitude):
+	'''
+	Takes off and flies to aTargetAltitude.
+	'''
+	print '%s attempting to takeoff' %(name)
+	if vehicle.armed:
+		print ' %s taking off' %(name)
+		vehicle.simple_takeoff(aTargetAltitude) # Take off to target altitude
+		# Wait until the vehicle reaches a safe height before processing the goto (otherwise the command after vehicle.simple_takeoff will execute immediately).
+		while vehicle.location.global_relative_frame.alt <= aTargetAltitude*0.95: #Trigger just below target alt.
+			print ' Altitude: ', vehicle.location.global_relative_frame.alt 
+			time.sleep(1)
+		print ' %s reached target altitude\n' %(name)
+	else: 
+		print ' %s is not armed. Cannot takeoff.\n' %(name)
 
 
 
@@ -78,11 +87,11 @@ def disarm_vehicle(vehicle,name):
 #-------------------------------------------------------------------------------
 
 def get_bearing(aLocation1, aLocation2):
-	"""
+	'''
 	Returns the bearing from location 1 to location 2, where each is a LocationGlobal object.
 
 	https://www.movable-type.co.uk/scripts/latlong.html
-	""" 
+	''' 
 	lat1 = aLocation1.lat*np.pi/180.0 # [rad]
 	lon1 = aLocation1.lon*np.pi/180.0
 	lat2 = aLocation2.lat*np.pi/180.0
@@ -97,7 +106,7 @@ def get_bearing(aLocation1, aLocation2):
 
 
 def get_distance_metres(aLocation1, aLocation2, method = 'Haversine'):
-	"""
+	'''
 	Returns the ground distance in metres between two LocationGlobal objects. The default method uses the Haversine formula. This function also accepts an argument of 'ArduPilot' to use the ArduPilot default. 
 
 	Haversine Method:
@@ -109,7 +118,7 @@ def get_distance_metres(aLocation1, aLocation2, method = 'Haversine'):
 		pt2 = LocationGlobal(42.355629, -71.101989, 10)
 
 		This method is an approximation, and will not be accurate over large distances and close to the earth's poles. It comes from the ArduPilot test code: https://github.com/diydrones/ardupilot/blob/master/Tools/autotest/common.py
-	"""
+	'''
 	lat1 = aLocation1.lat*np.pi/180.0 # [rad]
 	lon1 = aLocation1.lon*np.pi/180.0
 	lat2 = aLocation2.lat*np.pi/180.0
@@ -117,47 +126,157 @@ def get_distance_metres(aLocation1, aLocation2, method = 'Haversine'):
 	dlat = lat2 - lat1
 	dlon = lon2 - lon1
 	if method == 'Haversine':
-		R = 6378137.0 # [m] Radius of "spherical" earth
+		R = 6378137.0 # [m] Radius of 'spherical' earth
 		a = np.sin(dlat/2.0)**2 + np.cos(lat1)*np.cos(lat2)*np.sin(dlon/2.0)**2
 		c = 2*np.arctan2(np.sqrt(a), np.sqrt(1 - a))
 		return R*c
 	elif method == 'ArduPilot':
 		dlat = dlat*180.0/np.pi # [deg]
 		dlon = dlon*180.0/np.pi
-		return math.sqrt((dlat*dlat) + (dlon*dlon)) * 1.113195e5
+		return np.sqrt((dlat*dlat) + (dlon*dlon)) * 1.113195e5
 	else: 
-		raise Exception("Invalid distance method passed.")
+		raise Exception('Invalid distance method passed.')
+
+
+def get_home_location(vehicle):
+	'''
+	Returns a LocationGlobal object containing the vehicle's home location.
+
+	In order to get the vehicle's onboard home location, you must first download the commands. This is becuase Pixhawk is awful (i.e. because the home position is silently stored as the 0th waypoint).
+	'''
+	cmds = vehicle.commands
+	cmds.download()
+	cmds.wait_ready()
+	return vehicle.home_location
 
 
 def get_location_metres(original_location, dNorth, dEast):
-	"""
+	'''
 	Returns a LocationGlobal object containing the latitude/longitude `dNorth` and `dEast` metres from the specified `original_location`. The returned LocationGlobal has the same `alt` value as `original_location`.
 
 	The algorithm is relatively accurate over small distances (10m within 1km) except close to the poles.
 
 	For more information see:
 	http://gis.stackexchange.com/questions/2951/algorithm-for-offsetting-a-latitude-longitude-by-some-amount-of-meters
-	"""
-	earth_radius = 6378137.0 # [m] Radius of "spherical" earth
+	'''
+	earth_radius = 6378137.0 # [m] Radius of 'spherical' earth
 	# Coordinate offsets in radians
 	dLat = dNorth/earth_radius
-	dLon = dEast/(earth_radius*math.cos(math.pi*original_location.lat/180))
+	dLon = dEast/(earth_radius*np.cos(np.pi*original_location.lat/180))
 	# New position in decimal degrees
-	newlat = original_location.lat + (dLat * 180/math.pi)
-	newlon = original_location.lon + (dLon * 180/math.pi)
+	newlat = original_location.lat + (dLat * 180/np.pi)
+	newlon = original_location.lon + (dLon * 180/np.pi)
 	if type(original_location) is LocationGlobal:
 		targetlocation = LocationGlobal(newlat, newlon, original_location.alt)
 	elif type(original_location) is LocationGlobalRelative:
 		targetlocation = LocationGlobalRelative(newlat, newlon, original_location.alt)
 	else:
-		raise Exception("Invalid Location object passed.")
+		raise Exception('Invalid Location object passed.')
 	return targetlocation
+
+
+
+#-------------------------------------------------------------------------------
+# Movement Command - Wrapper
+#-------------------------------------------------------------------------------
+
+def goto(vehicle, name, dNorth, dEast, gotoFunction = None):
+	'''
+	COMMANDS VEHICLE TO A POSITION dNorth AND dEast RELATIVE TO ITS CURRENT POSITION. IF gotoFunction == 1, THEN IT COMMANDS A POSITION USING goto_position_target_global_int. IF not gotoFunction == 1, THEN IT COMMANDS A POSITION USING simple_goto. THESE TWO FUNCTIONS ARE EFFECTIVELY THE SAME.
+
+	Moves the vehicle to a position dNorth metres North and dEast metres East of the current position.
+
+	The method takes a function pointer argument with a single 'dronekit.lib.LocationGlobal' parameter for the target position. This allows it to be called with different position-setting commands. By default it uses the standard method: dronekit.lib.Vehicle.simple_goto().
+
+	The method reports the distance to target every two seconds.
+	'''
+
+	if gotoFunction == 1:
+		use_simple_goto = False
+		gotoFunction = goto_position_target_global_int
+	else:
+		use_simple_goto = True
+		gotoFunction = vehicle.simple_goto
+
+	currentLocation = vehicle.location.global_relative_frame
+	targetLocation = get_location_metres(currentLocation, dNorth, dEast)
+	targetDistance = get_distance_metres(currentLocation, targetLocation)
+	if use_simple_goto:
+		gotoFunction(targetLocation)
+	else: 
+		gotoFunction(vehicle,targetLocation)
+
+	# print 'DEBUG: targetLocation: %s' % targetLocation
+	# print 'DEBUG: targetDistance: %s' % targetDistance
+
+	# Set the following conditional to True if you want to see distance to target printed in the terminal. Note: if this is True, then the goto command will not exit until this loop ends, which means any conditional commands after this goto command will have no effect. 
+	if True:
+		while vehicle.mode.name == 'GUIDED': # Stop action if we are no longer in guided mode.
+			# print 'DEBUG: mode: %s' %(vehicle.mode.name)
+			remainingDistance = get_distance_metres(vehicle.location.global_relative_frame, targetLocation)
+			print 'Distance to target: ', remainingDistance
+			if remainingDistance <= 1: # Let 'Reached target' trigger at 1 m from target
+				print 'Reached target'
+				break;
+			time.sleep(2)
+
+
 
 #-------------------------------------------------------------------------------
 # Movement Commands - Position Based
 #-------------------------------------------------------------------------------
 
+def goto_position_target_global_int(vehicle,aLocation):
+	'''
+	WHEN CALLED WITH THE goto(...) WRAPPER, THIS IS EFFECTIVELY THE SAME AS simple_goto
 
+	Send SET_POSITION_TARGET_GLOBAL_INT command to request the vehicle fly to a specified LocationGlobal.
+
+	For more information see: https://pixhawk.ethz.ch/mavlink/#SET_POSITION_TARGET_GLOBAL_INT
+
+	See the above link for information on the type_mask (0 = enable, 1 = ignore). 
+	At time of writing, acceleration and yaw bits are ignored.
+	'''
+	msg = vehicle.message_factory.set_position_target_global_int_encode(
+		0, # time_boot_ms (not used)
+		0, 0, # target system, target component
+		mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT_INT, # frame
+		0b0000111111111000, # type_mask (only speeds enabled)
+		aLocation.lat*1e7, # lat_int - X Position in WGS84 frame in 1e7 * meters
+		aLocation.lon*1e7, # lon_int - Y Position in WGS84 frame in 1e7 * meters
+		aLocation.alt, # alt - Altitude in meters in AMSL altitude, not WGS84 if absolute or relative, above terrain if GLOBAL_TERRAIN_ALT_INT
+		0, # X velocity in NED frame in m/s
+		0, # Y velocity in NED frame in m/s
+		0, # Z velocity in NED frame in m/s
+		0, 0, 0, # afx, afy, afz acceleration (not supported yet, ignored in GCS_Mavlink)
+		0, 0) # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink) 
+	# Send command to vehicle
+	vehicle.send_mavlink(msg)
+
+
+def goto_position_target_local_ned(vehicle,north,east,down):
+	''' 
+	COMMANDS THE VEHICLE TO A LOCATION RELATIVE TO THE VEHICLE'S HOME POSITION. 
+
+	Send SET_POSITION_TARGET_LOCAL_NED command to request the vehicle fly to a specified location in the North, East, Down frame.
+
+	It is important to remember that in this frame, positive altitudes are entered as negative 'Down' values. So if down is '10', this will be 10 metres below the home altitude.
+
+	Starting from AC3.3 the method respects the frame setting. Prior to that the frame was ignored. For more information see: http://dev.ardupilot.com/wiki/copter-commands-in-guided-mode/#set_position_target_local_ned
+
+	See the above link for information on the type_mask (0=enable, 1=ignore). At time of writing, acceleration and yaw bits are ignored.
+	'''
+	msg = vehicle.message_factory.set_position_target_local_ned_encode(
+		0, # time_boot_ms (not used)
+		0, 0, # target system, target component
+		mavutil.mavlink.MAV_FRAME_LOCAL_NED, # frame
+		0b0000111111111000, # type_mask (only positions enabled)
+		north, east, down, # x, y, z positions (or North, East, Down in the MAV_FRAME_BODY_NED frame
+		0, 0, 0, # x, y, z velocity in m/s  (not used)
+		0, 0, 0, # x, y, z acceleration (not supported yet, ignored in GCS_Mavlink)
+		0, 0) # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink) 
+	# Send command to vehicle
+	vehicle.send_mavlink(msg)
 
 
 
