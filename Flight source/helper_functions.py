@@ -184,7 +184,7 @@ def get_location_metres(original_location, dNorth, dEast):
 
 
 #-------------------------------------------------------------------------------
-# Movement Command - Wrapper
+# Movement Commands - Wrappers
 #-------------------------------------------------------------------------------
 
 def goto(vehicle, dNorth, dEast, gotoFunction = None):
@@ -227,11 +227,66 @@ def goto(vehicle, dNorth, dEast, gotoFunction = None):
 				break;
 			time.sleep(2)
 
+def goto_reference(vehicle, dNorth, dEast, dDown, referenceLocation):
+	'''
+	COMMANDS VEHICLE TO A POSITION dNorth, dEast, AND dDown METERS RELATIVE TO THE SPECIFIED referenceLocation. 
+
+	The method reports the distance to target every two seconds.
+	'''
+
+	currentLocation = vehicle.location.global_relative_frame
+	targetLocation = get_location_metres(referenceLocation, dNorth, dEast)
+	targetDistance = get_distance_metres(currentLocation, targetLocation)
+	
+	goto_reference_helper(vehicle,targetLocation)
+
+	# print 'DEBUG: targetLocation: %s' % targetLocation
+	# print 'DEBUG: targetDistance: %s' % targetDistance
+
+	# Set the following conditional to True if you want to see distance to target printed in the terminal. Note: if this is True, then the goto command will not exit until this loop ends, which means any conditional commands after this goto command will have no effect. 
+	if True:
+		while vehicle.mode.name == 'GUIDED': # Stop action if we are no longer in guided mode.
+			# print 'DEBUG: mode: %s' %(vehicle.mode.name)
+			remainingDistance = get_distance_metres(vehicle.location.global_relative_frame, targetLocation)
+			print ' Distance to target: ', remainingDistance
+			if remainingDistance <= 1: # Let 'Reached target' trigger at 1 m from target
+				print ' Reached target'
+				break;
+			time.sleep(2)
+
 
 
 #-------------------------------------------------------------------------------
 # Navigation Commands - Position Based
 #-------------------------------------------------------------------------------
+
+def goto_reference_helper(vehicle,aLocationGlobal):
+	'''
+	
+
+	Send SET_POSITION_TARGET_GLOBAL_INT command to request the vehicle fly to a specified LocationGlobal.
+
+	For more information see: https://pixhawk.ethz.ch/mavlink/#SET_POSITION_TARGET_GLOBAL_INT
+
+	See the above link for information on the type_mask (0 = enable, 1 = ignore). 
+	At time of writing, acceleration and yaw bits are ignored.
+	'''
+	msg = vehicle.message_factory.set_position_target_global_int_encode(
+		0, # time_boot_ms (not used)
+		0, 0, # target system, target component
+		mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT_INT, # frame
+		0b0000111111111000, # type_mask (only speeds enabled)
+		aLocationGlobal.lat*1e7, # lat_int - X Position in WGS84 frame in 1e7 * meters
+		aLocationGlobal.lon*1e7, # lon_int - Y Position in WGS84 frame in 1e7 * meters
+		aLocationGlobal.alt, # alt - Altitude in meters in AMSL altitude, not WGS84 if absolute or relative, above terrain if GLOBAL_TERRAIN_ALT_INT
+		0, # X velocity in NED frame in m/s
+		0, # Y velocity in NED frame in m/s
+		0, # Z velocity in NED frame in m/s
+		0, 0, 0, # afx, afy, afz acceleration (not supported yet, ignored in GCS_Mavlink)
+		0, 0) # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink) 
+	# Send command to vehicle
+	vehicle.send_mavlink(msg)
+
 
 def goto_position_target_global_int(vehicle,aLocation):
 	'''

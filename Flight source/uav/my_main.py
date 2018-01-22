@@ -220,9 +220,9 @@ if __name__ == '__main__':
 			else:
 				if not current_wp is None:
 					print 'DEBUG: Flying to waypoint %d' %(current_wp)
-					print 'NEED TO IMPLEMENT: FLY TO WAYPOINT'
+					
 				else:
-					print 'DEBUG: In the air, not tracking a waypoint'
+					print 'DEBUG: In the air, but not tracking a waypoint'
 		elif not in_the_air: # Explicit for comprehension
 			if command == 359 and not uav.armed:
 				print 'DEBUG: Arming'

@@ -21,7 +21,7 @@ gcs_connect_path = '127.0.0.1:14556'
 gcs_baud = 115200
 
 # Determine number of waypoints
-num_wp = mission.num_wp
+num_wp = mission.num_wp[0]
 
 # Define a string that will print to show allowed user input
 str_allowed_input = '\n\nAllowed input:\n listen\n  Tell UAV to start listening to commands\n arm\n  Command UAV to arm throttle\n disarm\n  Command UAV to disarm throttle\n Waypoint Number (0-%d)\n  Navigate to designated waypoint\n takeoff\n  Command UAV to takeoff to 10 m\n land\n  Command UAV to land\n help\n  Show this list of allowed inputs\n quit\n  Terminate program\n\n' %(num_wp - 1)
