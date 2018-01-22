@@ -220,7 +220,10 @@ if __name__ == '__main__':
 			else:
 				if not current_wp is None:
 					print 'DEBUG: Flying to waypoint %d' %(current_wp)
-					
+					referenceLocation = gcs.location.global_frame
+					dNorth = wp_N[current_wp]
+					dEast = wp_E[current_wp]
+					goto_reference(vehicle, dNorth, dEast, referenceLocation)
 				else:
 					print 'DEBUG: In the air, but not tracking a waypoint'
 		elif not in_the_air: # Explicit for comprehension
