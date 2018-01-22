@@ -42,10 +42,17 @@ def disarm_vehicle(vehicle,name):
 	print 'Attempting to disarm %s...' %(name)
 	if vehicle.armed:
 		vehicle.armed = False
-		while vehicle.armed:
+		count = 0
+		keep_trying = True
+		while vehicle.armed and keep_trying:
 			print ' Waiting for %s to disarm...' %(name)
 			time.sleep(1)
-		print ' %s disarmed\n' %(name)
+			count += 1
+			if count >= 5:
+				print ' WARNING: FAILED TO DISARM'
+				keep_trying = False
+		if not vehicle.armed:
+			print ' %s disarmed\n' %(name)
 	else:
 		print ' %s is already disarmed\n' %(name)
 
@@ -180,7 +187,7 @@ def get_location_metres(original_location, dNorth, dEast):
 # Movement Command - Wrapper
 #-------------------------------------------------------------------------------
 
-def goto(vehicle, name, dNorth, dEast, gotoFunction = None):
+def goto(vehicle, dNorth, dEast, gotoFunction = None):
 	'''
 	COMMANDS VEHICLE TO A POSITION dNorth AND dEast RELATIVE TO ITS CURRENT POSITION. IF gotoFunction == 1, THEN IT COMMANDS A POSITION USING goto_position_target_global_int. IF not gotoFunction == 1, THEN IT COMMANDS A POSITION USING simple_goto. THESE TWO FUNCTIONS ARE EFFECTIVELY THE SAME.
 
@@ -214,16 +221,16 @@ def goto(vehicle, name, dNorth, dEast, gotoFunction = None):
 		while vehicle.mode.name == 'GUIDED': # Stop action if we are no longer in guided mode.
 			# print 'DEBUG: mode: %s' %(vehicle.mode.name)
 			remainingDistance = get_distance_metres(vehicle.location.global_relative_frame, targetLocation)
-			print 'Distance to target: ', remainingDistance
+			print ' Distance to target: ', remainingDistance
 			if remainingDistance <= 1: # Let 'Reached target' trigger at 1 m from target
-				print 'Reached target'
+				print ' Reached target'
 				break;
 			time.sleep(2)
 
 
 
 #-------------------------------------------------------------------------------
-# Movement Commands - Position Based
+# Navigation Commands - Position Based
 #-------------------------------------------------------------------------------
 
 def goto_position_target_global_int(vehicle,aLocation):
@@ -281,13 +288,130 @@ def goto_position_target_local_ned(vehicle,north,east,down):
 
 
 #-------------------------------------------------------------------------------
-# Movement Commands - Velocity Based
+# Navigation Commands - Velocity Based
 #-------------------------------------------------------------------------------
 
+def send_ned_velocity(vehicle, velocity_north, velocity_east, velocity_down, duration):
+	'''
+	COMMANDS VELOCITY IN THE NORTH, EAST, DOWN FRAME FOR AN AMOUNT OF TIME SPECIFIED BY DURATION. SAME AS send_global_velocity IN TERMS OF RESULT. THE ONLY DIFFERENCE IS THE PARTICULAR COMMAND TYPE THAT IS ACTUALLY SENT. 
+
+	Move vehicle in direction based on specified velocity vectors and
+	for the specified duration.
+
+	This uses the SET_POSITION_TARGET_LOCAL_NED command with a type mask enabling only velocity components (http://dev.ardupilot.com/wiki/copter-commands-in-guided-mode/#set_position_target_local_ned).
+	
+	Note that from AC3.3 the message should be re-sent every second (after about 3 seconds with no message the velocity will drop back to zero). In AC3.2.1 and earlier the specified	velocity persists until it is canceled. The code below should work on either version (sending the message multiple times does not cause problems).
+	
+	See the above link for information on the type_mask (0=enable, 1=ignore). At time of writing, acceleration and yaw bits are ignored.
+	'''
+	msg = vehicle.message_factory.set_position_target_local_ned_encode(
+		0, # time_boot_ms (not used)
+		0, 0, # target system, target component
+		mavutil.mavlink.MAV_FRAME_LOCAL_NED, # frame
+		0b0000111111000111, # type_mask (only speeds enabled)
+		0, 0, 0, # x, y, z positions (not used)
+		velocity_north, velocity_east, velocity_down, # NED velocity in m/s
+		0, 0, 0, # x, y, z acceleration (not supported yet, ignored in GCS_Mavlink)
+		0, 0) # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink) 
+	# Send command to vehicle on 1 Hz cycle
+	for x in range(0,duration):
+		vehicle.send_mavlink(msg)
+		time.sleep(1)
+
+
+def send_global_velocity(vehicle, velocity_north, velocity_east, velocity_down, duration):
+	'''
+	COMMANDS VELOCITY IN THE NORTH, EAST, DOWN FRAME FOR AN AMOUNT OF TIME SPECIFIED BY DURATION. SAME AS send_ned_velocity IN TERMS OF RESULT. THE ONLY DIFFERENCE IS THE PARTICULAR COMMAND TYPE THAT IS ACTUALLY SENT. 
+
+	Move vehicle in direction based on specified velocity vectors.
+
+	This uses the SET_POSITION_TARGET_GLOBAL_INT command with type mask enabling only velocity components (http://dev.ardupilot.com/wiki/copter-commands-in-guided-mode/#set_position_target_global_int).
+	
+	Note that from AC3.3 the message should be re-sent every second (after about 3 seconds with no message the velocity will drop back to zero). In AC3.2.1 and earlier the specified	velocity persists until it is canceled. The code below should work on either version (sending the message multiple times does not cause problems).
+	
+	See the above link for information on the type_mask (0=enable, 1=ignore). At time of writing, acceleration and yaw bits are ignored.
+	'''
+	msg = vehicle.message_factory.set_position_target_global_int_encode(
+		0, # time_boot_ms (not used)
+		0, 0, # target system, target component
+		mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT_INT, # frame
+		0b0000111111000111, # type_mask (only speeds enabled)
+		0, # lat_int - X Position in WGS84 frame in 1e7 * meters
+		0, # lon_int - Y Position in WGS84 frame in 1e7 * meters
+		0, # alt - Altitude in meters in AMSL altitude(not WGS84 if absolute or relative)
+		# altitude above terrain if GLOBAL_TERRAIN_ALT_INT
+		velocity_north, # north velocity in NED frame in m/s
+		velocity_east, # east velocity in NED frame in m/s
+		velocity_down, # down velocity in NED frame in m/s
+		0, 0, 0, # afx, afy, afz acceleration (not supported yet, ignored in GCS_Mavlink)
+		0, 0) # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink) 
+	# Send command to vehicle on 1 Hz cycle
+	for x in range(0,duration):
+		vehicle.send_mavlink(msg)
+		time.sleep(1)    
 
 
 
+#-------------------------------------------------------------------------------
+# Condition Commands
+#-------------------------------------------------------------------------------
+
+def condition_yaw(vehicle, heading, relative = False):
+	'''
+	SETS YAW. IF relative == False, YAW WILL BE SET WITH NORTH = 0, EAST = 90, ETC. IF relative == True, YAW WILL CHANGE WITH RESPECT TO THE CURRENT HEADING WITH +CW AND -CCW. IN ORDER FOR THIS COMMAND TO WORK, AT LEAST ONE NAVIGATION COMMAND MUST HAVE BEEN GIVEN SINCE VEHICLE ENTERED GUIDED MODE. 
+
+	Send MAV_CMD_CONDITION_YAW message to point vehicle at a specified heading (in degrees).
+
+	This method sets an absolute heading by default, but you can set the `relative` parameter	to `True` to set yaw relative to the current yaw heading.
+
+	By default the yaw of the vehicle will follow the direction of travel. After setting the yaw using this function there is no way to return to the default yaw 'follow direction of travel' behaviour (https://github.com/diydrones/ardupilot/issues/2427)
+
+	For more information see: 
+	http://copter.ardupilot.com/wiki/common-mavlink-mission-command-messages-mav_cmd/#mav_cmd_condition_yaw
+	'''
+	if relative:
+		is_relative = 1 # Yaw relative to direction of travel
+	else:
+		is_relative = 0 # Yaw is an absolute angle
+	# Create the CONDITION_YAW command using command_long_encode()
+	msg = vehicle.message_factory.command_long_encode(
+		0, 0,    # target system, target component
+		mavutil.mavlink.MAV_CMD_CONDITION_YAW, #command
+		0, #confirmation
+		heading,    # param 1, yaw in degrees
+		0,          # param 2, yaw speed deg/s
+		1,          # param 3, direction -1 ccw, 1 cw
+		is_relative, # param 4, relative offset 1, absolute angle 0
+		0, 0, 0)    # param 5 ~ 7 not used
+	# Send command to vehicle
+	vehicle.send_mavlink(msg)
+
+
+def set_roi(vehicle,location):
+	'''
+	COMMANDS VEHICLE TO POINT AT THE SPECIFIED GPS LOCATION
+
+	Send MAV_CMD_DO_SET_ROI message to point camera gimbal at a specified region of interest (LocationGlobal). The vehicle may also turn to face the ROI.
+
+	For more information see: 
+	http://copter.ardupilot.com/common-mavlink-mission-command-messages-mav_cmd/#mav_cmd_do_set_roi
+	'''
+	# Create the MAV_CMD_DO_SET_ROI command
+	msg = vehicle.message_factory.command_long_encode(
+		0, 0,    # target system, target component
+		mavutil.mavlink.MAV_CMD_DO_SET_ROI, #command
+		0, #confirmation
+		0, 0, 0, 0, #params 1-4
+		location.lat,
+		location.lon,
+		location.alt
+		)
+	# Send command to vehicle
+	vehicle.send_mavlink(msg)
 
 
 
+#-------------------------------------------------------------------------------
+# Miscellaneous Commands
+#-------------------------------------------------------------------------------
 

@@ -2,11 +2,13 @@
 
 import sys
 sys.path.append('../')
-import time
+
 import logging
+import mission
+import time
+
 from dronekit import connect, VehicleMode, LocationGlobalRelative, LocationGlobal, Command
-from helper_functions import arm_vehicle, disarm_vehicle, get_distance_metres, get_home_location, get_location_metres, goto, goto_position_target_local_ned, land, takeoff 
-from pymavlink import mavutil
+from helper_functions import arm_vehicle, condition_yaw, disarm_vehicle, get_distance_metres, get_home_location, get_location_metres, goto, goto_position_target_local_ned, land, send_global_velocity, send_ned_velocity, set_roi, takeoff
 
 #-------------------------------------------------------------------------------
 #
@@ -22,170 +24,11 @@ uav_baud = 115200
 gcs_connect_path = '127.0.0.1:14554'
 gcs_baud = 115200
 
-#-------------------------------------------------------------------------------
-#
-# Define Helper Functions
-#
-#-------------------------------------------------------------------------------
-
-'''
-Convenience functions for sending immediate/guided mode commands to control the Copter.
-
-The set of commands demonstrated here include:
-* MAV_CMD_CONDITION_YAW - set direction of the front of the Copter (latitude, longitude)
-* MAV_CMD_DO_SET_ROI - set direction where the camera gimbal is aimed (latitude, longitude, altitude)
-* MAV_CMD_DO_CHANGE_SPEED - set target speed in metres/second.
-
-The full set of available commands are listed here:
-http://dev.ardupilot.com/wiki/copter-commands-in-guided-mode/
-'''
-
-def condition_yaw(heading, relative=False):
-	'''
-	Send MAV_CMD_CONDITION_YAW message to point uav at a specified heading (in degrees).
-
-	This method sets an absolute heading by default, but you can set the `relative` parameter
-	to `True` to set yaw relative to the current yaw heading.
-
-	By default the yaw of the uav will follow the direction of travel. After setting 
-	the yaw using this function there is no way to return to the default yaw 'follow direction 
-	of travel' behaviour (https://github.com/diydrones/ardupilot/issues/2427)
-
-	For more information see: 
-	http://copter.ardupilot.com/wiki/common-mavlink-mission-command-messages-mav_cmd/#mav_cmd_condition_yaw
-	'''
-	if relative:
-		is_relative = 1 #yaw relative to direction of travel
-	else:
-		is_relative = 0 #yaw is an absolute angle
-	# create the CONDITION_YAW command using command_long_encode()
-	msg = uav.message_factory.command_long_encode(
-		0, 0,    # target system, target component
-		mavutil.mavlink.MAV_CMD_CONDITION_YAW, #command
-		0, #confirmation
-		heading,    # param 1, yaw in degrees
-		0,          # param 2, yaw speed deg/s
-		1,          # param 3, direction -1 ccw, 1 cw
-		is_relative, # param 4, relative offset 1, absolute angle 0
-		0, 0, 0)    # param 5 ~ 7 not used
-	# send command to uav
-	uav.send_mavlink(msg)
-
-def set_roi(location):
-	'''
-	Send MAV_CMD_DO_SET_ROI message to point camera gimbal at a 
-	specified region of interest (LocationGlobal).
-	The uav may also turn to face the ROI.
-
-	For more information see: 
-	http://copter.ardupilot.com/common-mavlink-mission-command-messages-mav_cmd/#mav_cmd_do_set_roi
-	'''
-	# create the MAV_CMD_DO_SET_ROI command
-	msg = uav.message_factory.command_long_encode(
-		0, 0,    # target system, target component
-		mavutil.mavlink.MAV_CMD_DO_SET_ROI, #command
-		0, #confirmation
-		0, 0, 0, 0, #params 1-4
-		location.lat,
-		location.lon,
-		location.alt
-		)
-	# send command to uav
-	uav.send_mavlink(msg)
-
-
-'''
-Functions to move the uav to a specified position (as opposed to controlling movement by setting velocity components).
-
-The methods include:
-* goto_position_target_global_int - Sets position using SET_POSITION_TARGET_GLOBAL_INT command in MAV_FRAME_GLOBAL_RELATIVE_ALT_INT frame
-* goto_position_target_local_ned - Sets position using SET_POSITION_TARGET_LOCAL_NED command in MAV_FRAME_BODY_NED frame
-* goto - A convenience function that can use uav.simple_goto (default) or 
-	goto_position_target_global_int to travel to a specific position in metres 
-	North and East from the current location. 
-	This method reports distance to the destination.
-'''
-
-
-
-'''
-Functions that move the uav by specifying the velocity components in each direction.
-The two functions use different MAVLink commands. The main difference is
-that depending on the frame used, the NED velocity can be relative to the uav
-orientation.
-
-The methods include:
-* send_ned_velocity - Sets velocity components using SET_POSITION_TARGET_LOCAL_NED command
-* send_global_velocity - Sets velocity components using SET_POSITION_TARGET_GLOBAL_INT command
-'''
-
-def send_ned_velocity(velocity_x, velocity_y, velocity_z, duration):
-	'''
-	Move uav in direction based on specified velocity vectors and
-	for the specified duration.
-
-	This uses the SET_POSITION_TARGET_LOCAL_NED command with a type mask enabling only 
-	velocity components 
-	(http://dev.ardupilot.com/wiki/copter-commands-in-guided-mode/#set_position_target_local_ned).
-	
-	Note that from AC3.3 the message should be re-sent every second (after about 3 seconds
-	with no message the velocity will drop back to zero). In AC3.2.1 and earlier the specified
-	velocity persists until it is canceled. The code below should work on either version 
-	(sending the message multiple times does not cause problems).
-	
-	See the above link for information on the type_mask (0=enable, 1=ignore). 
-	At time of writing, acceleration and yaw bits are ignored.
-	'''
-	msg = uav.message_factory.set_position_target_local_ned_encode(
-		0,       # time_boot_ms (not used)
-		0, 0,    # target system, target component
-		mavutil.mavlink.MAV_FRAME_LOCAL_NED, # frame
-		0b0000111111000111, # type_mask (only speeds enabled)
-		0, 0, 0, # x, y, z positions (not used)
-		velocity_x, velocity_y, velocity_z, # x, y, z velocity in m/s
-		0, 0, 0, # x, y, z acceleration (not supported yet, ignored in GCS_Mavlink)
-		0, 0)    # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink) 
-
-	# send command to uav on 1 Hz cycle
-	for x in range(0,duration):
-		uav.send_mavlink(msg)
-		time.sleep(1)
-
-def send_global_velocity(velocity_x, velocity_y, velocity_z, duration):
-	'''
-	Move uav in direction based on specified velocity vectors.
-
-	This uses the SET_POSITION_TARGET_GLOBAL_INT command with type mask enabling only 
-	velocity components 
-	(http://dev.ardupilot.com/wiki/copter-commands-in-guided-mode/#set_position_target_global_int).
-	
-	Note that from AC3.3 the message should be re-sent every second (after about 3 seconds
-	with no message the velocity will drop back to zero). In AC3.2.1 and earlier the specified
-	velocity persists until it is canceled. The code below should work on either version 
-	(sending the message multiple times does not cause problems).
-	
-	See the above link for information on the type_mask (0=enable, 1=ignore). 
-	At time of writing, acceleration and yaw bits are ignored.
-	'''
-	msg = uav.message_factory.set_position_target_global_int_encode(
-		0,       # time_boot_ms (not used)
-		0, 0,    # target system, target component
-		mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT_INT, # frame
-		0b0000111111000111, # type_mask (only speeds enabled)
-		0, # lat_int - X Position in WGS84 frame in 1e7 * meters
-		0, # lon_int - Y Position in WGS84 frame in 1e7 * meters
-		0, # alt - Altitude in meters in AMSL altitude(not WGS84 if absolute or relative)
-		# altitude above terrain if GLOBAL_TERRAIN_ALT_INT
-		velocity_x, # X velocity in NED frame in m/s
-		velocity_y, # Y velocity in NED frame in m/s
-		velocity_z, # Z velocity in NED frame in m/s
-		0, 0, 0, # afx, afy, afz acceleration (not supported yet, ignored in GCS_Mavlink)
-		0, 0)    # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink) 
-
-	# send command to uav on 1 Hz cycle
-	for x in range(0,duration):
-		uav.send_mavlink(msg)
-		time.sleep(1)    
+# Determine number of waypoints
+wp_N = mission.wp_N
+wp_E = mission.wp_N
+wp_D = mission.wp_N
+num_wp = mission.num_wp
 
 #-------------------------------------------------------------------------------
 #
@@ -235,7 +78,7 @@ if __name__ == '__main__':
 		except OSError:
 			logging.critical('Cannot find device, is the GCS plugged in? Retrying...')
 			time.sleep(5)
-		except APIException:
+		except:
 			logging.critical('GCS connection timed out. Retrying...')
 	
 	logging.info('GCS pixhawk connected to UAV')
@@ -282,109 +125,131 @@ if __name__ == '__main__':
 	#
 	#-----------------------------------------------------------------------------
 
-	# NOTE: ROI and yaw commands are reset when the mode or the command used to control movement is changed.
-	# The correct order is: 
-	# 	- move command
-	# 	- ROI or yaw command
+	#------------------------------------
+	# Initialization
+	#------------------------------------
 
 	# Arm and take of to altitude of 5 meters
 	# arm_vehicle(uav,'UAV')
 	# takeoff(uav,'UAV',10)
 
-	# Constants for testing purposes
-	dNorth = 10 # [m]
-	dEast = 10 # [m]
-	uav.groundspeed = 5 # [m/s]
+	# Command vehicle to stay where it is. This is done so that any condition command will be enacted when it is supposed to be. Pixhawk will not enact a condition command (yaw/ROI) until the first position command has been given. 
+	# send_ned_velocity(uav,0,0,0,1)
 
-	# The goto command with no function parameter uses a relative position command. i.e. it travels dNorth and dEast relative to its current position. Negative dNorth is a southward movement, and negative dEast is a westward movement. 
-	# print '\n\nSIMPLE\n'
-	# goto(uav, 'UAV', -dNorth, -dEast)
+	#------------------------------------
+	# Controlling
+	#------------------------------------
 
+	'''
+	This while loop performs the following functions:
+		- read GCS position
+		- read GCS parameter value of PIVOT_TURN_ANGLE to determine next UAV action
+		- perform an action based upon the GCS parameter value
+	The parameter values corresponding actions to be performed are:
+	 	100		UAV will follow previous command, or do nothing if no command sent yet
+	 	101		UAV will begin listening to these commands
+	 	359		UAV will arm
+	 	358		UAV will disarm
+	 	357		UAV will takeoff to a pre-programmed height and relative position
+	 	356		UAV will land according to its landing protocol
+	 	0+		UAV will navigate to the waypoint at the index specified
+	 					The acceptable waypoint indices are 0 through num_wp - 1
+	'''
 
+	current_wp = None
 
+	command = 100 # Command is an echo for param that disallows repeated commands
+	in_the_air = False
+	uav_height = uav.location.global_relative_frame.alt
+	if uav_height > 0.5:
+		in_the_air = True
+		command = 357
+	listening = False
+	continue_loop = True
+	while continue_loop:
+		gcs_pos = gcs.location.global_relative_frame
+		param = gcs.parameters['PIVOT_TURN_ANGLE']
+		uav_height = uav.location.global_relative_frame.alt # [m] height relative to home location
 
-	# print '\nPRINTING HOME POSITION'
-	# print get_home_location(uav)
+		'''
+		The variable 'command' is what controls the drone. It is only updated when a valid and non-repeated param value is set. This ensures that the UAV does not continue commanding the same thing over and over. 
 
-	# print '\nSTORING CURRENT LOCATION'
-	# uav_pos1 = uav.location.global_frame
-	# uav_pos1.alt = uav_pos1.alt + 20
-	# print uav_pos1
+		The 'command' variable can only be set while 'listening' is True. If the UAV is not listening to the GCS, then it will follow the most recent 'command' variable. 
 
-	# # goto(uav, 'UAV', -dNorth, dEast)
+		It is occasionally desireable for waypoint commands to be repeated, so waypoint commands are handled later on in the code.
 
-	# print '\nSETTING STORED POSITION TO HOME'
-	# uav.home_location = uav_pos1
+		The parameter for 'stop listening' will be immediately passed through since repeated 'stop listening' commands are occasionally desired.
+		'''
+		if listening:
+			print 'DEBUG: Listening'
+			if param == 100:
+				print 'DEBUG: Got stop listening command'
+			elif param == 359 and not command == 359:
+				print 'DEBUG: Got arm command'
+				command = param
+			elif param == 358 and not command == 358:
+				print 'DEBUG: Got disarm command'
+				command = param
+			elif param == 357 and not command == 357:
+				print 'DEBUG: Got takeoff command'
+				command = param
+			elif param == 356 and not command == 356:
+				print 'DEBUG: Got land command'
+				command = param
+			elif param < num_wp:
+				# NOTE: GCS will not allow a non-existent index to be passed. The handling of incorrect indices is included in the conditional above as a redundant safety feature. 
+				if not command == param:
+					print 'DEBUG: Got navigate to waypoint %d command' %(param)
+					command = param
+					current_wp = param
+		else:
+			print 'DEBUG: Not listening'
+			if param == 101:
+				print 'DEBUG: Got start listening command'
+				listening = True
 
-	# print '\nPRINTING HOME POSITION'
-	# print get_home_location(uav)
+		# Do the action that corresponds to the current value of 'command'		
+		if command == 100:
+			print 'DEBUG: No commands have been sent. Waiting for command.'
+		elif in_the_air:
+			if command == 356:
+				print 'DEBUG: Landing'
+				land(uav,'UAV')
+				in_the_air = False
+				current_wp = None
+			else:
+				if not current_wp is None:
+					print 'DEBUG: Flying to waypoint %d' %(current_wp)
+					print 'NEED TO IMPLEMENT: FLY TO WAYPOINT'
+				else:
+					print 'DEBUG: In the air, not tracking a waypoint'
+		elif not in_the_air: # Explicit for comprehension
+			if command == 359 and not uav.armed:
+				print 'DEBUG: Arming'
+				arm_vehicle(uav,'UAV')
+			elif command == 358 and uav.armed:
+				print 'DEBUG: Disarming'
+				disarm_vehicle(uav,'UAV')
+			elif command == 357 and uav.armed:
+				print 'DEBUG: Taking off'
+				takeoff(uav,'UAV',10)
+				in_the_air = True
 
-	# print '\nSETTING CURRENT POSITION TO HOME'
-	# uav.home_location = uav.location.global_frame
-	
+		print ''
+		time.sleep(1)
 
+	#------------------------------------
+	# Terminating
+	#------------------------------------
 
-	# The goto command with a function parameter of 1 tells the goto command to use the goto_position_target_global_int function. It is effectively the same as goto with no function parameter (i.e. goto_position_target_global_int is effectively the same as simple_goto)
-	# print '\n\nSPECIAL\n'
-	# goto(uav,'UAV',dNorth, dEast, 1)
-
-	# The goto_position_target_local_ned command uses the vehicle's home position to determine the target location. The target location is 
-	North = 0 # [m]
-	East = 0 # [m]
-	Down = -10 # [m]
-	DURATION = 15 # Set duration for each segment.
-	print '\nNAVIGATING TO HOME'
-	goto_position_target_local_ned(uav,North,East,Down)
-	# set_roi(uav.location.global_relative_frame)
-	time.sleep(DURATION)
-
-	# DURATION = 20 #Set duration for each segment.
-	# continue_loop = True
-	# while continue_loop:
-	# 	try:
-	# 		# Read GCS information
-	# 		gcs_location = gcs.location.global_frame
-	# 		gcs_param = gcs.parameters['PIVOT_TURN_ANGLE']
-
-	# 		# Set drone's home position equal to gcs's location
-	# 		uav.home_location = gcs_location
-	# 		print 'Set home to \n\t', uav.home_location
-
-	# 		# Navigate to a location 15 meters south of GCS and yaw towards GCS
-	# 		print 'Flying -15m south of home'
-	# 		goto_position_target_local_ned(15,0,-10)
-	# 		print 'Yawing towards home'
-	# 		set_roi(uav.home_location)
-
-	# 		cmds = uav.commands
-	# 		cmds.download()
-	# 		cmds.wait_ready()
-	# 		print 'New Home Location (from vehicle - altitude should be 222): \n\t%s' % uav.home_location
-
-	# 		print 'Going to sleep'
-	# 		time.sleep(5)
-	# 	except KeyboardInterrupt:
-	# 		continue_loop = False
-
-	# '''
-	# The example is completing. LAND at current location.
-	# '''
+	# # The example is completing. LAND at current location.
 	# land(uav,'UAV')
 
-	# Disarm and close UAV object before exiting script
+	# # Disarm and close UAV object before exiting script
 	# disarm_vehicle(uav,'UAV')
 	# uav.close()
 
 	# print('UAV program completed\n')
-	
-
-
-
-
-
-
-
-
 
 
 
@@ -427,6 +292,11 @@ if __name__ == '__main__':
 
 	if False:
 		'''
+		The code in this conditional block shows examples of some of the functions available to the vehicle. These examples and the associated functions can be found at: 
+			http://python.dronekit.io/examples/guided-set-speed-yaw-demo.html
+		'''
+
+		'''
 		FLY RELATIVE TO CURRENT POSITION
 
 		Fly a triangular path using the standard Vehicle.simple_goto() method.
@@ -439,13 +309,13 @@ if __name__ == '__main__':
 		uav.groundspeed=5
 
 		print('Position North 80 West 50')
-		goto(80, -50)
+		goto(uav, 80, -50)
 
 		print('Position North 0 East 100')
-		goto(0, 100)
+		goto(uav, 0, 100)
 
 		print('Position North -80 West 50')
-		goto(-80, -50)
+		goto(uav, -80, -50)
 
 		'''
 		FLY 
@@ -462,18 +332,18 @@ if __name__ == '__main__':
 
 		print('Set groundspeed to 5m/s.')
 		uav.groundspeed = 5
-		goto(-100, -130, goto_position_target_global_int)
+		goto(uav, -100, -130, 1)
 
 		print('Set groundspeed to 15m/s (max).')
 		uav.groundspeed = 15
 		print('Position South 0 East 200')
-		goto(0, 260, goto_position_target_global_int)
+		goto(uav, 0, 260, 1)
 
 		print('Set airspeed to 10m/s (max).')
 		uav.airspeed = 10
 
 		print('Position North 100 West 130')
-		goto(100, -130, goto_position_target_global_int)
+		goto(uav, 100, -130, 1)
 
 		'''
 		Fly the uav in a 50m square path, using the SET_POSITION_TARGET_LOCAL_NED command and specifying a target position (rather than controlling movement using velocity vectors). The command is called from goto_position_target_local_ned() (via `goto`).
@@ -491,36 +361,34 @@ if __name__ == '__main__':
 		DURATION = 20 #Set duration for each segment.
 
 		print('North 50m, East 0m, 10m altitude for %s seconds' % DURATION)
-		goto_position_target_local_ned(50,0,-10)
+		goto_position_target_local_ned(uav, 50, 0, -10)
 		print('Point ROI at current location (home position)') 
 		# NOTE that this has to be called after the goto command as first 'move' command of a particular type
 		# 'resets' ROI/YAW commands
-		set_roi(uav.location.global_relative_frame)
+		set_roi(uav, uav.location.global_relative_frame)
 		time.sleep(DURATION)
 
 		print('North 50m, East 50m, 10m altitude')
-		goto_position_target_local_ned(50,50,-10)
+		goto_position_target_local_ned(uav, 50,50,-10)
 		time.sleep(DURATION)
 
 		print('Point ROI at current location')
-		set_roi(uav.location.global_relative_frame)
+		set_roi(uav, uav.location.global_relative_frame)
 
 		print('North 0m, East 50m, 10m altitude')
-		goto_position_target_local_ned(0,50,-10)
+		goto_position_target_local_ned(uav, 0,50,-10)
 		time.sleep(DURATION)
 
 		print('North 0m, East 0m, 10m altitude')
-		goto_position_target_local_ned(0,0,-10)
+		goto_position_target_local_ned(uav, 0,0,-10)
 		time.sleep(DURATION)
 
 		'''
-		Fly the uav in a SQUARE path using velocity vectors (the underlying code calls the 
-		SET_POSITION_TARGET_LOCAL_NED command with the velocity parameters enabled).
+		Fly the uav in a SQUARE path using velocity vectors (the underlying code calls the SET_POSITION_TARGET_LOCAL_NED command with the velocity parameters enabled).
 
 		The thread sleeps for a time (DURATION) which defines the distance that will be travelled.
 
-		The code also sets the yaw (MAV_CMD_CONDITION_YAW) using the `set_yaw()` method in each segment
-		so that the front of the uav points in the direction of travel
+		The code also sets the yaw (MAV_CMD_CONDITION_YAW) using the `set_yaw()` method in each segment so that the front of the uav points in the direction of travel
 		'''
 
 		# Set up velocity vector to map to each direction.
@@ -545,41 +413,39 @@ if __name__ == '__main__':
 		print('SQUARE path using SET_POSITION_TARGET_LOCAL_NED and velocity parameters')
 
 		print('Yaw 180 absolute (South)')
-		condition_yaw(180)
+		condition_yaw(uav,180)
 
 		print('Velocity South & up')
-		send_ned_velocity(SOUTH,0,UP,DURATION)
-		send_ned_velocity(0,0,0,1)
+		send_ned_velocity(uav, SOUTH,0,UP,DURATION)
+		send_ned_velocity(uav, 0,0,0,1)
 
 		print('Yaw 270 absolute (West)')
-		condition_yaw(270)
+		condition_yaw(uav,270)
 
 		print('Velocity West & down')
-		send_ned_velocity(0,WEST,DOWN,DURATION)
-		send_ned_velocity(0,0,0,1)
+		send_ned_velocity(uav, 0,WEST,DOWN,DURATION)
+		send_ned_velocity(uav, 0,0,0,1)
 
 		print('Yaw 0 absolute (North)')
-		condition_yaw(0)
+		condition_yaw(uav,0)
 
 		print('Velocity North')
-		send_ned_velocity(NORTH,0,0,DURATION)
-		send_ned_velocity(0,0,0,1)
+		send_ned_velocity(uav, NORTH,0,0,DURATION)
+		send_ned_velocity(uav, 0,0,0,1)
 
 		print('Yaw 90 absolute (East)')
-		condition_yaw(90)
+		condition_yaw(uav,90)
 
 		print('Velocity East')
-		send_ned_velocity(0,EAST,0,DURATION)
-		send_ned_velocity(0,0,0,1)
+		send_ned_velocity(uav, 0,EAST,0,DURATION)
+		send_ned_velocity(uav, 0,0,0,1)
 
 		'''
-		Fly the uav in a DIAMOND path using velocity vectors (the underlying code calls the 
-		SET_POSITION_TARGET_GLOBAL_INT command with the velocity parameters enabled).
+		Fly the uav in a DIAMOND path using velocity vectors (the underlying code calls the SET_POSITION_TARGET_GLOBAL_INT command with the velocity parameters enabled).
 
 		The thread sleeps for a time (DURATION) which defines the distance that will be travelled.
 
-		The code sets the yaw (MAV_CMD_CONDITION_YAW) using the `set_yaw()` method using relative headings
-		so that the front of the uav points in the direction of travel.
+		The code sets the yaw (MAV_CMD_CONDITION_YAW) using the `set_yaw()` method using relative headings so that the front of the uav points in the direction of travel.
 
 		At the end of the second segment the code sets a new home location to the current point.
 		'''
@@ -588,38 +454,149 @@ if __name__ == '__main__':
 		# vx, vy are parallel to North and East (independent of the uav orientation)
 
 		print('Yaw 225 absolute')
-		condition_yaw(225)
+		condition_yaw(uav,225)
 
 		print('Velocity South, West and Up')
-		send_global_velocity(SOUTH,WEST,UP,DURATION)
-		send_global_velocity(0,0,0,1)
+		send_global_velocity(uav, SOUTH,WEST,UP,DURATION)
+		send_global_velocity(uav, 0,0,0,1)
 
 		print('Yaw 90 relative (to previous yaw heading)')
-		condition_yaw(90,relative=True)
+		condition_yaw(uav,90,relative=True)
 
 		print('Velocity North, West and Down')
-		send_global_velocity(NORTH,WEST,DOWN,DURATION)
-		send_global_velocity(0,0,0,1)
+		send_global_velocity(uav, NORTH,WEST,DOWN,DURATION)
+		send_global_velocity(uav, 0,0,0,1)
 
-		print('Set new home location to current location')
-		uav.home_location=uav.location.global_frame
-		print 'Get new home location'
-		#This reloads the home location in DroneKit and GCSs
-		cmds = uav.commands
-		cmds.download()
-		cmds.wait_ready()
-		print ' Home Location: %s' % uav.home_location
+		# # NOTE: SETTING HOME POSITION DOES NOT WORK. NO METHOD TO SET HOME POSITION HAS SUCCEEDED.
+		# print('Set new home location to current location')
+		# uav.home_location = uav.location.global_frame
+		# print 'Get new home location'
+		# #This reloads the home location in DroneKit and GCSs
+		# cmds = uav.commands
+		# cmds.download()
+		# cmds.wait_ready()
+		# print ' Home Location: %s' % uav.home_location
 
 		print('Yaw 90 relative (to previous yaw heading)')
-		condition_yaw(90,relative=True)
+		condition_yaw(uav,90,relative=True)
 
 		print('Velocity North and East')
-		send_global_velocity(NORTH,EAST,0,DURATION)
-		send_global_velocity(0,0,0,1)
+		send_global_velocity(uav, NORTH,EAST,0,DURATION)
+		send_global_velocity(uav, 0,0,0,1)
 
 		print('Yaw 90 relative (to previous yaw heading)')
-		condition_yaw(90,relative=True)
+		condition_yaw(uav,90,relative=True)
 
 		print('Velocity South and East')
-		send_global_velocity(SOUTH,EAST,0,DURATION)
-		send_global_velocity(0,0,0,1)
+		send_global_velocity(uav, SOUTH,EAST,0,DURATION)
+		send_global_velocity(uav, 0,0,0,1)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	if False:
+		'''
+		The code in this conditional block shows custom examples of some of the functions available to the vehicle. 
+		'''
+
+		# Constants for testing purposes
+		dNorth = 10 # [m]
+		dEast = 10 # [m]
+		uav.groundspeed = 5 # [m/s]
+
+		dNorthHome = 0 # [m]
+		dEastHome = 0 # [m]
+		dDownHome = -10 # [m]
+		DURATION_1 = 15 # [s]
+
+		velocity_north = 1 # [m/s]
+		velocity_east = 2 # [m/s]
+		velocity_down = 0 # [m/s]
+		DURATION_2 = 10 # [s]
+
+		#------------------------------------
+		# Position Navigation Command Tests
+		#------------------------------------
+
+		'''
+		The goto command with no function parameter uses a relative position command. i.e. it travels dNorth and dEast relative to its current position. Negative dNorth is a southward movement, and negative dEast is a westward movement. 
+		'''
+		print '\n\nsimple_goto: Move %d m North and %d m East relative to current position\n' %(dNorth, dEast)
+		goto(uav, 'UAV', dNorth, dEast)
+
+		'''
+		The goto command with a function parameter of 1 tells the goto command to use the goto_position_target_global_int function. It is effectively the same as goto with no function parameter (i.e. goto_position_target_global_int is effectively the same as simple_goto)
+		'''
+		print '\n\ngoto_position_target_global_int: Move %d m North and %d m East relative to current position\n' %(dNorth, dEast)
+		goto(uav,'UAV',dNorth, dEast, 1)
+
+		'''
+		The goto_position_target_local_ned command uses the vehicle's home position to determine the target location. The target location is dNorth meters North of and dEast meters East of the home position.
+		'''
+		print '\n\ngoto_position_target_local_ned: Move %d m North, %d m East, and %d m Down relative to home location\n' %(dNorthHome, dEastHome, dDownHome)
+		goto_position_target_local_ned(uav,dNorthHome,dEastHome,dDownHome)
+		time.sleep(DURATION_1)
+
+		#------------------------------------
+		# Velocity Navigation Command Tests
+		#------------------------------------
+
+		# NOTE: Velocity commands must be sent every second. After 3 seconds with no velocity command, the uav will stop moving and hover in place.
+
+		'''
+		The send_ned_velocity command sets a speed in the NED frame for a specified DURATION. Internally, it uses the SET_POSITION_TARGET_LOCAL_NED MAVLink command with the velocity parameters enabled. The command then sleeps the thread for a time (DURATION), which defines the distance that will be travelled.
+		'''
+		send_ned_velocity(uav, velocity_north, velocity_east, velocity_down, DURATION_2)
+
+		'''
+		The send_global_velocity command sets a speed in the NED frame for a specified DURATION. Internally, it uses the SET_POSITION_TARGET_GLOBAL_INT MAVLink command with the velocity parameters enabled. The command then sleeps the thread for a time (DURATION), which defines the distance that will be travelled.
+		'''
+		send_global_velocity(uav, -velocity_north, -velocity_east, -velocity_down, DURATION_2)
+
+		#------------------------------------
+		# Condition Command Tests
+		#------------------------------------
+
+		'''
+		From SITL testing, the following behavior is expected:
+			- condition commands will not work until a nav command is sent
+			- condition commands will work as long as at least one nav command is sent
+			- a new nav command is not required to enact a new condition command
+			- a goto command will overwrite a condition command, but a send velocity command will not
+		'''
+
+		print 'Yawing 90 degrees (relative) in increments of 30 degrees'
+		for i in range(0,3):
+			condition_yaw(uav, 30, relative = True)
+			time.sleep(3)
+
+		print 'simple_goto 20 m North and 20 m East from current position'
+		goto(uav,20,20)
+
+		print 'Setting ROI to home location'
+		set_roi(uav, get_home_location(uav))
+
+		print 'Setting ROI to current location'
+		set_roi(uav, uav.location.global_relative_frame)
+
+		print 'send_ned_velocity N for 15 seconds'
+		send_ned_velocity(uav,2,0,0,15)
+
+		print 'simple_goto 20 m South and 20 m West from current position'
+		goto(uav,-20,20)
