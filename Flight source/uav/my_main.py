@@ -8,7 +8,7 @@ import mission
 import time
 
 from dronekit import connect, VehicleMode, LocationGlobalRelative, LocationGlobal, Command
-from helper_functions import arm_vehicle, condition_yaw, disarm_vehicle, get_distance_metres, get_home_location, get_location_metres, goto, goto_position_target_local_ned, land, send_global_velocity, send_ned_velocity, set_roi, takeoff
+from helper_functions import arm_vehicle, condition_yaw, disarm_vehicle, get_distance_metres, get_home_location, get_location_metres, goto, goto_position_target_local_ned, goto_reference, land, send_global_velocity, send_ned_velocity, set_roi, takeoff
 
 #-------------------------------------------------------------------------------
 #
@@ -26,9 +26,9 @@ gcs_baud = 115200
 
 # Determine number of waypoints
 wp_N = mission.wp_N
-wp_E = mission.wp_N
-wp_D = mission.wp_N
-num_wp = mission.num_wp
+wp_E = mission.wp_E
+wp_D = mission.wp_D
+num_wp = mission.num_wp[0]
 
 #-------------------------------------------------------------------------------
 #
@@ -146,7 +146,8 @@ if __name__ == '__main__':
 		- read GCS parameter value of PIVOT_TURN_ANGLE to determine next UAV action
 		- perform an action based upon the GCS parameter value
 	The parameter values corresponding actions to be performed are:
-	 	100		UAV will follow previous command, or do nothing if no command sent yet
+	 	100		UAV will stop listening to these commands
+	 					UAV will follow prev command, or do nothing if no command sent yet
 	 	101		UAV will begin listening to these commands
 	 	359		UAV will arm
 	 	358		UAV will disarm
@@ -156,7 +157,13 @@ if __name__ == '__main__':
 	 					The acceptable waypoint indices are 0 through num_wp - 1
 	'''
 
+	# Ensure that at startup the UAV will not be tracking any waypoint
 	current_wp = None
+
+	# Ensure that at startup the UAV will not be listening 
+	initial_param = gcs.parameters['PIVOT_TURN_ANGLE']
+	if initial_param == 101:
+		gcs.parameters['PIVOT_TURN_ANGLE'] = 100
 
 	command = 100 # Command is an echo for param that disallows repeated commands
 	in_the_air = False
@@ -167,9 +174,7 @@ if __name__ == '__main__':
 	listening = False
 	continue_loop = True
 	while continue_loop:
-		gcs_pos = gcs.location.global_relative_frame
 		param = gcs.parameters['PIVOT_TURN_ANGLE']
-		uav_height = uav.location.global_relative_frame.alt # [m] height relative to home location
 
 		'''
 		The variable 'command' is what controls the drone. It is only updated when a valid and non-repeated param value is set. This ensures that the UAV does not continue commanding the same thing over and over. 
@@ -184,6 +189,7 @@ if __name__ == '__main__':
 			print 'DEBUG: Listening'
 			if param == 100:
 				print 'DEBUG: Got stop listening command'
+				listening = False
 			elif param == 359 and not command == 359:
 				print 'DEBUG: Got arm command'
 				command = param
@@ -201,7 +207,7 @@ if __name__ == '__main__':
 				if not command == param:
 					print 'DEBUG: Got navigate to waypoint %d command' %(param)
 					command = param
-					current_wp = param
+					current_wp = int(param)
 		else:
 			print 'DEBUG: Not listening'
 			if param == 101:
@@ -219,11 +225,13 @@ if __name__ == '__main__':
 				current_wp = None
 			else:
 				if not current_wp is None:
-					print 'DEBUG: Flying to waypoint %d' %(current_wp)
+					print 'DEBUG: Tracking waypoint %d' %(current_wp)
 					referenceLocation = gcs.location.global_frame
 					dNorth = wp_N[current_wp]
 					dEast = wp_E[current_wp]
-					goto_reference(vehicle, dNorth, dEast, referenceLocation)
+					dDown = wp_D[current_wp]
+					goto_reference(uav, referenceLocation, dNorth, dEast, dDown)
+					set_roi(uav, referenceLocation)
 				else:
 					print 'DEBUG: In the air, but not tracking a waypoint'
 		elif not in_the_air: # Explicit for comprehension

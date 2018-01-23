@@ -159,7 +159,9 @@ def get_home_location(vehicle):
 
 def get_location_metres(original_location, dNorth, dEast):
 	'''
-	Returns a LocationGlobal object containing the latitude/longitude `dNorth` and `dEast` metres from the specified `original_location`. The returned LocationGlobal has the same `alt` value as `original_location`.
+	RETURNS A LOCATION OBJECT OF SAME TYPE AS ORIGINAL LOCATION. THE RETURNED LOCATION OBJECT IS dNorth METERS AND dEast METERS NORTH AND EAST OF original_location. THE ALTITUDE OF THE RETURNED OBJECT IS THE SAME AS original_location. 
+
+	Returns a location object of the same type as the original location. E.g. if original_location is LocationGlobalRelative, then a LocationGlobalRelative is returned. The returned location object contains the latitude/longitude 'dNorth' and 'dEast' metres from the specified 'original_location'. The returned location object has the same 'alt' value as 'original_location'.
 
 	The algorithm is relatively accurate over small distances (10m within 1km) except close to the poles.
 
@@ -224,34 +226,42 @@ def goto(vehicle, dNorth, dEast, gotoFunction = None):
 			print ' Distance to target: ', remainingDistance
 			if remainingDistance <= 1: # Let 'Reached target' trigger at 1 m from target
 				print ' Reached target'
-				break;
+				break
 			time.sleep(2)
 
-def goto_reference(vehicle, dNorth, dEast, dDown, referenceLocation):
+
+def goto_reference(vehicle, referenceLocation, dNorth, dEast, dDown):
 	'''
 	COMMANDS VEHICLE TO A POSITION dNorth, dEast, AND dDown METERS RELATIVE TO THE SPECIFIED referenceLocation. 
 
-	The method reports the distance to target every two seconds.
+	THIS COMMAND RETURNS IMMEDIATELY; IT DOES NOT WAIT FOR THE VEHICLE TO REACH THE DESTINATION. IT IS ASSUMED THAT WHATEVER CALLS THIS FUNCTION WILL HANDLE THIS CORRECTLY. THIS IS DONE TO ALLOW MORE CONTROL IN uav/main.py.
 	'''
 
-	currentLocation = vehicle.location.global_relative_frame
+	# We must have a LocationGlobal object here, so raise an exception if not
+	if type(referenceLocation) is not LocationGlobal:
+		raise Exception('The goto_reference function requires a LocationGlobal object.')
+
 	targetLocation = get_location_metres(referenceLocation, dNorth, dEast)
-	targetDistance = get_distance_metres(currentLocation, targetLocation)
+	'''
+	NOTE: dDown will be negative to indicate a positive altitude. Thus, we must subtract dDown here.
 	
+	E.g.: 
+		GCS Altitude: 161 meters (AMSL at Hanover, NH)
+		dDown: -10 meters (desire to fly UAV 10 meters above GCS altitude)
+		Target Altitude: 171 meters = gcs_alt - dDown
+	'''
+	targetLocation.alt = referenceLocation.alt - dDown
 	goto_reference_helper(vehicle,targetLocation)
 
-	# print 'DEBUG: targetLocation: %s' % targetLocation
-	# print 'DEBUG: targetDistance: %s' % targetDistance
-
 	# Set the following conditional to True if you want to see distance to target printed in the terminal. Note: if this is True, then the goto command will not exit until this loop ends, which means any conditional commands after this goto command will have no effect. 
-	if True:
+	if False:
 		while vehicle.mode.name == 'GUIDED': # Stop action if we are no longer in guided mode.
 			# print 'DEBUG: mode: %s' %(vehicle.mode.name)
 			remainingDistance = get_distance_metres(vehicle.location.global_relative_frame, targetLocation)
 			print ' Distance to target: ', remainingDistance
 			if remainingDistance <= 1: # Let 'Reached target' trigger at 1 m from target
 				print ' Reached target'
-				break;
+				break
 			time.sleep(2)
 
 
@@ -262,7 +272,7 @@ def goto_reference(vehicle, dNorth, dEast, dDown, referenceLocation):
 
 def goto_reference_helper(vehicle,aLocationGlobal):
 	'''
-	
+	SENDS THE MavLink COMMAND TO ENACT THE POSITION TRACKING SPECIFIED BY THE got_reference FUNCTION.
 
 	Send SET_POSITION_TARGET_GLOBAL_INT command to request the vehicle fly to a specified LocationGlobal.
 
@@ -274,7 +284,7 @@ def goto_reference_helper(vehicle,aLocationGlobal):
 	msg = vehicle.message_factory.set_position_target_global_int_encode(
 		0, # time_boot_ms (not used)
 		0, 0, # target system, target component
-		mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT_INT, # frame
+		mavutil.mavlink.MAV_FRAME_GLOBAL_INT, # frame
 		0b0000111111111000, # type_mask (only speeds enabled)
 		aLocationGlobal.lat*1e7, # lat_int - X Position in WGS84 frame in 1e7 * meters
 		aLocationGlobal.lon*1e7, # lon_int - Y Position in WGS84 frame in 1e7 * meters
