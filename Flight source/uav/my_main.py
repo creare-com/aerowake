@@ -165,6 +165,10 @@ if __name__ == '__main__':
 	if initial_param == 101:
 		gcs.parameters['PIVOT_TURN_ANGLE'] = 100
 
+	# Set UAV acceleration limit and groundspeed
+	uav.parameters['WPNAV_ACCEL'] = 300
+	uav.groundspeed = 25 # [m/s]
+
 	command = 100 # Command is an echo for param that disallows repeated commands
 	in_the_air = False
 	uav_height = uav.location.global_relative_frame.alt
