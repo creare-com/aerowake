@@ -87,6 +87,19 @@ if __name__ == '__main__':
 	logging_time=0
 	uav_start_time = 0
 	rasp_start_time = 0
+
+	timed_out_gcs = False
+	@gcs.on_attribute('last_heartbeat')   
+	def gcs_last_heartbeat_listener(self, attr_name, value):
+		if(attr_name is 'last_heartbeat'):
+			global timed_out_gcs
+			if value > 3 and not timed_out_gcs:
+				timed_out_gcs = True
+				logging.critical('GCS pixhawk connection lost!')
+			if value < 3 and timed_out_gcs:
+				timed_out_gcs = False;
+				logging.info('GCS pixhawk connection restored.')
+
 	@uav.on_message('SYSTEM_TIME')
 	def uav_time_callback(self, attr_name, msg):
 		global uav_start_time
@@ -96,16 +109,16 @@ if __name__ == '__main__':
 			logging.info('UAV got GPS lock at %s' % logging_time)
 			rasp_start_time = time.clock()
 
-	timed_out = False
+	timed_out_uav = False
 	@uav.on_attribute('last_heartbeat')   
-	def last_heartbeat_listener(self, attr_name, value):
+	def uav_last_heartbeat_listener(self, attr_name, value):
 		if(attr_name is 'last_heartbeat'):
-			global timed_out
-			if value > 3 and not timed_out:
-				timed_out = True
+			global timed_out_uav
+			if value > 3 and not timed_out_uav:
+				timed_out_uav = True
 				logging.critical('UAV pixhawk connection lost!')
-			if value < 3 and timed_out:
-				timed_out = False;
+			if value < 3 and timed_out_uav:
+				timed_out_uav = False;
 				logging.info('UAV pixhawk connection restored.')
 
 	@uav.on_attribute('armed')
@@ -149,6 +162,7 @@ if __name__ == '__main__':
 	 	100		UAV will stop listening to these commands
 	 					UAV will follow prev command, or do nothing if no command sent yet
 	 	101		UAV will begin listening to these commands
+		102		UAV will clear its current waypoint
 	 	359		UAV will arm
 	 	358		UAV will disarm
 	 	357		UAV will takeoff to a pre-programmed height and relative position
@@ -194,6 +208,9 @@ if __name__ == '__main__':
 			if param == 100:
 				print 'DEBUG: Got stop listening command'
 				listening = False
+			elif param == 102 and not command == 102:
+				print 'DEBUG: Got clear waypoint command'
+				command = param
 			elif param == 359 and not command == 359:
 				print 'DEBUG: Got arm command'
 				command = param
@@ -220,13 +237,15 @@ if __name__ == '__main__':
 
 		# Do the action that corresponds to the current value of 'command'		
 		if command == 100:
-			print 'DEBUG: No commands have been sent. Waiting for command.'
+			print 'DEBUG: Waiting for command.'
+		elif command == 102 and current_wp is not None:
+			print 'DEBUG: Clearing current waypoint.'
+			current_wp = None
 		elif in_the_air:
 			if command == 356:
 				print 'DEBUG: Landing'
 				land(uav,'UAV')
 				in_the_air = False
-				current_wp = None
 			else:
 				if not current_wp is None:
 					print 'DEBUG: Tracking waypoint %d' %(current_wp)
@@ -249,6 +268,8 @@ if __name__ == '__main__':
 				print 'DEBUG: Taking off'
 				takeoff(uav,'UAV',10)
 				in_the_air = True
+				current_wp = None
+
 
 		print ''
 		time.sleep(1)
