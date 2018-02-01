@@ -480,3 +480,21 @@ def set_roi(vehicle,location):
 # Miscellaneous Commands
 #-------------------------------------------------------------------------------
 
+def emergency_stop(vehicle, name):
+	'''
+	IMMEDIATELY DISARMS MOTORS. DRONE FALLS OUT OF SKY.
+	'''
+
+	print 'Killing %s' %(name)
+
+	msg = vehicle.message_factory.command_long_encode(
+		0, 0, # target system, target component
+		mavutil.mavlink.MAV_CMD_DO_FLIGHTTERMINATION, # command
+		0, # confirmation
+		1, 0, 0, 0, 0, 0, 0) # param 2 - 7 not used
+	# Send command to vehicle
+	vehicle.send_mavlink(msg)
+
+	while vehicle.armed:
+		pass
+

@@ -88,11 +88,12 @@ if __name__ == '__main__':
 	'''
 	This while loop waits for user input, and then commands the UAV to perform some action. The command is sent by setting a parameter on the GCS. The UAV is constantly reading this parameter and acting according to its value. The parameter PIVOT_TURN_ANGLE accepts values from 0 - 359, inclusive, and has no effect on GCS performance. 
 	
-	The acceptable parameter values are:
+	The parameter values corresponding actions to be performed are:
 	 	100		UAV will stop listening to these commands
 	 					UAV will follow prev command, or do nothing if no command sent yet
 	 	101		UAV will begin listening to these commands
 		102		UAV will clear its current waypoint
+		103		UAV kills its motors immediately
 	 	359		UAV will arm
 	 	358		UAV will disarm
 	 	357		UAV will takeoff to a pre-programmed height and relative position
@@ -119,7 +120,14 @@ if __name__ == '__main__':
 
 			# Perform some action based upon the user input
 			invalid_input = True
-			if user_in == 'help':
+			if len(user_in) > 0 and user_in[0] == '-':
+				invalid_input = False
+				gcs.parameters['PIVOT_TURN_ANGLE'] = 103
+				print 'Killing UAV motors. Terminating program.'
+				user_in = 'quit'
+				time.sleep(3) # Sleep so UAV has time to read kill-motor value
+
+			elif user_in == 'help':
 				invalid_input = False
 				print str_allowed_input
 
@@ -130,9 +138,9 @@ if __name__ == '__main__':
 				print ' UAV is following previous command of: \n %s' %(prev_command)
 
 			elif user_in == 'listen':
+				invalid_input = False
 				# UAV knows that 101 means start listening to commands
 				gcs.parameters['PIVOT_TURN_ANGLE'] = 101
-				invalid_input = False
 				print 'Commanding UAV to listen to commands\n'
 				prev_command = 'Command UAV to listen to commands\n'
 				uav_listening = True

@@ -8,7 +8,7 @@ import mission
 import time
 
 from dronekit import connect, VehicleMode, LocationGlobalRelative, LocationGlobal, Command
-from helper_functions import arm_vehicle, condition_yaw, disarm_vehicle, get_distance_metres, get_home_location, get_location_metres, goto, goto_position_target_local_ned, goto_reference, land, send_global_velocity, send_ned_velocity, set_roi, takeoff
+from helper_functions import arm_vehicle, condition_yaw, disarm_vehicle, emergency_stop, get_distance_metres, get_home_location, get_location_metres, goto, goto_position_target_local_ned, goto_reference, land, send_global_velocity, send_ned_velocity, set_roi, takeoff
 
 #-------------------------------------------------------------------------------
 #
@@ -163,6 +163,7 @@ if __name__ == '__main__':
 	 					UAV will follow prev command, or do nothing if no command sent yet
 	 	101		UAV will begin listening to these commands
 		102		UAV will clear its current waypoint
+		103		UAV kills its motors immediately
 	 	359		UAV will arm
 	 	358		UAV will disarm
 	 	357		UAV will takeoff to a pre-programmed height and relative position
@@ -190,6 +191,7 @@ if __name__ == '__main__':
 		in_the_air = True
 		command = 357
 	listening = False
+	killed_uav = False
 	continue_loop = True
 	while continue_loop:
 		param = gcs.parameters['PIVOT_TURN_ANGLE']
@@ -203,7 +205,10 @@ if __name__ == '__main__':
 
 		The parameter for 'stop listening' will be immediately passed through since repeated 'stop listening' commands are occasionally desired.
 		'''
-		if listening:
+		if param == 103 and not command == 103:
+			print 'DEBUG: Got kill UAV motors command'
+			command = param
+		elif listening:
 			print 'DEBUG: Listening'
 			if param == 100:
 				print 'DEBUG: Got stop listening command'
@@ -236,7 +241,12 @@ if __name__ == '__main__':
 				listening = True
 
 		# Do the action that corresponds to the current value of 'command'		
-		if command == 100:
+		if command == 103 and uav.armed:
+			print 'DEBUG: Killing UAV motors'
+			emergency_stop(uav,'UAV')
+			continue_loop = False
+			killed_uav = True
+		elif command == 100:
 			print 'DEBUG: Waiting for command.'
 		elif command == 102 and current_wp is not None:
 			print 'DEBUG: Clearing current waypoint.'
@@ -270,7 +280,6 @@ if __name__ == '__main__':
 				in_the_air = True
 				current_wp = None
 
-
 		print ''
 		time.sleep(1)
 
@@ -278,14 +287,18 @@ if __name__ == '__main__':
 	# Terminating
 	#------------------------------------
 
-	# # The example is completing. LAND at current location.
-	# land(uav,'UAV')
+	if killed_uav:
+		print 'UAV motors killed as abort procedure'
+	else:
+		# The example is completing. LAND at current location.
+		land(uav,'UAV')
 
-	# # Disarm and close UAV object before exiting script
-	# disarm_vehicle(uav,'UAV')
-	# uav.close()
+		# Disarm and close UAV object before exiting script
+		disarm_vehicle(uav,'UAV')
 
-	# print('UAV program completed\n')
+	uav.close()
+
+	print('UAV program completed\n')
 
 
 
