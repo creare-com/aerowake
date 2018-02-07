@@ -1,12 +1,17 @@
 #!/usr/bin/env python2
 
+# Allows access to the parent directory
 import sys
 sys.path.append('../')
 
+# Required for the vision-based yaw system
+import rospy
+from std_msgs.msg import Int16
+
+# Required for controlling the UAV
 import logging
 import mission
 import time
-
 from dronekit import connect, VehicleMode, LocationGlobalRelative, LocationGlobal, Command
 from helper_functions import arm_vehicle, condition_yaw, disarm_vehicle, emergency_stop, get_distance_metres, get_home_location, get_location_metres, goto, goto_position_target_local_ned, goto_reference, land, send_global_velocity, send_ned_velocity, set_roi, takeoff
 
@@ -32,11 +37,208 @@ num_wp = mission.num_wp[0]
 
 #-------------------------------------------------------------------------------
 #
-# Start Main Process
+# Define ROS Node
 #
 #-------------------------------------------------------------------------------
 
-if __name__ == '__main__':
+class DroneCommanderNode(object):
+	'''
+	This class will connect to the Pixhawks on the GCS and UAV. It will then generate MAVLink commands to send to the UAV Pixhawk that will control the UAV. 
+
+	Most commands are generated based upon what the GCS tells the UAV to do. The UAV reads a GCS parameter, the value of which corresponds to a particular action. 
+
+	The UAV also obtains commands from the /yaw_deg ROS topic. This topic contains an integer (Int16) value in degrees corresponding to the desired yaw of the UAV. A positive value indicates CCW yaw of the specified magnitude, while a negative value indicates CW yaw. 
+	'''
+	
+	def __init__(self,uav_handle,gcs_handle):
+		# Initialize private variables
+		self.__yaw_cmd = 0 # [deg]
+
+		# Initialize other variables
+		uav = uav_handle
+		gcs = gcs_handle
+
+		# Subscribe to topic that reports yaw commands
+		self.sub_yaw_deg = rospy.Subscriber("yaw_deg",Int16,self.cbYawDeg)
+
+		#---------------------------------------------------------------------------
+		#
+		# Control Code
+		#
+		#---------------------------------------------------------------------------
+
+		#------------------------------------
+		# Initialization
+		#------------------------------------
+
+		# Arm and take of to altitude of 5 meters
+		# arm_vehicle(uav,'UAV')
+		# takeoff(uav,'UAV',10)
+
+		# Command vehicle to stay where it is. This is done so that any condition command will be enacted when it is supposed to be. Pixhawk will not enact a condition command (yaw/ROI) until the first position command has been given. 
+		# send_ned_velocity(uav,0,0,0,1)
+
+		#------------------------------------
+		# Controlling
+		#------------------------------------
+
+		'''
+		This while loop performs the following functions:
+			- read GCS position
+			- read GCS parameter value of PIVOT_TURN_ANGLE to determine next UAV action
+			- perform an action based upon the GCS parameter value
+		The parameter values corresponding actions to be performed are:
+		 	100		UAV will stop listening to these commands
+		 					UAV will follow prev command, or do nothing if no command sent yet
+		 	101		UAV will begin listening to these commands
+			102		UAV will clear its current waypoint
+			103		UAV kills its motors immediately
+		 	359		UAV will arm
+		 	358		UAV will disarm
+		 	357		UAV will takeoff to a pre-programmed height and relative position
+		 	356		UAV will land according to its landing protocol
+		 	0+		UAV will navigate to the waypoint at the index specified
+		 					The acceptable waypoint indices are 0 through num_wp - 1
+		'''
+
+		# Ensure that at startup the UAV will not be tracking any waypoint
+		current_wp = None
+
+		# Ensure that at startup the UAV will not be listening 
+		initial_param = gcs.parameters['PIVOT_TURN_ANGLE']
+		if initial_param == 101:
+			gcs.parameters['PIVOT_TURN_ANGLE'] = 100
+
+		# Set UAV acceleration limit and groundspeed
+		uav.parameters['WPNAV_ACCEL'] = 300
+		uav.groundspeed = 25 # [m/s]
+
+		command = 100 # Command is an echo for param that disallows repeated commands
+		in_the_air = False
+		uav_height = uav.location.global_relative_frame.alt
+		if uav_height > 0.5:
+			in_the_air = True
+			command = 357
+		listening = False
+		killed_uav = False
+		continue_loop = True
+		while continue_loop:
+			param = gcs.parameters['PIVOT_TURN_ANGLE']
+
+			'''
+			The variable 'command' is what controls the drone. It is only updated when a valid and non-repeated param value is set. This ensures that the UAV does not continue commanding the same thing over and over. 
+
+			The 'command' variable can only be set while 'listening' is True. If the UAV is not listening to the GCS, then it will follow the most recent 'command' variable. 
+
+			It is occasionally desireable for waypoint commands to be repeated, so waypoint commands are handled later on in the code.
+
+			The parameter for 'stop listening' will be immediately passed through since repeated 'stop listening' commands are occasionally desired.
+			'''
+			if param == 103 and not command == 103:
+				print 'DEBUG: Got kill UAV motors command'
+				command = param
+			elif listening:
+				print 'DEBUG: Listening'
+				if param == 100:
+					print 'DEBUG: Got stop listening command'
+					listening = False
+				elif param == 102 and not command == 102:
+					print 'DEBUG: Got clear waypoint command'
+					command = param
+				elif param == 359 and not command == 359:
+					print 'DEBUG: Got arm command'
+					command = param
+				elif param == 358 and not command == 358:
+					print 'DEBUG: Got disarm command'
+					command = param
+				elif param == 357 and not command == 357:
+					print 'DEBUG: Got takeoff command'
+					command = param
+				elif param == 356 and not command == 356:
+					print 'DEBUG: Got land command'
+					command = param
+				elif param < num_wp:
+					# NOTE: GCS will not allow a non-existent index to be passed. The handling of incorrect indices is included in the conditional above as a redundant safety feature. 
+					if not command == param:
+						print 'DEBUG: Got navigate to waypoint %d command' %(param)
+						command = param
+						current_wp = int(param)
+			else:
+				print 'DEBUG: Not listening'
+				if param == 101:
+					print 'DEBUG: Got start listening command'
+					listening = True
+
+			# Do the action that corresponds to the current value of 'command'		
+			if command == 103 and uav.armed:
+				print 'DEBUG: Killing UAV motors'
+				emergency_stop(uav,'UAV')
+				continue_loop = False
+				killed_uav = True
+			elif command == 100:
+				print 'DEBUG: Waiting for command.'
+			elif command == 102 and current_wp is not None:
+				print 'DEBUG: Clearing current waypoint.'
+				current_wp = None
+			elif in_the_air:
+				if command == 356:
+					print 'DEBUG: Landing'
+					land(uav,'UAV')
+					in_the_air = False
+				else:
+					if not current_wp is None:
+						print 'DEBUG: Tracking waypoint %d' %(current_wp)
+						referenceLocation = gcs.location.global_frame
+						dNorth = wp_N[current_wp]
+						dEast = wp_E[current_wp]
+						dDown = wp_D[current_wp]
+						goto_reference(uav, referenceLocation, dNorth, dEast, dDown)
+						condition_yaw(uav, self.__yaw_cmd, relative = True)
+					else:
+						print 'DEBUG: In the air, but not tracking a waypoint'
+			elif not in_the_air: # Explicit for comprehension
+				if command == 359 and not uav.armed:
+					print 'DEBUG: Arming'
+					arm_vehicle(uav,'UAV')
+				elif command == 358 and uav.armed:
+					print 'DEBUG: Disarming'
+					disarm_vehicle(uav,'UAV')
+				elif command == 357 and uav.armed:
+					print 'DEBUG: Taking off'
+					takeoff(uav,'UAV',10)
+					in_the_air = True
+					current_wp = None
+
+			print ''
+			time.sleep(1)
+
+		#------------------------------------
+		# Terminating
+		#------------------------------------
+
+		if killed_uav:
+			print 'UAV motors killed as abort procedure'
+		else:
+			# The example is completing. LAND at current location.
+			land(uav,'UAV')
+
+			# Disarm and close UAV object before exiting script
+			disarm_vehicle(uav,'UAV')
+
+		uav.close()
+
+		print('UAV program completed\n')
+
+	def cbYawDeg(self, data):
+		self.__yaw_cmd = data
+
+#-------------------------------------------------------------------------------
+#
+# Start ROS Node
+#
+#-------------------------------------------------------------------------------
+
+if __name__ == "__main__":
 
 	# Log Setup
 	logger = logging.getLogger()
@@ -132,173 +334,49 @@ if __name__ == '__main__':
 	logging.info('------------------SYSTEM IS READY!!------------------')
 	logging.info('-----------------------------------------------------\n')
 
-	#-----------------------------------------------------------------------------
-	#
-	# Control Code
-	#
-	#-----------------------------------------------------------------------------
+	# Initialize the node
+	rospy.init_node('uav_companion_node')
+	
+	# Create the yaw command node
+	node = DroneCommanderNode(uav,gcs)
 
-	#------------------------------------
-	# Initialization
-	#------------------------------------
+	# Spin
+	rospy.spin()
 
-	# Arm and take of to altitude of 5 meters
-	# arm_vehicle(uav,'UAV')
-	# takeoff(uav,'UAV',10)
 
-	# Command vehicle to stay where it is. This is done so that any condition command will be enacted when it is supposed to be. Pixhawk will not enact a condition command (yaw/ROI) until the first position command has been given. 
-	# send_ned_velocity(uav,0,0,0,1)
 
-	#------------------------------------
-	# Controlling
-	#------------------------------------
 
-	'''
-	This while loop performs the following functions:
-		- read GCS position
-		- read GCS parameter value of PIVOT_TURN_ANGLE to determine next UAV action
-		- perform an action based upon the GCS parameter value
-	The parameter values corresponding actions to be performed are:
-	 	100		UAV will stop listening to these commands
-	 					UAV will follow prev command, or do nothing if no command sent yet
-	 	101		UAV will begin listening to these commands
-		102		UAV will clear its current waypoint
-		103		UAV kills its motors immediately
-	 	359		UAV will arm
-	 	358		UAV will disarm
-	 	357		UAV will takeoff to a pre-programmed height and relative position
-	 	356		UAV will land according to its landing protocol
-	 	0+		UAV will navigate to the waypoint at the index specified
-	 					The acceptable waypoint indices are 0 through num_wp - 1
-	'''
 
-	# Ensure that at startup the UAV will not be tracking any waypoint
-	current_wp = None
 
-	# Ensure that at startup the UAV will not be listening 
-	initial_param = gcs.parameters['PIVOT_TURN_ANGLE']
-	if initial_param == 101:
-		gcs.parameters['PIVOT_TURN_ANGLE'] = 100
 
-	# Set UAV acceleration limit and groundspeed
-	uav.parameters['WPNAV_ACCEL'] = 300
-	uav.groundspeed = 25 # [m/s]
 
-	command = 100 # Command is an echo for param that disallows repeated commands
-	in_the_air = False
-	uav_height = uav.location.global_relative_frame.alt
-	if uav_height > 0.5:
-		in_the_air = True
-		command = 357
-	listening = False
-	killed_uav = False
-	continue_loop = True
-	while continue_loop:
-		param = gcs.parameters['PIVOT_TURN_ANGLE']
 
-		'''
-		The variable 'command' is what controls the drone. It is only updated when a valid and non-repeated param value is set. This ensures that the UAV does not continue commanding the same thing over and over. 
 
-		The 'command' variable can only be set while 'listening' is True. If the UAV is not listening to the GCS, then it will follow the most recent 'command' variable. 
 
-		It is occasionally desireable for waypoint commands to be repeated, so waypoint commands are handled later on in the code.
 
-		The parameter for 'stop listening' will be immediately passed through since repeated 'stop listening' commands are occasionally desired.
-		'''
-		if param == 103 and not command == 103:
-			print 'DEBUG: Got kill UAV motors command'
-			command = param
-		elif listening:
-			print 'DEBUG: Listening'
-			if param == 100:
-				print 'DEBUG: Got stop listening command'
-				listening = False
-			elif param == 102 and not command == 102:
-				print 'DEBUG: Got clear waypoint command'
-				command = param
-			elif param == 359 and not command == 359:
-				print 'DEBUG: Got arm command'
-				command = param
-			elif param == 358 and not command == 358:
-				print 'DEBUG: Got disarm command'
-				command = param
-			elif param == 357 and not command == 357:
-				print 'DEBUG: Got takeoff command'
-				command = param
-			elif param == 356 and not command == 356:
-				print 'DEBUG: Got land command'
-				command = param
-			elif param < num_wp:
-				# NOTE: GCS will not allow a non-existent index to be passed. The handling of incorrect indices is included in the conditional above as a redundant safety feature. 
-				if not command == param:
-					print 'DEBUG: Got navigate to waypoint %d command' %(param)
-					command = param
-					current_wp = int(param)
-		else:
-			print 'DEBUG: Not listening'
-			if param == 101:
-				print 'DEBUG: Got start listening command'
-				listening = True
 
-		# Do the action that corresponds to the current value of 'command'		
-		if command == 103 and uav.armed:
-			print 'DEBUG: Killing UAV motors'
-			emergency_stop(uav,'UAV')
-			continue_loop = False
-			killed_uav = True
-		elif command == 100:
-			print 'DEBUG: Waiting for command.'
-		elif command == 102 and current_wp is not None:
-			print 'DEBUG: Clearing current waypoint.'
-			current_wp = None
-		elif in_the_air:
-			if command == 356:
-				print 'DEBUG: Landing'
-				land(uav,'UAV')
-				in_the_air = False
-			else:
-				if not current_wp is None:
-					print 'DEBUG: Tracking waypoint %d' %(current_wp)
-					referenceLocation = gcs.location.global_frame
-					dNorth = wp_N[current_wp]
-					dEast = wp_E[current_wp]
-					dDown = wp_D[current_wp]
-					goto_reference(uav, referenceLocation, dNorth, dEast, dDown)
-					set_roi(uav, referenceLocation)
-				else:
-					print 'DEBUG: In the air, but not tracking a waypoint'
-		elif not in_the_air: # Explicit for comprehension
-			if command == 359 and not uav.armed:
-				print 'DEBUG: Arming'
-				arm_vehicle(uav,'UAV')
-			elif command == 358 and uav.armed:
-				print 'DEBUG: Disarming'
-				disarm_vehicle(uav,'UAV')
-			elif command == 357 and uav.armed:
-				print 'DEBUG: Taking off'
-				takeoff(uav,'UAV',10)
-				in_the_air = True
-				current_wp = None
 
-		print ''
-		time.sleep(1)
 
-	#------------------------------------
-	# Terminating
-	#------------------------------------
 
-	if killed_uav:
-		print 'UAV motors killed as abort procedure'
-	else:
-		# The example is completing. LAND at current location.
-		land(uav,'UAV')
 
-		# Disarm and close UAV object before exiting script
-		disarm_vehicle(uav,'UAV')
 
-	uav.close()
 
-	print('UAV program completed\n')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
