@@ -230,7 +230,7 @@ class DroneCommanderNode(object):
 		print('UAV program completed\n')
 
 	def cbYawDeg(self, data):
-		self.__yaw_cmd = data
+		self.__yaw_cmd = data.data
 
 #-------------------------------------------------------------------------------
 #
