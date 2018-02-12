@@ -5,11 +5,9 @@ import time
 from dronekit import LocationGlobal, LocationGlobalRelative, VehicleMode
 from pymavlink import mavutil
 
-#-------------------------------------------------------------------------------
-#
-# This file provides helper functions to both .../gcs/main.py and .../uav/main.py. Some functions here should only be used by the UAV (e.g. arm_and_takeoff), while others are to be used by either the UAV or the GCS (e.g. get_distance_metres)
-#
-#-------------------------------------------------------------------------------
+'''
+This file provides helper functions to both .../gcs/main.py and .../uav/main.py. Some functions here should only be used by the UAV (e.g. arm_and_takeoff), while others are to be used by either the UAV or the GCS (e.g. get_distance_metres). 
+'''
 
 #-------------------------------------------------------------------------------
 # Arming, Disarming, Takeoffs, and Landings
@@ -436,8 +434,15 @@ def condition_yaw(vehicle, heading, relative = False):
 	'''
 	if relative:
 		is_relative = 1 # Yaw relative to direction of travel
+		if heading > 0:
+			yaw_direction = 1
+		else:
+			yaw_direction = -1
+			# Heading must be positive
+			heading = -heading
 	else:
 		is_relative = 0 # Yaw is an absolute angle
+		yaw_direction = 1
 	# Create the CONDITION_YAW command using command_long_encode()
 	msg = vehicle.message_factory.command_long_encode(
 		0, 0,    # target system, target component
@@ -445,7 +450,7 @@ def condition_yaw(vehicle, heading, relative = False):
 		0, #confirmation
 		heading,    # param 1, yaw in degrees
 		0,          # param 2, yaw speed deg/s
-		1,          # param 3, direction -1 ccw, 1 cw
+		yaw_direction, # param 3, direction -1 ccw, 1 cw
 		is_relative, # param 4, relative offset 1, absolute angle 0
 		0, 0, 0)    # param 5 ~ 7 not used
 	# Send command to vehicle

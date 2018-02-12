@@ -1,8 +1,13 @@
 #!/usr/bin/env python2
 
-# Allows access to the parent directory
-import sys
-sys.path.append('../')
+# Import necessary items from parent directory, then undo changes to path
+from inspect import getsourcefile
+import os.path as path, sys
+current_dir = path.dirname(path.abspath(getsourcefile(lambda:0)))
+sys.path.insert(0, current_dir[:current_dir.rfind(path.sep)])
+import mission
+from helper_functions import arm_vehicle, condition_yaw, disarm_vehicle, emergency_stop, get_distance_metres, get_home_location, get_location_metres, goto, goto_position_target_local_ned, goto_reference, land, send_global_velocity, send_ned_velocity, set_roi, takeoff
+sys.path.pop(0)
 
 # Required for the vision-based yaw system
 import rospy
@@ -10,10 +15,8 @@ from std_msgs.msg import Int16
 
 # Required for controlling the UAV
 import logging
-import mission
 import time
 from dronekit import connect, VehicleMode, LocationGlobalRelative, LocationGlobal, Command
-from helper_functions import arm_vehicle, condition_yaw, disarm_vehicle, emergency_stop, get_distance_metres, get_home_location, get_location_metres, goto, goto_position_target_local_ned, goto_reference, land, send_global_velocity, send_ned_velocity, set_roi, takeoff
 
 #-------------------------------------------------------------------------------
 #
@@ -193,6 +196,8 @@ class DroneCommanderNode(object):
 						dEast = wp_E[current_wp]
 						dDown = wp_D[current_wp]
 						goto_reference(uav, referenceLocation, dNorth, dEast, dDown)
+						yaw_rel = self.__yaw_cmd
+						print 'rel_yaw:\n  ',yaw_rel, '\n  ', type(yaw_rel),'\n'
 						condition_yaw(uav, self.__yaw_cmd, relative = True)
 					else:
 						print 'DEBUG: In the air, but not tracking a waypoint'
@@ -263,7 +268,7 @@ if __name__ == "__main__":
 		except OSError:
 			logging.critical('Cannot find device, is the UAV plugged in? Retrying...')
 			time.sleep(5)
-		except APIException:
+		except:
 			logging.critical('UAV connection timed out. Retrying...')
 	
 	logging.info('UAV pixhawk connected to UAV')
@@ -335,7 +340,7 @@ if __name__ == "__main__":
 	logging.info('-----------------------------------------------------\n')
 
 	# Initialize the node
-	rospy.init_node('uav_companion_node')
+	rospy.init_node('flight_companion_node')
 	
 	# Create the yaw command node
 	node = DroneCommanderNode(uav,gcs)

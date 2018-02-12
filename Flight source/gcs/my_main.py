@@ -123,9 +123,7 @@ if __name__ == '__main__':
 			if len(user_in) > 0 and user_in[0] == '-':
 				invalid_input = False
 				gcs.parameters['PIVOT_TURN_ANGLE'] = 103
-				print 'Killing UAV motors. Terminating program.'
-				user_in = 'quit'
-				time.sleep(3) # Sleep so UAV has time to read kill-motor value
+				print 'Killing UAV motors.'
 
 			elif user_in == 'help':
 				invalid_input = False
@@ -206,7 +204,6 @@ if __name__ == '__main__':
 				print 'Invalid input. Type \'help\' for allowed commands.'
 				print ' UAV is following previous command of: \n %s' %(prev_command)
 				# print str_allowed_input
-	
 	except KeyboardInterrupt:
 		print '\nGot CTRL+C. Cleaning up and exiting.\n'
 
