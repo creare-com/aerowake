@@ -1,0 +1,8 @@
+<!-- Launch tag so that file is identified as a launch file -->
+<launch>
+
+  <!-- Start the node that commands the uav -->
+  <node pkg="aerowake" name="flight_companion" type="my_main.py" output="screen">
+  </node>
+
+</launch>
