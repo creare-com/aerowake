@@ -5,7 +5,7 @@ from inspect import getsourcefile
 import os.path as path, sys
 current_dir = path.dirname(path.abspath(getsourcefile(lambda:0)))
 sys.path.insert(0, current_dir[:current_dir.rfind(path.sep)])
-import mission
+import mission_rot
 from helper_functions import arm_vehicle, condition_yaw, disarm_vehicle, emergency_stop, get_distance_metres, get_home_location, get_location_metres, goto, goto_position_target_local_ned, goto_reference, land, send_global_velocity, send_ned_velocity, set_roi, takeoff
 sys.path.pop(0)
 
@@ -33,10 +33,10 @@ gcs_connect_path = '127.0.0.1:14554'
 gcs_baud = 115200
 
 # Determine number of waypoints
-wp_N = mission.wp_N
-wp_E = mission.wp_E
-wp_D = mission.wp_D
-num_wp = mission.num_wp[0]
+wp_N = mission_rot.wp_N
+wp_E = mission_rot.wp_E
+wp_D = mission_rot.wp_D
+num_wp = mission_rot.num_wp[0]
 
 #-------------------------------------------------------------------------------
 #
