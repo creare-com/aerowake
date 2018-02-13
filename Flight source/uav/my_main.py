@@ -24,15 +24,21 @@ from dronekit import connect, VehicleMode, LocationGlobalRelative, LocationGloba
 #
 #-------------------------------------------------------------------------------
 
-# Set connection path to UAV
-uav_connect_path = '127.0.0.1:14552'
-uav_baud = 115200
+# Set connection path to UAV and GCS
+if len(sys.argv) > 1 and sys.argv[1] == 'sim':
+	uav_connect_path = '127.0.0.1:14552'
+	uav_baud = 115200
+	gcs_connect_path = '127.0.0.1:14554'
+	gcs_baud = 115200
+else:
+	# uav_connect_path = '/dev/ttyACM0' # Use for odroid through pixhawk usb cord
+        # uav_connect_path = '/dev/ttyUSB0' # Use for odroid through usb to serial converter
+        uav_connect_path = '/dev/ttySAC0' # Use for odroid through GPIO pins
+        uav_baud = 57600
+        gcs_connect_path = '/dev/ttyUSB0'
+        gcs_baud = 57600
 
-# Set connection path to GCS
-gcs_connect_path = '127.0.0.1:14554'
-gcs_baud = 115200
-
-# Determine number of waypoints
+# Extract mission information
 wp_N = mission_rot.wp_N
 wp_E = mission_rot.wp_E
 wp_D = mission_rot.wp_D
