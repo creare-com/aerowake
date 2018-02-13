@@ -1,5 +1,5 @@
 '''
-The mission is specified in Cartesian coordinates with respect to a North-East-Down (NED) coordinate frame centered at the GCS. 
+The mission is specified in Cartesian coordinates with respect to a North-East-Down (NED) coordinate frame centered at the GCS. The rotate_mission.py script can be used to rotate the mission to a specified bearing. 
 
 The convention is as follows:
 	- origin at GCS GPS module

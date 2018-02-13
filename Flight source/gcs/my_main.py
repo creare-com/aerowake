@@ -4,7 +4,7 @@ import sys
 sys.path.append('../')
 
 import logging
-import mission
+import mission_rot
 import time
 
 from dronekit import connect
@@ -17,11 +17,15 @@ from helper_functions import arm_vehicle, disarm_vehicle
 #-------------------------------------------------------------------------------
 
 # Set connection path to GCS
-gcs_connect_path = '127.0.0.1:14556'
-gcs_baud = 115200
+if len(sys.argv) > 1 and sys.argv[1] == 'sim':
+	gcs_connect_path = '127.0.0.1:14556'
+	gcs_baud = 115200
+else:
+	gcs_connect_path = '/dev/ttyACM0'
+	gcs_baud = 57600
 
 # Determine number of waypoints
-num_wp = mission.num_wp[0]
+num_wp = mission_rot.num_wp[0]
 
 # Define a string that will print to show allowed user input
 str_allowed_input = '\n\nAllowed input:\n -\n  Kill UAV motors when input starts with minus sign\n listen\n  Tell UAV to start listening to commands\n arm\n  Command UAV to arm throttle\n disarm\n  Command UAV to disarm throttle\n takeoff\n  Command UAV to takeoff to 10 m\n Waypoint Number (0-%d)\n  Navigate to designated waypoint\n clear\n  Clear current waypoint\n land\n  Command UAV to land\n help\n  Show this list of allowed inputs\n quit\n  Terminate program\n\n' %(num_wp - 1)
