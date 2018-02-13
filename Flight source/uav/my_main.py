@@ -125,7 +125,7 @@ class DroneCommanderNode(object):
 		listening = False
 		killed_uav = False
 		continue_loop = True
-		while continue_loop:
+		while continue_loop and not rospy.is_shutdown():
 			param = gcs.parameters['PIVOT_TURN_ANGLE']
 
 			'''
@@ -197,7 +197,7 @@ class DroneCommanderNode(object):
 						dDown = wp_D[current_wp]
 						goto_reference(uav, referenceLocation, dNorth, dEast, dDown)
 						yaw_rel = self.__yaw_cmd
-						print 'rel_yaw:\n  ',yaw_rel, '\n  ', type(yaw_rel),'\n'
+						print 'rel_yaw: %d' %(yaw_rel)
 						condition_yaw(uav, self.__yaw_cmd, relative = True)
 					else:
 						print 'DEBUG: In the air, but not tracking a waypoint'
@@ -210,7 +210,7 @@ class DroneCommanderNode(object):
 					disarm_vehicle(uav,'UAV')
 				elif command == 357 and uav.armed:
 					print 'DEBUG: Taking off'
-					takeoff(uav,'UAV',10)
+					takeoff(uav,'UAV',1)
 					in_the_air = True
 					current_wp = None
 
@@ -222,7 +222,9 @@ class DroneCommanderNode(object):
 		#------------------------------------
 
 		if killed_uav:
-			print 'UAV motors killed as abort procedure'
+			print 'UAV motors killed as abort procedure.'
+		elif rospy.is_shutdown():
+			print 'Terminating program since ROS is shurdown. Not changing UAV status.\n'
 		else:
 			# The example is completing. LAND at current location.
 			land(uav,'UAV')
@@ -232,7 +234,7 @@ class DroneCommanderNode(object):
 
 		uav.close()
 
-		print('UAV program completed\n')
+		print('UAV program completed.\n')
 
 	def cbYawDeg(self, data):
 		self.__yaw_cmd = data.data
@@ -243,7 +245,7 @@ class DroneCommanderNode(object):
 #
 #-------------------------------------------------------------------------------
 
-if __name__ == "__main__":
+if __name__ == '__main__':
 
 	# Log Setup
 	logger = logging.getLogger()
