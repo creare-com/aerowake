@@ -25,7 +25,7 @@ from dronekit import connect, VehicleMode, LocationGlobalRelative, LocationGloba
 #-------------------------------------------------------------------------------
 
 # Set connection path to UAV and GCS
-if len(sys.argv) > 1 and sys.argv[1] == 'sim':
+if 1:# len(sys.argv) > 1 and sys.argv[1] == 'sim':
 	uav_connect_path = '127.0.0.1:14552'
 	uav_baud = 115200
 	gcs_connect_path = '127.0.0.1:14554'
@@ -124,10 +124,6 @@ class DroneCommanderNode(object):
 
 		command = 100 # Command is an echo for param that disallows repeated commands
 		in_the_air = False
-		uav_height = uav.location.global_relative_frame.alt
-		if uav_height > 0.5:
-			in_the_air = True
-			command = 357
 		listening = False
 		killed_uav = False
 		continue_loop = True
@@ -216,7 +212,7 @@ class DroneCommanderNode(object):
 					disarm_vehicle(uav,'UAV')
 				elif command == 357 and uav.armed:
 					print 'DEBUG: Taking off'
-					takeoff(uav,'UAV',1)
+					takeoff(uav,'UAV',10)
 					in_the_air = True
 					current_wp = None
 
@@ -230,7 +226,7 @@ class DroneCommanderNode(object):
 		if killed_uav:
 			print 'UAV motors killed as abort procedure.'
 		elif rospy.is_shutdown():
-			print 'Terminating program since ROS is shurdown. Not changing UAV status.\n'
+			print 'Terminating program since ROS is shutdown. Not changing UAV status.\n'
 		else:
 			# The example is completing. LAND at current location.
 			land(uav,'UAV')
