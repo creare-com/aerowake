@@ -8,6 +8,9 @@ import os
 
 '''
 This script takes a MAVLink telemetry log file (*.tlog) and outputs a CSV file of the same name to the same directory. 
+
+Usage:
+	python tlog2csv.py <file directory> <file name>
 '''
 
 #-------------------------------------------------------------------------------
