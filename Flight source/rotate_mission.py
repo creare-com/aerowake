@@ -6,6 +6,10 @@ import sys
 
 '''
 This function takes a list of North-East-Down (NED) coordinates from a specified file and rotates them in 2D space so that the North direction is aligned with the specified heading. The Down coordinates are unchanged by this function.
+
+Usage:
+	python rotate_mission.py <mission file fir> <mission file name> <new bearing>
+
 '''
 
 #-------------------------------------------------------------------------------
