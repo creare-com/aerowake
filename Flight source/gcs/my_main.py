@@ -68,11 +68,6 @@ if __name__ == '__main__':
 
 	logging.info('GCS pixhawk connected to GCS')
 
-	# Listeners
-	@gcs.on_attribute('gimbal')
-	def ground_speed_listener(self, attr_name, value):
-		print 'gimbal: ', value
-
 	logging.info('------------------SYSTEM IS READY!!------------------')
 	logging.info('-----------------------------------------------------\n')
 
