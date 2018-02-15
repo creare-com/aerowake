@@ -25,18 +25,17 @@ from dronekit import connect, VehicleMode, LocationGlobalRelative, LocationGloba
 #-------------------------------------------------------------------------------
 
 # Set connection path to UAV and GCS
-if 1:# len(sys.argv) > 1 and sys.argv[1] == 'sim':
-	uav_connect_path = '127.0.0.1:14552'
-	uav_baud = 115200
-	gcs_connect_path = '127.0.0.1:14554'
-	gcs_baud = 115200
-else:
-	# uav_connect_path = '/dev/ttyACM0' # Use for odroid through pixhawk usb cord
-        # uav_connect_path = '/dev/ttyUSB0' # Use for odroid through usb to serial converter
-        uav_connect_path = '/dev/ttySAC0' # Use for odroid through GPIO pins
-        uav_baud = 57600
-        gcs_connect_path = '/dev/ttyUSB0'
-        gcs_baud = 57600
+#uav_connect_path = '127.0.0.1:14552'
+#uav_baud = 115200
+#gcs_connect_path = '127.0.0.1:14554'
+#gcs_baud = 115200
+
+# uav_connect_path = '/dev/ttyACM0' # Use for odroid through pixhawk usb cord
+# uav_connect_path = '/dev/ttyUSB0' # Use for odroid through usb to serial converter
+uav_connect_path = '/dev/ttySAC0' # Use for odroid through GPIO pins
+uav_baud = 57600
+gcs_connect_path = '/dev/ttyUSB0'
+gcs_baud = 57600
 
 # Extract mission information
 wp_N = mission_rot.wp_N
@@ -275,7 +274,7 @@ if __name__ == '__main__':
 		except:
 			logging.critical('UAV connection timed out. Retrying...')
 	
-	logging.info('UAV pixhawk connected to UAV')
+	logging.info('UAV pixhawk connected to UAV ODROID')
 
 	if(uav.parameters['ARMING_CHECK'] != 1):
 		logging.warning('UAV reports arming checks are not standard!')
@@ -289,10 +288,10 @@ if __name__ == '__main__':
 		except OSError:
 			logging.critical('Cannot find device, is the GCS plugged in? Retrying...')
 			time.sleep(5)
-		except:
-			logging.critical('GCS connection timed out. Retrying...')
+#		except:
+#			logging.critical('GCS connection timed out. Retrying...')
 	
-	logging.info('GCS pixhawk connected to UAV')
+	logging.info('GCS pixhawk connected to UAV ODROID')
 
 	# Bunch of seemingly necessary callbacks
 	logging_time=0
