@@ -24,19 +24,19 @@ from dronekit import connect, VehicleMode, LocationGlobalRelative, LocationGloba
 #
 #-------------------------------------------------------------------------------
 
-# Set connection path to UAV and GCS
-if 1:# len(sys.argv) > 1 and sys.argv[1] == 'sim':
-	uav_connect_path = '127.0.0.1:14552'
-	uav_baud = 115200
-	gcs_connect_path = '127.0.0.1:14554'
-	gcs_baud = 115200
-else:
-	# uav_connect_path = '/dev/ttyACM0' # Use for odroid through pixhawk usb cord
-        # uav_connect_path = '/dev/ttyUSB0' # Use for odroid through usb to serial converter
-        uav_connect_path = '/dev/ttySAC0' # Use for odroid through GPIO pins
-        uav_baud = 57600
-        gcs_connect_path = '/dev/ttyUSB0'
-        gcs_baud = 57600
+# Set connection path to UAV and GCS (SITL)
+uav_connect_path = '127.0.0.1:14552'
+uav_baud = 115200
+gcs_connect_path = '127.0.0.1:14554'
+gcs_baud = 115200
+
+# Set connection path to UAV and GCS (Hardware)
+# uav_baud = 57600
+# gcs_baud = 57600
+# uav_connect_path = '/dev/ttyACM0' # For odroid through pixhawk usb cord
+# uav_connect_path = '/dev/ttyUSB0' # For odroid through usb to serial converter
+# uav_connect_path = '/dev/ttySAC0' # For odroid through GPIO pins
+# gcs_connect_path = '/dev/ttyUSB0' # For pixhawk through usb telem radio
 
 # Extract mission information
 wp_N = mission_rot.wp_N
@@ -97,17 +97,17 @@ class DroneCommanderNode(object):
 			- read GCS parameter value of PIVOT_TURN_ANGLE to determine next UAV action
 			- perform an action based upon the GCS parameter value
 		The parameter values corresponding actions to be performed are:
-		 	100		UAV will stop listening to these commands
-		 					UAV will follow prev command, or do nothing if no command sent yet
-		 	101		UAV will begin listening to these commands
+			100		UAV will stop listening to these commands
+							UAV will follow prev command, or do nothing if no command sent yet
+			101		UAV will begin listening to these commands
 			102		UAV will clear its current waypoint
 			103		UAV kills its motors immediately
-		 	359		UAV will arm
-		 	358		UAV will disarm
-		 	357		UAV will takeoff to a pre-programmed height and relative position
-		 	356		UAV will land according to its landing protocol
-		 	0+		UAV will navigate to the waypoint at the index specified
-		 					The acceptable waypoint indices are 0 through num_wp - 1
+			359		UAV will arm
+			358		UAV will disarm
+			357		UAV will takeoff to a pre-programmed height and relative position
+			356		UAV will land according to its landing protocol
+			0+		UAV will navigate to the waypoint at the index specified
+							The acceptable waypoint indices are 0 through num_wp - 1
 		'''
 
 		# Ensure that at startup the UAV will not be tracking any waypoint
