@@ -7,8 +7,8 @@ import logging
 import mission_rot
 import time
 
-from dronekit import connect
-from helper_functions import arm_vehicle, disarm_vehicle
+from dronekit import connect, VehicleMode
+from helper_functions import arm_vehicle, disarm_vehicle, get_home_location
 
 #-------------------------------------------------------------------------------
 #
@@ -77,7 +77,7 @@ if __name__ == '__main__':
 	#
 	#-----------------------------------------------------------------------------
 
-	arm_vehicle(gcs,'GCS')
+	# arm_vehicle(gcs,'GCS')
 
 	print str_allowed_input
 
@@ -203,6 +203,17 @@ if __name__ == '__main__':
 				print 'Invalid input. Type \'help\' for allowed commands.'
 				print ' UAV is following previous command of: \n %s' %(prev_command)
 				# print str_allowed_input
+
+			print " Global Location: %s" % gcs.location.global_frame
+			print " Global Location (relative altitude): %s" % gcs.location.global_relative_frame
+			print " Local Location: %s" % gcs.location.local_frame
+			print " Attitude: %s" % gcs.attitude
+			print " GPS: %s" % gcs.gps_0
+			print " EKF OK?: %s" % gcs.ekf_ok
+			print " Last Heartbeat: %s" % gcs.last_heartbeat
+			print " Heading: %s" % gcs.heading
+			print " System status: %s" % gcs.system_status.state
+
 	except KeyboardInterrupt:
 		print '\nGot CTRL+C. Cleaning up and exiting.\n'
 
@@ -218,3 +229,4 @@ if __name__ == '__main__':
 	gcs.close()
 
 	print('GCS program completed\n')
+	

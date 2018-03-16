@@ -37,5 +37,13 @@ def get_y5(x,r):
 	return round(np.sqrt(r**2 - x**2),2)
 wp_E = [0, 5.67,10.6,5.67,0,-5.67,-10.6,-5.67,0]
 wp_N = [get_y5(x,15) for x in wp_E]
-wp_D = [-2]*len(wp_N)
+wp_D = [-1]*len(wp_N)
+num_wp = [len(wp_N)]
+
+# Mission 6: Arc on turf
+def get_y6(x,r):
+	return round(np.sqrt(r**2 - x**2),2)
+wp_E = [0, -6.5, -11.1, -15.7, -11.1, -6.5, 0]
+wp_N = [get_y6(x,20) for x in wp_E]
+wp_D = [-1]*len(wp_N)
 num_wp = [len(wp_N)]
