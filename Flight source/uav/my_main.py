@@ -98,17 +98,17 @@ class DroneCommanderNode(object):
 			- read GCS parameter value of PIVOT_TURN_ANGLE to determine next UAV action
 			- perform an action based upon the GCS parameter value
 		The parameter values corresponding actions to be performed are:
-		 	100		UAV will stop listening to these commands
-		 					UAV will follow prev command, or do nothing if no command sent yet
-		 	101		UAV will begin listening to these commands
+			100		UAV will stop listening to these commands
+							UAV will follow prev command, or do nothing if no command sent yet
+			101		UAV will begin listening to these commands
 			102		UAV will clear its current waypoint
 			103		UAV kills its motors immediately
-		 	359		UAV will arm
-		 	358		UAV will disarm
-		 	357		UAV will takeoff to a pre-programmed height and relative position
-		 	356		UAV will land according to its landing protocol
-		 	0+		UAV will navigate to the waypoint at the index specified
-		 					The acceptable waypoint indices are 0 through num_wp - 1
+			359		UAV will arm
+			358		UAV will disarm
+			357		UAV will takeoff to a pre-programmed height and relative position
+			356		UAV will land according to its landing protocol
+			0+		UAV will navigate to the waypoint at the index specified
+							The acceptable waypoint indices are 0 through num_wp - 1
 		'''
 
 		# Ensure that at startup the UAV will not be tracking any waypoint
@@ -280,7 +280,7 @@ if __name__ == '__main__':
 		except:
 			logging.critical('UAV connection timed out. Retrying...')
 	
-	logging.info('UAV pixhawk connected to UAV ODROID')
+	logging.info('UAV pixhawk connected to UAV')
 
 	if(uav.parameters['ARMING_CHECK'] != 1):
 		logging.warning('UAV reports arming checks are not standard!')
@@ -294,10 +294,10 @@ if __name__ == '__main__':
 		except OSError:
 			logging.critical('Cannot find device, is the GCS plugged in? Retrying...')
 			time.sleep(5)
-#		except:
-#			logging.critical('GCS connection timed out. Retrying...')
+		except:
+			logging.critical('GCS connection timed out. Retrying...')
 	
-	logging.info('GCS pixhawk connected to UAV ODROID')
+	logging.info('GCS pixhawk connected to UAV')
 
 	# Bunch of seemingly necessary callbacks
 	logging_time=0

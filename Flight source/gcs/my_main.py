@@ -77,7 +77,7 @@ if __name__ == '__main__':
 	#
 	#-----------------------------------------------------------------------------
 
-	arm_vehicle(gcs,'GCS')
+	# arm_vehicle(gcs,'GCS')
 
 	print str_allowed_input
 
