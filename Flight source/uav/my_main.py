@@ -217,7 +217,7 @@ class DroneCommanderNode(object):
 					disarm_vehicle(uav,'UAV')
 				elif command == 357 and uav.armed:
 					print 'DEBUG: Taking off'
-					takeoff(uav,'UAV',1)
+					takeoff(uav,'UAV',3)
 					in_the_air = True
 					current_wp = None
 
