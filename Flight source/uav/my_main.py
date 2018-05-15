@@ -334,7 +334,11 @@ if __name__ == '__main__':
 
 	@uav.on_message('SYSTEM_TIME')
 	def uav_time_callback(self, attr_name, msg):
+		'''
+		This function does not currently work correctly! msg.time_unix_usec is always greater than 0, even without GPS lock.
+		'''
 		global gps_lock_gps_time
+		print uav.gps_0
 		if(gps_lock_gps_time is 0 and msg.time_unix_usec > 0):
 			gps_lock_gps_time = msg.time_unix_usec/1000000
 			logger.info('UAV got GPS lock at GPS time of: %s', gps_lock_gps_time)
