@@ -316,9 +316,6 @@ if __name__ == '__main__':
 	logger.info('GCS pixhawk connected to UAV')
 
 	# Bunch of seemingly necessary callbacks
-	gps_lock_odroid_time = 0
-	gps_lock_gps_time = 0
-	rasp_start_time = 0
 
 	timed_out_gcs = False
 	@gcs.on_attribute('last_heartbeat')   
@@ -332,19 +329,19 @@ if __name__ == '__main__':
 				timed_out_gcs = False;
 				logger.info('GCS pixhawk connection restored.')
 
+	gps_lock_odroid_time = 0
+	gps_lock_gps_time = 0
 	@uav.on_message('SYSTEM_TIME')
 	def uav_time_callback(self, attr_name, msg):
 		'''
 		This function does not currently work correctly! msg.time_unix_usec is always greater than 0, even without GPS lock.
 		'''
 		global gps_lock_gps_time
-		print uav.gps_0.fix_type
-		if(gps_lock_gps_time is 0 and msg.time_unix_usec > 0):
+		if(gps_lock_gps_time is 0 and uav.gps_0.fix_type == 3):
 			gps_lock_gps_time = msg.time_unix_usec/1000000
 			logger.info('UAV got GPS lock at GPS time of: %s', gps_lock_gps_time)
 			gps_lock_odroid_time = '%0.4f' % time.time()
 			logger.info('UAV got GPS lock at ODROID time of: %s', gps_lock_odroid_time)
-			rasp_start_time = time.clock()
 
 	timed_out_uav = False
 	@uav.on_attribute('last_heartbeat')   
