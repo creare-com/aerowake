@@ -25,19 +25,20 @@ from dronekit import connect, VehicleMode, LocationGlobalRelative, LocationGloba
 #
 #-------------------------------------------------------------------------------
 
-# Set connection path to UAV and GCS (SITL)
-uav_connect_path = '127.0.0.1:14552'
-uav_baud = 115200
-gcs_connect_path = '127.0.0.1:14554'
-gcs_baud = 115200
+# Set connection path to UAV and GCS
+#uav_connect_path = '127.0.0.1:14552'
+#uav_baud = 115200
+#gcs_connect_path = '127.0.0.1:14554'
+#gcs_baud = 115200
 
-# Set connection path to UAV and GCS (Hardware)
-# uav_baud = 57600
-# gcs_baud = 57600
-# uav_connect_path = '/dev/ttyACM0' # For odroid through pixhawk usb cord
-# uav_connect_path = '/dev/ttyUSB0' # For odroid through usb to serial converter
-# uav_connect_path = '/dev/ttySAC0' # For odroid through GPIO pins
-# gcs_connect_path = '/dev/ttyUSB0' # For pixhawk through usb telem radio
+# uav_connect_path = '/dev/ttyACM0' # Use for odroid through pixhawk usb cord
+# uav_connect_path = '/dev/ttyUSB0' # Use for odroid through usb to serial converter
+# uav_connect_path = '/dev/ttySAC0' # Use for odroid through GPIO pins
+uav_connect_path = '/dev/pixhawk' # Use after configuring symbolic link through udevadm
+uav_baud = 57600
+# gcs_connect_path = '/dev/ttyUSB0' # Use for telemetry radio through usb port
+gcs_connect_path = '/dev/radioacl44' # Use after configuring symbolic link through udevadm
+gcs_baud = 57600
 
 # Extract mission information
 wp_N = mission_rot.wp_N
@@ -132,6 +133,9 @@ class DroneCommanderNode(object):
 		continue_loop = True
 		while continue_loop and not rospy.is_shutdown():
 			param = gcs.parameters['PIVOT_TURN_ANGLE']
+			referenceLocation = gcs.location.global_frame
+			print '1\n', referenceLocation
+						
 
 			'''
 			The variable 'command' is what controls the drone. It is only updated when a valid and non-repeated param value is set. This ensures that the UAV does not continue commanding the same thing over and over. 
@@ -197,6 +201,7 @@ class DroneCommanderNode(object):
 					if not current_wp is None:
 						print 'DEBUG: Tracking waypoint %d' %(current_wp)
 						refLoc = gcs.location.global_frame
+						print '2\n', refLoc
 						dNorth = wp_N[current_wp]
 						dEast = wp_E[current_wp]
 						dDown = wp_D[current_wp]
