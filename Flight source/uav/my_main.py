@@ -123,8 +123,8 @@ class DroneCommanderNode(object):
 			gcs.parameters['PIVOT_TURN_ANGLE'] = 100
 
 		# Set UAV acceleration limit and groundspeed
-		uav.parameters['WPNAV_ACCEL'] = 300 # 50-500 [cm/s/s]
-		uav.parameters['WPNAV_SPEED'] = 1000 # 20-2000 by 50 [cm/s]
+		uav.parameters['WPNAV_ACCEL'] = 50 # 50-500 [cm/s/s]
+		uav.parameters['WPNAV_SPEED'] = 50 # 20-2000 by 50 [cm/s]
 		# uav.groundspeed = 5 # [m/s]
 
 		command = 100 # Command is an echo for param that disallows repeated commands
