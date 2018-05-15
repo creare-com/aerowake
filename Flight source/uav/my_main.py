@@ -268,6 +268,7 @@ class DroneCommanderNode(object):
 if __name__ == '__main__':
 
 	# Log Setup
+	logging.basicConfig(filename='system1.log',level=logging.DEBUG)
 	logger = logging.getLogger()
 	logger.setLevel(logging.DEBUG)
 	fh = logging.FileHandler('system.log')
