@@ -12,7 +12,7 @@ This file provides helper functions to both .../gcs/main.py and .../uav/main.py.
 
 # Setup logger
 # NOTE: Logger is singleton as long as handled by the same Python interpreter. Calling logging.getLogger('logger_name') from multiple scripts on the same computer will use the same file (except in advanced cases not relevant here).
-
+logger = logging.getLogger('my_logger')
 
 #-------------------------------------------------------------------------------
 # Arming, Disarming, Takeoffs, and Landings
@@ -22,73 +22,73 @@ def arm_vehicle(vehicle,name):
 	'''
 	Arms vehicle.
 	'''
-	print 'Attempting to arm %s' %(name)
+	logger.info('Attempting to arm %s' %(name))
 	if not vehicle.armed:
 		while not vehicle.is_armable:
-			print ' Waiting for %s to initialise...' %(name)
+			logger.info(' Waiting for %s to initialise...' %(name))
 			time.sleep(1)
-		print ' Arming motors on %s' %(name)
+		logger.info(' Arming motors on %s' %(name))
 		vehicle.mode = VehicleMode('GUIDED')
 		vehicle.armed = True
 		while not vehicle.armed:
-			print ' Waiting for %s to arm...' %(name)
+			logger.info(' Waiting for %s to arm...' %(name))
 			time.sleep(1)
-		print ' %s armed\n' %(name)
+		logger.info(' %s armed\n' %(name))
 	else:
-		print ' %s is already armed\n' %(name)
+		logger.info(' %s is already armed\n' %(name))
 
 
 def disarm_vehicle(vehicle,name):
 	'''
 	Disarms vehicle.
 	'''
-	print 'Attempting to disarm %s...' %(name)
+	logger.info('Attempting to disarm %s...' %(name))
 	if vehicle.armed:
 		vehicle.armed = False
 		count = 0
 		keep_trying = True
 		while vehicle.armed and keep_trying:
-			print ' Waiting for %s to disarm...' %(name)
+			logger.info(' Waiting for %s to disarm...' %(name))
 			time.sleep(1)
 			count += 1
 			if count >= 5:
-				print ' WARNING: FAILED TO DISARM'
+				logger.warning(' WARNING: FAILED TO DISARM AFTER 5 ATTEMPTS')
 				keep_trying = False
 		if not vehicle.armed:
-			print ' %s disarmed\n' %(name)
+			logger.info(' %s disarmed\n' %(name))
 	else:
-		print ' %s is already disarmed\n' %(name)
+		logger.info(' %s is already disarmed\n' %(name))
 
 
 def land(vehicle,name):
 	'''
 	Lands vehicle.
 	'''
-	print '%s attempting to land' %(name)
-	print ' Setting LAND mode on %s...' %(name)
+	logger.info('%s attempting to land' %(name))
+	logger.info(' Setting LAND mode on %s...' %(name))
 	vehicle.mode = VehicleMode('LAND')
 	# Copter vehicle will automatically disarm after so many seconds of inactivity
 	while vehicle.armed:
-		print ' Waiting for %s landing confirmed...' %(name)
+		logger.info(' Waiting for %s landing confirmed...' %(name))
 		time.sleep(3)
-	print ' %s disarmed after landing\n' %(name)
+	logger.info(' %s disarmed after landing\n' %(name))
 
 
 def takeoff(vehicle,name,aTargetAltitude):
 	'''
 	Takes off and flies to aTargetAltitude.
 	'''
-	print '%s attempting to takeoff' %(name)
+	logger.info('%s attempting to takeoff' %(name))
 	if vehicle.armed:
-		print ' %s taking off' %(name)
+		logger.info(' %s taking off' %(name))
 		vehicle.simple_takeoff(aTargetAltitude) # Take off to target altitude
 		# Wait until the vehicle reaches a safe height before processing the goto (otherwise the command after vehicle.simple_takeoff will execute immediately).
 		while vehicle.location.global_relative_frame.alt <= aTargetAltitude - 1: #Trigger just below target alt.
-			print ' Altitude: ', vehicle.location.global_relative_frame.alt 
+			logger.info(' Altitude: %s', vehicle.location.global_relative_frame.alt)
 			time.sleep(1)
-		print ' %s reached target altitude\n' %(name)
+		logger.info(' %s reached target altitude\n' %(name))
 	else: 
-		print ' %s is not armed. Cannot takeoff.\n' %(name)
+		logger.info(' %s is not armed. Cannot takeoff.\n' %(name))
 
 
 
@@ -112,6 +112,7 @@ def get_bearing(aLocation1, aLocation2):
 	bearing = np.arctan2(x, y)*180.0/np.pi
 	if bearing < 0:
 		bearing += 360.0
+	logger.debug('BEARING,%s',bearing)
 	return bearing
 
 
@@ -222,13 +223,13 @@ def goto(vehicle, dNorth, dEast, gotoFunction = None):
 	# print 'DEBUG: targetDistance: %s' % targetDistance
 
 	# Set the following conditional to True if you want to see distance to target printed in the terminal. Note: if this is True, then the goto command will not exit until this loop ends, which means any conditional commands after this goto command will have no effect. 
-	if True:
+	if False:
 		while vehicle.mode.name == 'GUIDED': # Stop action if we are no longer in guided mode.
 			# print 'DEBUG: mode: %s' %(vehicle.mode.name)
 			remainingDistance = get_distance_metres(vehicle.location.global_relative_frame, targetLocation)
-			print ' Distance to target: ', remainingDistance
+			logger.info(' Distance to target: ', remainingDistance)
 			if remainingDistance <= 1: # Let 'Reached target' trigger at 1 m from target
-				print ' Reached target'
+				logger.info(' Reached target')
 				break
 			time.sleep(2)
 
@@ -261,9 +262,9 @@ def goto_reference(vehicle, referenceLocation, dNorth, dEast, dDown):
 		while vehicle.mode.name == 'GUIDED': # Stop action if we are no longer in guided mode.
 			# print 'DEBUG: mode: %s' %(vehicle.mode.name)
 			remainingDistance = get_distance_metres(vehicle.location.global_relative_frame, targetLocation)
-			print ' Distance to target: ', remainingDistance
+			logger.info(' Distance to target: ', remainingDistance)
 			if remainingDistance <= 1: # Let 'Reached target' trigger at 1 m from target
-				print ' Reached target'
+				logger.info(' Reached target')
 				break
 			time.sleep(2)
 
@@ -495,7 +496,7 @@ def emergency_stop(vehicle, name):
 	IMMEDIATELY DISARMS MOTORS. DRONE FALLS OUT OF SKY.
 	'''
 
-	print 'Killing %s' %(name)
+	logger.critical('Killing %s' %(name))
 
 	msg = vehicle.message_factory.command_long_encode(
 		0, 0, # target system, target component
@@ -507,5 +508,3 @@ def emergency_stop(vehicle, name):
 
 	while vehicle.armed:
 		pass
-
-
