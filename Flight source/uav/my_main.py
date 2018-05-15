@@ -284,35 +284,35 @@ if __name__ == '__main__':
 	logging.info('test')
 
 	# UAV connection
-	logger.info('Waiting for UAV')
+	logging.info('Waiting for UAV')
 	while True:
 		try:
 			uav = connect(uav_connect_path, baud = uav_baud, heartbeat_timeout = 60, rate = 20, wait_ready = True)
 			break
 		except OSError:
-			logger.critical('Cannot find device, is the UAV plugged in? Retrying...')
+			logging.critical('Cannot find device, is the UAV plugged in? Retrying...')
 			time.sleep(5)
 		except:
-			logger.critical('UAV connection timed out. Retrying...')
+			logging.critical('UAV connection timed out. Retrying...')
 	
-	logger.info('UAV pixhawk connected to UAV')
+	logging.info('UAV pixhawk connected to UAV')
 
 	if(uav.parameters['ARMING_CHECK'] != 1):
-		logger.warning('UAV reports arming checks are not standard!')
+		logging.warning('UAV reports arming checks are not standard!')
 
 	# GCS connection
-	logger.info('Waiting for GCS')
+	logging.info('Waiting for GCS')
 	while True:
 		try:
 			gcs = connect(gcs_connect_path, baud = gcs_baud, heartbeat_timeout = 60, rate = 20, wait_ready = True)
 			break
 		except OSError:
-			logger.critical('Cannot find device, is the GCS plugged in? Retrying...')
+			logging.critical('Cannot find device, is the GCS plugged in? Retrying...')
 			time.sleep(5)
 		except:
-			logger.critical('GCS connection timed out. Retrying...')
+			logging.critical('GCS connection timed out. Retrying...')
 	
-	logger.info('GCS pixhawk connected to UAV')
+	logging.info('GCS pixhawk connected to UAV')
 
 	# Bunch of seemingly necessary callbacks
 	logger_time=0
@@ -326,10 +326,10 @@ if __name__ == '__main__':
 			global timed_out_gcs
 			if value > 3 and not timed_out_gcs:
 				timed_out_gcs = True
-				logger.critical('GCS pixhawk connection lost!')
+				logging.critical('GCS pixhawk connection lost!')
 			if value < 3 and timed_out_gcs:
 				timed_out_gcs = False;
-				logger.info('GCS pixhawk connection restored.')
+				logging.info('GCS pixhawk connection restored.')
 
 	@uav.on_message('SYSTEM_TIME')
 	def uav_time_callback(self, attr_name, msg):
@@ -337,7 +337,7 @@ if __name__ == '__main__':
 		if(uav_start_time is 0 and msg.time_unix_usec > 0):
 			uav_start_time = msg.time_unix_usec/1000000
 			logger_time = '%0.4f' % time.time()
-			logger.info('UAV got GPS lock at %s' % logger_time)
+			logging.info('UAV got GPS lock at %s' % logger_time)
 			rasp_start_time = time.clock()
 
 	timed_out_uav = False
@@ -347,21 +347,21 @@ if __name__ == '__main__':
 			global timed_out_uav
 			if value > 3 and not timed_out_uav:
 				timed_out_uav = True
-				logger.critical('UAV pixhawk connection lost!')
+				logging.critical('UAV pixhawk connection lost!')
 			if value < 3 and timed_out_uav:
 				timed_out_uav = False;
-				logger.info('UAV pixhawk connection restored.')
+				logging.info('UAV pixhawk connection restored.')
 
 	@uav.on_attribute('armed')
 	def arm_disarm_callback(self,attr_name, msg):
-		logger.info('UAV is now %sarmed ' % ('' if uav.armed else 'dis'))
+		logging.info('UAV is now %sarmed ' % ('' if uav.armed else 'dis'))
 
 	@uav.on_attribute('mode')
 	def mode_callback(self,attr_name, mode):
-		logger.info('UAV mode changed to %s' % mode.name)
+		logging.info('UAV mode changed to %s' % mode.name)
 
-	logger.info('------------------SYSTEM IS READY!!------------------')
-	logger.info('-----------------------------------------------------\n')
+	logging.info('------------------SYSTEM IS READY!!------------------')
+	logging.info('-----------------------------------------------------\n')
 
 	# Initialize the node
 	rospy.init_node('flight_companion_node')
