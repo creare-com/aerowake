@@ -6,7 +6,7 @@ import os.path as path, sys
 current_dir = path.dirname(path.abspath(getsourcefile(lambda:0)))
 sys.path.insert(0, current_dir[:current_dir.rfind(path.sep)])
 import mission_rot
-from helper_functions import arm_vehicle, condition_yaw, disarm_vehicle, emergency_stop, get_distance_metres, get_home_location, get_location_metres, goto, goto_position_target_local_ned, goto_reference, land, send_global_velocity, send_ned_velocity, set_roi, takeoff
+from helper_functions import arm_vehicle, condition_yaw, disarm_vehicle, emergency_stop, get_bearing, get_distance_metres, get_home_location, get_location_metres, goto, goto_position_target_local_ned, goto_reference, land, send_global_velocity, send_ned_velocity, set_roi, takeoff
 sys.path.pop(0)
 
 # Required for the vision-based yaw system
@@ -15,6 +15,7 @@ from std_msgs.msg import Int16
 
 # Required for controlling the UAV
 import logging
+import numpy as np
 import time
 from dronekit import connect, VehicleMode, LocationGlobalRelative, LocationGlobal, Command
 
@@ -119,10 +120,12 @@ class DroneCommanderNode(object):
 			gcs.parameters['PIVOT_TURN_ANGLE'] = 100
 
 		# Set UAV acceleration limit and groundspeed
-		uav.parameters['WPNAV_ACCEL'] = 300
-		uav.groundspeed = 25 # [m/s]
+		uav.parameters['WPNAV_ACCEL'] = 300 # 50-500 [cm/s/s]
+		uav.parameters['WPNAV_SPEED'] = 1000 # 20-2000 by 50 [cm/s]
+		# uav.groundspeed = 5 # [m/s]
 
 		command = 100 # Command is an echo for param that disallows repeated commands
+		i = 0
 		in_the_air = False
 		listening = False
 		killed_uav = False
@@ -193,14 +196,21 @@ class DroneCommanderNode(object):
 				else:
 					if not current_wp is None:
 						print 'DEBUG: Tracking waypoint %d' %(current_wp)
-						referenceLocation = gcs.location.global_frame
+						refLoc = gcs.location.global_frame
 						dNorth = wp_N[current_wp]
 						dEast = wp_E[current_wp]
 						dDown = wp_D[current_wp]
-						goto_reference(uav, referenceLocation, dNorth, dEast, dDown)
-						yaw_rel = self.__yaw_cmd
-						print 'rel_yaw: %d' %(yaw_rel)
-						condition_yaw(uav, self.__yaw_cmd, relative = True)
+						goto_reference(uav, refLoc, dNorth, dEast, dDown)
+						'''
+						if np.mod(i,2) == 0 and get_distance_metres(uav.location.global_frame,refLoc) > 5:
+							yaw_rel = get_bearing(uav.location.global_frame,refLoc) - uav.heading
+							# Only condition yaw once every so many seconds
+							condition_yaw(uav, yaw_rel, relative = True)
+						i = i + 1
+						# yaw_rel = self.__yaw_cmd
+						# print 'rel_yaw: %d' %(yaw_rel)
+						# condition_yaw(uav, self.__yaw_cmd, relative = True)
+						'''
 					else:
 						print 'DEBUG: In the air, but not tracking a waypoint'
 			elif not in_the_air: # Explicit for comprehension
@@ -212,12 +222,14 @@ class DroneCommanderNode(object):
 					disarm_vehicle(uav,'UAV')
 				elif command == 357 and uav.armed:
 					print 'DEBUG: Taking off'
-					takeoff(uav,'UAV',10)
+					takeoff(uav,'UAV',3)
+					# goto_reference(uav, uav.location.global_frame, 0, 0, 0)
+					# condition_yaw(uav, 0, relative = True)
 					in_the_air = True
 					current_wp = None
 
 			print ''
-			time.sleep(1)
+			time.sleep(0.5)
 
 		#------------------------------------
 		# Terminating
@@ -347,7 +359,7 @@ if __name__ == '__main__':
 	rospy.init_node('flight_companion_node')
 	
 	# Create the yaw command node
-	node = DroneCommanderNode(uav,gcs)
+	node = DroneCommanderNode(uav,gcs,logger)
 
 	# Spin
 	rospy.spin()
