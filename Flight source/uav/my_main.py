@@ -68,6 +68,8 @@ class DroneCommanderNode(object):
 		# Initialize other variables
 		uav = uav_handle
 		gcs = gcs_handle
+		logger = logging.getLogger('my_logger')
+
 
 		# Subscribe to topic that reports yaw commands
 		self.sub_yaw_deg = rospy.Subscriber("yaw_deg",Int16,self.cbYawDeg)
@@ -267,7 +269,7 @@ class DroneCommanderNode(object):
 if __name__ == '__main__':
 
 	# Log Setup
-	logger = logging.getLogger()
+	logger = logging.getLogger('my_logger')
 	logger.setLevel(logging.DEBUG)
 	fh = logging.FileHandler('system.log')
 	fh.setLevel(logging.DEBUG)
@@ -279,6 +281,8 @@ if __name__ == '__main__':
 	ch.setFormatter(form_ch)
 	logger.addHandler(fh)
 	logger.addHandler(ch)
+
+	logger.info('\n\n\nNEW FLIGHT\n')
 
 	# UAV connection
 	logger.info('Waiting for UAV')
