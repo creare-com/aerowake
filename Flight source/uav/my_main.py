@@ -135,8 +135,7 @@ class DroneCommanderNode(object):
 		while continue_loop and not rospy.is_shutdown():
 			param = gcs.parameters['PIVOT_TURN_ANGLE']
 			referenceLocation = gcs.location.global_frame
-			print '1\n', referenceLocation
-						
+			logger.debug('ReferenceLocationEachLoop: %s', referenceLocation)
 
 			'''
 			The variable 'command' is what controls the drone. It is only updated when a valid and non-repeated param value is set. This ensures that the UAV does not continue commanding the same thing over and over. 
@@ -148,64 +147,65 @@ class DroneCommanderNode(object):
 			The parameter for 'stop listening' will be immediately passed through since repeated 'stop listening' commands are occasionally desired.
 			'''
 			if param == 103 and not command == 103:
-				print 'DEBUG: Got kill UAV motors command'
+				logger.debug('Got kill UAV motors command')
 				command = param
 			elif listening:
-				print 'DEBUG: Listening'
+				logger.debug('Listening')
 				if param == 100:
-					print 'DEBUG: Got stop listening command'
+					logger.debug('Got stop listening command')
 					listening = False
 				elif param == 102 and not command == 102:
-					print 'DEBUG: Got clear waypoint command'
+					logger.debug('Got clear waypoint command')
 					command = param
 				elif param == 359 and not command == 359:
-					print 'DEBUG: Got arm command'
+					logger.debug('Got arm command')
 					command = param
 				elif param == 358 and not command == 358:
-					print 'DEBUG: Got disarm command'
+					logger.debug('Got disarm command')
 					command = param
 				elif param == 357 and not command == 357:
-					print 'DEBUG: Got takeoff command'
+					logger.debug('Got takeoff command')
 					command = param
 				elif param == 356 and not command == 356:
-					print 'DEBUG: Got land command'
+					logger.debug('Got land command')
 					command = param
 				elif param < num_wp:
 					# NOTE: GCS will not allow a non-existent index to be passed. The handling of incorrect indices is included in the conditional above as a redundant safety feature. 
 					if not command == param:
-						print 'DEBUG: Got navigate to waypoint %d command' %(param)
+						logger.debug('Got navigate to waypoint %d command',param)
 						command = param
 						current_wp = int(param)
 			else:
-				print 'DEBUG: Not listening'
+				logger.debug('Not listening')
 				if param == 101:
-					print 'DEBUG: Got start listening command'
+					logger.debug('Got start listening command')
 					listening = True
 
 			# Do the action that corresponds to the current value of 'command'		
 			if command == 103 and uav.armed:
-				print 'DEBUG: Killing UAV motors'
+				logger.debug('Killing UAV motors')
 				emergency_stop(uav,'UAV')
 				continue_loop = False
 				killed_uav = True
 			elif command == 100:
-				print 'DEBUG: Waiting for command.'
+				logger.debug('Waiting for command')
 			elif command == 102 and current_wp is not None:
-				print 'DEBUG: Clearing current waypoint.'
+				logger.debug('Clearing current waypoint')
 				current_wp = None
 			elif in_the_air:
 				if command == 356:
-					print 'DEBUG: Landing'
+					logger.debug('Landing')
 					land(uav,'UAV')
 					in_the_air = False
 				else:
 					if not current_wp is None:
-						print 'DEBUG: Tracking waypoint %d' %(current_wp)
+						logger.debug('Tracking waypoint %d',current_wp)
 						refLoc = gcs.location.global_frame
-						print '2\n', refLoc
+						logger.debug('ReferenceLocationForNav: %s',refLoc)
 						dNorth = wp_N[current_wp]
 						dEast = wp_E[current_wp]
 						dDown = wp_D[current_wp]
+						logger.debug('RelativeLocation: %s',[dNorth,dEast,dDown])
 						goto_reference(uav, refLoc, dNorth, dEast, dDown)
 						'''
 						if np.mod(i,2) == 0 and get_distance_metres(uav.location.global_frame,refLoc) > 5:
@@ -218,16 +218,16 @@ class DroneCommanderNode(object):
 						# condition_yaw(uav, self.__yaw_cmd, relative = True)
 						'''
 					else:
-						print 'DEBUG: In the air, but not tracking a waypoint'
+						logger.debug('In the air, but not tracking a waypoint')
 			elif not in_the_air: # Explicit for comprehension
 				if command == 359 and not uav.armed:
-					print 'DEBUG: Arming'
+					logger.debug('Arming')
 					arm_vehicle(uav,'UAV')
 				elif command == 358 and uav.armed:
-					print 'DEBUG: Disarming'
+					logger.debug('Disarming')
 					disarm_vehicle(uav,'UAV')
 				elif command == 357 and uav.armed:
-					print 'DEBUG: Taking off'
+					logger.debug('Taking off')
 					takeoff(uav,'UAV',3)
 					# goto_reference(uav, uav.location.global_frame, 0, 0, 0)
 					# condition_yaw(uav, 0, relative = True)
@@ -242,9 +242,9 @@ class DroneCommanderNode(object):
 		#------------------------------------
 
 		if killed_uav:
-			print 'UAV motors killed as abort procedure.'
+			logger.info('UAV motors killed as abort procedure')
 		elif rospy.is_shutdown():
-			print 'Terminating program since ROS is shutdown. Not changing UAV status.\n'
+			logger.info('Terminating program since ROS is shutdown. Not changing UAV status.\n')
 		else:
 			# The example is completing. LAND at current location.
 			land(uav,'UAV')
@@ -254,7 +254,7 @@ class DroneCommanderNode(object):
 
 		uav.close()
 
-		print('UAV program completed.\n')
+		logger.info('UAV program completed.\n')
 
 	def cbYawDeg(self, data):
 		self.__yaw_cmd = data.data
