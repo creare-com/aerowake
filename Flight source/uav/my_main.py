@@ -61,13 +61,14 @@ class DroneCommanderNode(object):
 	The UAV also obtains commands from the /yaw_deg ROS topic. This topic contains an integer (Int16) value in degrees corresponding to the desired yaw of the UAV. A positive value indicates CCW yaw of the specified magnitude, while a negative value indicates CW yaw. 
 	'''
 	
-	def __init__(self,uav_handle,gcs_handle):
+	def __init__(self,uav_handle,gcs_handle,logger_handle:
 		# Initialize private variables
 		self.__yaw_cmd = 0 # [deg]
 
 		# Initialize other variables
 		uav = uav_handle
 		gcs = gcs_handle
+		logger = logger_handle
 
 		# Subscribe to topic that reports yaw commands
 		self.sub_yaw_deg = rospy.Subscriber("yaw_deg",Int16,self.cbYawDeg)
