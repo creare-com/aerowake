@@ -334,6 +334,7 @@ if __name__ == '__main__':
 
 	@uav.on_message('SYSTEM_TIME')
 	def uav_time_callback(self, attr_name, msg):
+		logger.info('GPSTime: %s',msg)
 		global uav_start_time
 		if(uav_start_time is 0 and msg.time_unix_usec > 0):
 			uav_start_time = msg.time_unix_usec/1000000
