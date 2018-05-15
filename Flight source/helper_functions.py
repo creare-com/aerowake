@@ -1,5 +1,6 @@
 #!/usr/bin/env python2
 
+import logging
 import numpy as np
 import time
 from dronekit import LocationGlobal, LocationGlobalRelative, VehicleMode
@@ -8,6 +9,10 @@ from pymavlink import mavutil
 '''
 This file provides helper functions to both .../gcs/main.py and .../uav/main.py. Some functions here should only be used by the UAV (e.g. arm_and_takeoff), while others are to be used by either the UAV or the GCS (e.g. get_distance_metres). 
 '''
+
+# Setup logger
+# NOTE: Logger is singleton as long as handled by the same Python interpreter. Calling logging.getLogger('logger_name') from multiple scripts on the same computer will use the same file (except in advanced cases not relevant here).
+
 
 #-------------------------------------------------------------------------------
 # Arming, Disarming, Takeoffs, and Landings
@@ -78,7 +83,7 @@ def takeoff(vehicle,name,aTargetAltitude):
 		print ' %s taking off' %(name)
 		vehicle.simple_takeoff(aTargetAltitude) # Take off to target altitude
 		# Wait until the vehicle reaches a safe height before processing the goto (otherwise the command after vehicle.simple_takeoff will execute immediately).
-		while vehicle.location.global_relative_frame.alt <= aTargetAltitude*0.85: #Trigger just below target alt.
+		while vehicle.location.global_relative_frame.alt <= aTargetAltitude - 1: #Trigger just below target alt.
 			print ' Altitude: ', vehicle.location.global_relative_frame.alt 
 			time.sleep(1)
 		print ' %s reached target altitude\n' %(name)
@@ -502,4 +507,5 @@ def emergency_stop(vehicle, name):
 
 	while vehicle.armed:
 		pass
+
 
