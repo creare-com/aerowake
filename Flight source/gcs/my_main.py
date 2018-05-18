@@ -79,6 +79,16 @@ if __name__ == '__main__':
 	logger.info('------------------SYSTEM IS READY!!------------------')
 	logger.info('-----------------------------------------------------\n')
 
+	# Callbacks for logging purposes
+
+	@gcs.on_message('SYSTEM_TIME')
+	def time_callback(self,attr_name, msg):
+		logger.debug('gcsGPSTIME,%s' %msg)
+
+	@gcs.on_message('LOCAL_POSITION_NED')
+	def local_position_NED_callback(self,attr_name, msg):
+		logger.debug('localPosNED,%s' %msg)
+
 	#-----------------------------------------------------------------------------
 	#
 	# Control Code

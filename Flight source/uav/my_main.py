@@ -313,58 +313,73 @@ if __name__ == '__main__':
 	
 	logger.info('GCS pixhawk connected to UAV')
 
-	# # Numerous callbacks for logging purposes
+	#------------------------------------
+	# Listeners for Logging
+	#------------------------------------
 
-	# timed_out_gcs = False
-	# @gcs.on_attribute('last_heartbeat')   
-	# def gcs_last_heartbeat_listener(self, attr_name, value):
-	# 	if(attr_name is 'last_heartbeat'):
-	# 		global timed_out_gcs
-	# 		if value > 3 and not timed_out_gcs:
-	# 			timed_out_gcs = True
-	# 			logger.critical('GCS pixhawk connection lost!')
-	# 		if value < 3 and timed_out_gcs:
-	# 			timed_out_gcs = False;
-	# 			logger.info('GCS pixhawk connection restored.')
+	timed_out_gcs = False
+	@gcs.on_attribute('last_heartbeat')   
+	def gcs_last_heartbeat_listener(self, attr_name, value):
+		if(attr_name is 'last_heartbeat'):
+			global timed_out_gcs
+			if value > 3 and not timed_out_gcs:
+				timed_out_gcs = True
+				logger.critical('GCS pixhawk connection lost!')
+			if value < 3 and timed_out_gcs:
+				timed_out_gcs = False;
+				logger.info('GCS pixhawk connection restored.')
 
-	# gps_lock_odroid_time = 0
-	# gps_lock_gps_time = 0
-	# @uav.on_message('SYSTEM_TIME')
-	# def uav_time_callback(self, attr_name, msg):
-	# 	global gps_lock_gps_time
-	# 	if(gps_lock_gps_time is 0 and uav.gps_0.fix_type == 3):
-	# 		gps_lock_gps_time = msg.time_unix_usec/1000000
-	# 		logger.info('UAV got GPS lock at GPS time of: %s', gps_lock_gps_time)
-	# 		gps_lock_odroid_time = '%0.4f' % time.time()
-	# 		logger.info('UAV got GPS lock at ODROID time of: %s', gps_lock_odroid_time)
+	gps_lock_odroid_time = 0
+	gps_lock_gps_time = 0
+	@uav.on_message('SYSTEM_TIME')
+	def uav_time_callback(self, attr_name, msg):
+		global gps_lock_gps_time
+		if(gps_lock_gps_time is 0 and uav.gps_0.fix_type == 3):
+			gps_lock_gps_time = msg.time_unix_usec/1000000
+			logger.info('UAV got GPS lock at GPS time of: %s', gps_lock_gps_time)
+			gps_lock_odroid_time = '%0.4f' % time.time()
+			logger.info('UAV got GPS lock at ODROID time of: %s', gps_lock_odroid_time)
 
-	# timed_out_uav = False
-	# @uav.on_attribute('last_heartbeat')   
-	# def uav_last_heartbeat_listener(self, attr_name, value):
-	# 	if(attr_name is 'last_heartbeat'):
-	# 		global timed_out_uav
-	# 		if value > 3 and not timed_out_uav:
-	# 			timed_out_uav = True
-	# 			logger.critical('UAV pixhawk connection lost!')
-	# 		if value < 3 and timed_out_uav:
-	# 			timed_out_uav = False;
-	# 			logger.info('UAV pixhawk connection restored.')
+	timed_out_uav = False
+	@uav.on_attribute('last_heartbeat')   
+	def uav_last_heartbeat_listener(self, attr_name, value):
+		if(attr_name is 'last_heartbeat'):
+			global timed_out_uav
+			if value > 3 and not timed_out_uav:
+				timed_out_uav = True
+				logger.critical('UAV pixhawk connection lost!')
+			if value < 3 and timed_out_uav:
+				timed_out_uav = False;
+				logger.info('UAV pixhawk connection restored.')
 
-	# @uav.on_attribute('armed')
-	# def arm_disarm_callback(self,attr_name, msg):
-	# 	logger.info('UAV is now %sarmed ' % ('' if uav.armed else 'dis'))
+	@uav.on_attribute('armed')
+	def arm_disarm_callback(self,attr_name, msg):
+		logger.info('UAV is now %sarmed ' % ('' if uav.armed else 'dis'))
 
-	# @uav.on_attribute('mode')
-	# def mode_callback(self,attr_name, mode):
-	# 	logger.info('UAV mode changed to %s' % mode.name)
+	@uav.on_attribute('mode')
+	def mode_callback(self,attr_name, mode):
+		logger.info('UAV mode changed to %s' % mode.name)
 
-	# @uav.on_message('NAV_CONTROLLER_OUTPUT')
-	# def nav_callback(self,attr_name, msg):
-	# 	logger.debug('NAVCTRLOUT,%s' %msg)
+	@uav.on_message('NAV_CONTROLLER_OUTPUT')
+	def nav_callback(self,attr_name, msg):
+		logger.debug('NAVCTRLOUT,%s' %msg)
 
-	@uav.on_message('*')
-	def any_message_listener(self, name, message):
-		logger.info('fromUAV: %s :: %s',name,message)
+	@uav.on_message('SYSTEM_TIME')
+	def uav_time_callback(self,attr_name, msg):
+		logger.debug('uavGPSTIME,%s' %msg)
+
+	@gcs.on_message('SYSTEM_TIME')
+	def gcs_time_callback(self,attr_name, msg):
+		logger.debug('gcsGPSTIME,%s' %msg)
+
+	@uav.on_message('LOCAL_POSITION_NED')
+	def local_position_NED_callback(self,attr_name, msg):
+		logger.debug('localPosNED,%s' %msg)
+
+	# @uav.on_message('*')
+	# def any_message_listener(self, name, message):
+	# 	# Comment out this listener before flight or file created will be enormous. 
+	# 	logger.info('fromUAV: %s :: %s',name,message)
 
 	logger.info('------------------SYSTEM IS READY!!------------------')
 	logger.info('-----------------------------------------------------\n')
