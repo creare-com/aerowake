@@ -224,8 +224,8 @@ class DroneCommanderNode(object):
 				elif command == 357 and uav.armed:
 					logger.info('Taking off')
 					takeoff(uav,'UAV',3)
-					# goto_reference(uav, uav.location.global_frame, 0, 0, 0)
-					# condition_yaw(uav, 0, relative = True)
+					goto_reference(uav, uav.location.global_frame, 0, 0, 0)
+					condition_yaw(uav, 0, relative = True)
 					in_the_air = True
 					current_wp = None
 
