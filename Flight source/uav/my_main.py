@@ -20,6 +20,9 @@ import numpy as np
 import time
 from dronekit import connect, VehicleMode, LocationGlobalRelative, LocationGlobal, Command
 
+# Required for logging
+import os.path
+
 #-------------------------------------------------------------------------------
 #
 # Global Parameters and Constants
@@ -62,14 +65,14 @@ class DroneCommanderNode(object):
 	The UAV also obtains commands from the /yaw_deg ROS topic. This topic contains an integer (Int16) value in degrees corresponding to the desired yaw of the UAV. A positive value indicates CCW yaw of the specified magnitude, while a negative value indicates CW yaw. 
 	'''
 	
-	def __init__(self,uav_handle,gcs_handle):
+	def __init__(self,uav_handle,gcs_handle,logger_name):
 		# Initialize private variables
 		self.__yaw_cmd = 0 # [deg]
 
 		# Initialize other variables
 		uav = uav_handle
 		gcs = gcs_handle
-		logger = logging.getLogger('my_logger')
+		logger = logging.getLogger(logger_name)
 
 		# Subscribe to topic that reports yaw commands
 		self.sub_yaw_deg = rospy.Subscriber("yaw_deg",Int16,self.cbYawDeg)
@@ -117,7 +120,7 @@ class DroneCommanderNode(object):
 		logger.debug('WPNAV_ACCEL,%s' %(uav.parameters['WPNAV_ACCEL']))
 		logger.debug('WPNAV_SPEED,%s' %(uav.parameters['WPNAV_SPEED']))
 
-		command = 100 # Command is an echo for param that disallows repeated commands
+		command = 100 # This varibale is an echo for the variable param in order to disallow repeated commands
 		i = 0
 		in_the_air = False
 		listening = False
@@ -125,9 +128,9 @@ class DroneCommanderNode(object):
 		continue_loop = True
 		while continue_loop and not rospy.is_shutdown():
 			param = gcs.parameters['PIVOT_TURN_ANGLE']
-			refLoc = gcs.location.global_frame
-			logger.debug('gcsLoc,%s', refLoc)
-			logger.debug('uacLoc,%s', uav.location.global_frame)
+			gcsLoc = gcs.location.global_frame
+			logger.debug('gcsLoc,%s', gcsLoc)
+			logger.debug('uavLoc,%s', uav.location.global_frame)
 
 			'''
 			The variable 'command' is what controls the drone. It is only updated when a valid and non-repeated param value is set. This ensures that the UAV does not continue commanding the same thing over and over. 
@@ -193,14 +196,18 @@ class DroneCommanderNode(object):
 					if not current_wp is None:
 						logger.info('Tracking waypoint %d',current_wp)
 						refLoc = gcs.location.global_frame
-						logger.debug('rLocNav,%s',refLoc)
+						logger.debug('refLocNav,%s',refLoc)
 						dNorth = wp_N[current_wp]
 						dEast = wp_E[current_wp]
 						dDown = wp_D[current_wp]
-						logger.debug('drLocNav,%s,%s,%s',dNorth,dEast,dDown)
+						# Calculate desired location for logging purposes only. Actual desired location is calculated within the goto_reference function. 
+						desLoc = get_location_metres(refLoc, dNorth, dEast)
+						desLoc.alt = refLoc.alt - dDown
+						logger.debug('desLoc,%s',desLoc)
+						logger.debug('currentMissionNED,%s,%s,%s',dNorth,dEast,dDown)
 						goto_reference(uav, refLoc, dNorth, dEast, dDown)
 						# Only condition yaw once every so many seconds
-						if np.mod(i,3) == 0 and get_distance_metres(uav.location.global_frame,refLoc) > 5:
+						if np.mod(i,3) == 0 and get_distance_metres(uav.location.global_frame,refLoc) > 3:
 							yaw_rel = self.__yaw_cmd
 							condition_yaw(uav, yaw_rel, relative = True)
 							logger.debug('RELYAW,%s',yaw_rel)
@@ -256,10 +263,11 @@ class DroneCommanderNode(object):
 if __name__ == '__main__':
 
 	# Log Setup
-	logger = logging.getLogger('my_logger')
+	logger_name = 'uav_logger'
+	logger = logging.getLogger(logger_name)
 	logger.setLevel(logging.DEBUG)
 	# Create file handler that sends all logger messages (DEBUG and above) to file
-	fh = logging.FileHandler('aerowake-logs/system-%s.log' %(time.strftime('%m-%d-%Hh-%Mm-%Ss', time.localtime())))
+	fh = logging.FileHandler('%s/.ros/aerowake-logs/uav-%s.log' %(os.path.expanduser('~'),time.strftime('%m-%d-%Hh-%Mm-%Ss', time.localtime())))
 	fh.setLevel(logging.DEBUG)
 	# Create console handler that sends some messages (INFO and above) to screen
 	ch = logging.StreamHandler(sys.stdout)
@@ -350,13 +358,13 @@ if __name__ == '__main__':
 	# def mode_callback(self,attr_name, mode):
 	# 	logger.info('UAV mode changed to %s' % mode.name)
 
-	@uav.on_message('NAV_CONTROLLER_OUTPUT')
-	def nav_callback(self,attr_name, msg):
-		logger.debug('NAVCTRLOUT,%s' %msg)
+	# @uav.on_message('NAV_CONTROLLER_OUTPUT')
+	# def nav_callback(self,attr_name, msg):
+	# 	logger.debug('NAVCTRLOUT,%s' %msg)
 
-	# @uav.on_message('*')
-	# def any_message_listener(self, name, message):
-	# 	logger.info('fromUAV: %s :: %s',name,message)
+	@uav.on_message('*')
+	def any_message_listener(self, name, message):
+		logger.info('fromUAV: %s :: %s',name,message)
 
 	logger.info('------------------SYSTEM IS READY!!------------------')
 	logger.info('-----------------------------------------------------\n')
@@ -365,7 +373,7 @@ if __name__ == '__main__':
 	rospy.init_node('flight_companion_node')
 	
 	# Create the yaw command node
-	node = DroneCommanderNode(uav,gcs)
+	node = DroneCommanderNode(uav,gcs,logger_name)
 
 	# Spin
 	rospy.spin()

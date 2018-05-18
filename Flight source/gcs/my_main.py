@@ -1,14 +1,18 @@
 #!/usr/bin/env python2
 
+# Required for importing mission and helper functions
 import sys
 sys.path.append('../')
 
-import logging
-import mission_rot
-import time
-
+# Required for messaging the drone
 from dronekit import connect
 from helper_functions import arm_vehicle, disarm_vehicle
+import mission_rot
+
+# Required for logging
+import logging
+import os.path
+import time
 
 #-------------------------------------------------------------------------------
 #
@@ -41,35 +45,39 @@ listening_err_str = 'First use listen command to tell UAV to listen.\n'
 if __name__ == '__main__':
 
 	# Log Setup
-	logger = logging.getLogger()
+	logger = logging.getLogger('gcs_logger')
 	logger.setLevel(logging.DEBUG)
-	fh = logging.FileHandler('system.log')
+	# Create file handler that sends all logger messages (DEBUG and above) to file
+	fh = logging.FileHandler('%s/.ros/aerowake-logs/gcs-%s.log' %(os.path.expanduser('~'),time.strftime('%m-%d-%Hh-%Mm-%Ss', time.localtime())))
 	fh.setLevel(logging.DEBUG)
+	# Create console handler that sends some messages (INFO and above) to screen
 	ch = logging.StreamHandler(sys.stdout)
-	ch.setLevel(logging.DEBUG)
-	form_fh = logging.Formatter('%(relativeCreated)s,%(levelname)s: %(message)s')
+	ch.setLevel(logging.INFO)
+	# Set the log format for each handler
+	form_fh = logging.Formatter('%(created)s,%(relativeCreated)s,%(funcName)s,%(levelname)s: %(message)s')
 	form_ch = logging.Formatter('%(levelname)s: %(message)s')
 	fh.setFormatter(form_fh)
 	ch.setFormatter(form_ch)
+	# Add the handler to the logger
 	logger.addHandler(fh)
 	logger.addHandler(ch)
 
 	# GCS connection
-	logging.info('Waiting for GCS')
+	logger.info('Waiting for GCS')
 	while True:
 		try:
 			gcs = connect(gcs_connect_path, baud = gcs_baud, heartbeat_timeout = 60, rate = 20, wait_ready = True)
 			break
 		except OSError:
-			logging.critical('Cannot find device, is the gcs plugged in? Retrying...')
+			logger.critical('Cannot find device, is the gcs plugged in? Retrying...')
 			time.sleep(5)
 		except APIException:
-			logging.critical('GCS connection timed out. Retrying...')
+			logger.critical('GCS connection timed out. Retrying...')
 
-	logging.info('GCS pixhawk connected to GCS')
+	logger.info('GCS pixhawk connected to GCS')
 
-	logging.info('------------------SYSTEM IS READY!!------------------')
-	logging.info('-----------------------------------------------------\n')
+	logger.info('------------------SYSTEM IS READY!!------------------')
+	logger.info('-----------------------------------------------------\n')
 
 	#-----------------------------------------------------------------------------
 	#
@@ -77,8 +85,7 @@ if __name__ == '__main__':
 	#
 	#-----------------------------------------------------------------------------
 
-	# arm_vehicle(gcs,'GCS')
-
+	arm_vehicle(gcs,'GCS')
 	print str_allowed_input
 
 	# Set initial GCS value. For safety, the GCS should start and end on this value. This value tells the UAV to follow the previous command. If no previous command exists, then this value tells the UAV to do nothing. 
@@ -113,6 +120,7 @@ if __name__ == '__main__':
 			# Wait for user input
 			print 'Enter command:'
 			user_in = raw_input()
+			logger.debug('rawUserInput,%s',user_in)
 
 			# Adjust user input for conditional statements
 			user_in = user_in.lower()
@@ -122,65 +130,65 @@ if __name__ == '__main__':
 			if len(user_in) > 0 and user_in[0] == '-':
 				invalid_input = False
 				gcs.parameters['PIVOT_TURN_ANGLE'] = 103
-				print 'Killing UAV motors.'
+				logger.info('Killing UAV motors.\n')
 
 			elif user_in == 'help':
 				invalid_input = False
-				print str_allowed_input
+				logger.info(str_allowed_input)
 
 			elif user_in == 'quit':
 				invalid_input = False
 				# Will terminate on next loop. UAV will continue with previous command
-				print 'Terminating GCS loop.'
-				print ' UAV is following previous command of: \n %s' %(prev_command)
+				logger.info('Terminating GCS loop.')
+				logger.info(' UAV is following previous command of: \n %s' %(prev_command))
 
 			elif user_in == 'listen':
 				invalid_input = False
 				# UAV knows that 101 means start listening to commands
 				gcs.parameters['PIVOT_TURN_ANGLE'] = 101
-				print 'Commanding UAV to listen to commands\n'
+				logger.info('Commanding UAV to listen to commands\n')
 				prev_command = 'Command UAV to listen to commands\n'
 				uav_listening = True
 
 			elif not uav_listening:
 				# UAV not listening and input is something other than 'listen'
 				invalid_input = False
-				print listening_err_str
+				logger.info(listening_err_str)
 			else:
 				# UAV is listening
 				if user_in == 'arm':
 					invalid_input = False
 					# UAV knows that 359 means arm
 					gcs.parameters['PIVOT_TURN_ANGLE'] = 359
-					print 'Commanding UAV to Arm\n'
+					logger.info('Commanding UAV to Arm\n')
 					prev_command = 'Command UAV to Arm\n'
 
 				elif user_in == 'disarm':
 					invalid_input = False
 					# UAV knows that 358 means disarm
 					gcs.parameters['PIVOT_TURN_ANGLE'] = 358
-					print 'Commanding UAV to Disarm\n'
+					logger.info('Commanding UAV to Disarm\n')
 					prev_command = 'Command UAV to Disarm\n'
 
 				elif user_in == 'takeoff':
 					invalid_input = False
 					# UAV knows that 357 means takeoff
 					gcs.parameters['PIVOT_TURN_ANGLE'] = 357
-					print 'Commanding UAV to Takeoff\n'
+					logger.info('Commanding UAV to Takeoff\n')
 					prev_command = 'Command UAV to Takeoff\n'
 
 				elif user_in == 'land':
 					invalid_input = False
 					# UAV knows that 356 means land
 					gcs.parameters['PIVOT_TURN_ANGLE'] = 356
-					print 'Commanding UAV to Land\n'
+					logger.info('Commanding UAV to Land\n')
 					prev_command = 'Command UAV to Land\n'
 
 				elif user_in == 'clear':
 					invalid_input = False
 					# UAV knows that 102 means clear
 					gcs.parameters['PIVOT_TURN_ANGLE'] = 102
-					print 'Commanding UAV to clear the current waypoint\n'
+					logger.info('Commanding UAV to clear the current waypoint\n')
 					prev_command = 'Command UAV to clear the current waypoint\n'
 
 				else:
@@ -190,7 +198,7 @@ if __name__ == '__main__':
 						if user_in >= 0 and user_in < num_wp:
 							invalid_input = False
 							if uav_listening:
-								print 'Commanding UAV to waypoint %s\n' %(user_in)
+								logger.info('Commanding UAV to waypoint %s\n' %(user_in))
 								prev_command = 'Command UAV to waypoint %s\n' %(user_in)
 								gcs.parameters['PIVOT_TURN_ANGLE'] = user_in
 							else:
@@ -200,11 +208,11 @@ if __name__ == '__main__':
 						pass
 
 			if invalid_input:
-				print 'Invalid input. Type \'help\' for allowed commands.'
-				print ' UAV is following previous command of: \n %s' %(prev_command)
+				logger.info('Invalid input. Type \'help\' for allowed commands.')
+				logger.info(' UAV is following previous command of: \n %s' %(prev_command))
 				# print str_allowed_input
 	except KeyboardInterrupt:
-		print '\nGot CTRL+C. Cleaning up and exiting.\n'
+		logger.info('\nGot CTRL+C. Cleaning up and exiting.\n')
 
 	#------------------------------------
 	# Outside of while loop
