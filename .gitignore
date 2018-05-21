@@ -4,3 +4,4 @@
 *.tlog
 *.tlog.raw
 *.parm
+*.py~

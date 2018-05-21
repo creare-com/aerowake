@@ -6,7 +6,7 @@ import os.path as path, sys
 current_dir = path.dirname(path.abspath(getsourcefile(lambda:0)))
 sys.path.insert(0, current_dir[:current_dir.rfind(path.sep)])
 import mission_rot
-from helper_functions import arm_vehicle, condition_yaw, disarm_vehicle, emergency_stop, get_distance_metres, get_home_location, get_location_metres, goto, goto_position_target_local_ned, goto_reference, land, send_global_velocity, send_ned_velocity, set_roi, takeoff
+from helper_functions import arm_vehicle, condition_yaw, disarm_vehicle, emergency_stop, get_bearing, get_distance_metres, get_home_location, get_location_metres, goto, goto_position_target_local_ned, goto_reference, land, send_global_velocity, send_ned_velocity, set_roi, takeoff
 sys.path.pop(0)
 
 # Required for the vision-based yaw system
@@ -15,6 +15,7 @@ from std_msgs.msg import Int16
 
 # Required for controlling the UAV
 import logging
+import numpy as np
 import time
 from dronekit import connect, VehicleMode, LocationGlobalRelative, LocationGlobal, Command
 
@@ -32,9 +33,11 @@ from dronekit import connect, VehicleMode, LocationGlobalRelative, LocationGloba
 
 # uav_connect_path = '/dev/ttyACM0' # Use for odroid through pixhawk usb cord
 # uav_connect_path = '/dev/ttyUSB0' # Use for odroid through usb to serial converter
-uav_connect_path = '/dev/ttySAC0' # Use for odroid through GPIO pins
+# uav_connect_path = '/dev/ttySAC0' # Use for odroid through GPIO pins
+uav_connect_path = '/dev/pixhawk' # Use after configuring symbolic link through udevadm
 uav_baud = 57600
-gcs_connect_path = '/dev/ttyUSB0'
+# gcs_connect_path = '/dev/ttyUSB0' # Use for telemetry radio through usb port
+gcs_connect_path = '/dev/radioacl44' # Use after configuring symbolic link through udevadm
 gcs_baud = 57600
 
 # Extract mission information
@@ -65,6 +68,8 @@ class DroneCommanderNode(object):
 		# Initialize other variables
 		uav = uav_handle
 		gcs = gcs_handle
+		logger = logging.getLogger('my_logger')
+
 
 		# Subscribe to topic that reports yaw commands
 		self.sub_yaw_deg = rospy.Subscriber("yaw_deg",Int16,self.cbYawDeg)
@@ -96,17 +101,17 @@ class DroneCommanderNode(object):
 			- read GCS parameter value of PIVOT_TURN_ANGLE to determine next UAV action
 			- perform an action based upon the GCS parameter value
 		The parameter values corresponding actions to be performed are:
-		 	100		UAV will stop listening to these commands
-		 					UAV will follow prev command, or do nothing if no command sent yet
-		 	101		UAV will begin listening to these commands
+			100		UAV will stop listening to these commands
+							UAV will follow prev command, or do nothing if no command sent yet
+			101		UAV will begin listening to these commands
 			102		UAV will clear its current waypoint
 			103		UAV kills its motors immediately
-		 	359		UAV will arm
-		 	358		UAV will disarm
-		 	357		UAV will takeoff to a pre-programmed height and relative position
-		 	356		UAV will land according to its landing protocol
-		 	0+		UAV will navigate to the waypoint at the index specified
-		 					The acceptable waypoint indices are 0 through num_wp - 1
+			359		UAV will arm
+			358		UAV will disarm
+			357		UAV will takeoff to a pre-programmed height and relative position
+			356		UAV will land according to its landing protocol
+			0+		UAV will navigate to the waypoint at the index specified
+							The acceptable waypoint indices are 0 through num_wp - 1
 		'''
 
 		# Ensure that at startup the UAV will not be tracking any waypoint
@@ -118,16 +123,20 @@ class DroneCommanderNode(object):
 			gcs.parameters['PIVOT_TURN_ANGLE'] = 100
 
 		# Set UAV acceleration limit and groundspeed
-		uav.parameters['WPNAV_ACCEL'] = 300
-		uav.groundspeed = 25 # [m/s]
+		uav.parameters['WPNAV_ACCEL'] = 50 # 50-500 [cm/s/s]
+		uav.parameters['WPNAV_SPEED'] = 50 # 20-2000 by 50 [cm/s]
+		# uav.groundspeed = 5 # [m/s]
 
 		command = 100 # Command is an echo for param that disallows repeated commands
+		i = 0
 		in_the_air = False
 		listening = False
 		killed_uav = False
 		continue_loop = True
 		while continue_loop and not rospy.is_shutdown():
 			param = gcs.parameters['PIVOT_TURN_ANGLE']
+			referenceLocation = gcs.location.global_frame
+			logger.debug('ReferenceLocationEachLoop: %s', referenceLocation)
 
 			'''
 			The variable 'command' is what controls the drone. It is only updated when a valid and non-repeated param value is set. This ensures that the UAV does not continue commanding the same thing over and over. 
@@ -139,93 +148,104 @@ class DroneCommanderNode(object):
 			The parameter for 'stop listening' will be immediately passed through since repeated 'stop listening' commands are occasionally desired.
 			'''
 			if param == 103 and not command == 103:
-				print 'DEBUG: Got kill UAV motors command'
+				logger.debug('Got kill UAV motors command')
 				command = param
 			elif listening:
-				print 'DEBUG: Listening'
+				logger.debug('Listening')
 				if param == 100:
-					print 'DEBUG: Got stop listening command'
+					logger.debug('Got stop listening command')
 					listening = False
 				elif param == 102 and not command == 102:
-					print 'DEBUG: Got clear waypoint command'
+					logger.debug('Got clear waypoint command')
 					command = param
 				elif param == 359 and not command == 359:
-					print 'DEBUG: Got arm command'
+					logger.debug('Got arm command')
 					command = param
 				elif param == 358 and not command == 358:
-					print 'DEBUG: Got disarm command'
+					logger.debug('Got disarm command')
 					command = param
 				elif param == 357 and not command == 357:
-					print 'DEBUG: Got takeoff command'
+					logger.debug('Got takeoff command')
 					command = param
 				elif param == 356 and not command == 356:
-					print 'DEBUG: Got land command'
+					logger.debug('Got land command')
 					command = param
 				elif param < num_wp:
 					# NOTE: GCS will not allow a non-existent index to be passed. The handling of incorrect indices is included in the conditional above as a redundant safety feature. 
 					if not command == param:
-						print 'DEBUG: Got navigate to waypoint %d command' %(param)
+						logger.debug('Got navigate to waypoint %d command',param)
 						command = param
 						current_wp = int(param)
 			else:
-				print 'DEBUG: Not listening'
+				logger.debug('Not listening')
 				if param == 101:
-					print 'DEBUG: Got start listening command'
+					logger.debug('Got start listening command')
 					listening = True
 
 			# Do the action that corresponds to the current value of 'command'		
 			if command == 103 and uav.armed:
-				print 'DEBUG: Killing UAV motors'
+				logger.debug('Killing UAV motors')
 				emergency_stop(uav,'UAV')
 				continue_loop = False
 				killed_uav = True
 			elif command == 100:
-				print 'DEBUG: Waiting for command.'
+				logger.debug('Waiting for command')
 			elif command == 102 and current_wp is not None:
-				print 'DEBUG: Clearing current waypoint.'
+				logger.debug('Clearing current waypoint')
 				current_wp = None
 			elif in_the_air:
 				if command == 356:
-					print 'DEBUG: Landing'
+					logger.debug('Landing')
 					land(uav,'UAV')
 					in_the_air = False
 				else:
 					if not current_wp is None:
-						print 'DEBUG: Tracking waypoint %d' %(current_wp)
-						referenceLocation = gcs.location.global_frame
+						logger.debug('Tracking waypoint %d',current_wp)
+						refLoc = gcs.location.global_frame
+						logger.debug('ReferenceLocationForNav: %s',refLoc)
 						dNorth = wp_N[current_wp]
 						dEast = wp_E[current_wp]
 						dDown = wp_D[current_wp]
-						goto_reference(uav, referenceLocation, dNorth, dEast, dDown)
-						yaw_rel = self.__yaw_cmd
-						print 'rel_yaw: %d' %(yaw_rel)
-						condition_yaw(uav, self.__yaw_cmd, relative = True)
+						logger.debug('RelativeLocation: %s',[dNorth,dEast,dDown])
+						goto_reference(uav, refLoc, dNorth, dEast, dDown)
+						'''
+						if np.mod(i,2) == 0 and get_distance_metres(uav.location.global_frame,refLoc) > 5:
+							yaw_rel = get_bearing(uav.location.global_frame,refLoc) - uav.heading
+							# Only condition yaw once every so many seconds
+							condition_yaw(uav, yaw_rel, relative = True)
+						i = i + 1
+						# yaw_rel = self.__yaw_cmd
+						# print 'rel_yaw: %d' %(yaw_rel)
+						# condition_yaw(uav, self.__yaw_cmd, relative = True)
+						'''
 					else:
-						print 'DEBUG: In the air, but not tracking a waypoint'
+						logger.debug('In the air, but not tracking a waypoint')
 			elif not in_the_air: # Explicit for comprehension
 				if command == 359 and not uav.armed:
-					print 'DEBUG: Arming'
+					logger.debug('Arming')
 					arm_vehicle(uav,'UAV')
 				elif command == 358 and uav.armed:
-					print 'DEBUG: Disarming'
+					logger.debug('Disarming')
 					disarm_vehicle(uav,'UAV')
 				elif command == 357 and uav.armed:
-					print 'DEBUG: Taking off'
-					takeoff(uav,'UAV',10)
+					logger.debug('Taking off')
+					takeoff(uav,'UAV',3)
+					# goto_reference(uav, uav.location.global_frame, 0, 0, 0)
+					# condition_yaw(uav, 0, relative = True)
 					in_the_air = True
 					current_wp = None
 
 			print ''
-			time.sleep(1)
+			time.sleep(0.5)
 
 		#------------------------------------
 		# Terminating
 		#------------------------------------
 
 		if killed_uav:
-			print 'UAV motors killed as abort procedure.'
+			logger.info('UAV motors killed as abort procedure')
 		elif rospy.is_shutdown():
-			print 'Terminating program since ROS is shutdown. Not changing UAV status.\n'
+			logger.info('Terminating program since ROS is shutdown. Not changing UAV status.\n')
 		else:
 			# The example is completing. LAND at current location.
 			land(uav,'UAV')
@@ -235,7 +255,7 @@ class DroneCommanderNode(object):
 
 		uav.close()
 
-		print('UAV program completed.\n')
+		logger.info('UAV program completed.\n')
 
 	def cbYawDeg(self, data):
 		self.__yaw_cmd = data.data
@@ -249,7 +269,7 @@ class DroneCommanderNode(object):
 if __name__ == '__main__':
 
 	# Log Setup
-	logger = logging.getLogger()
+	logger = logging.getLogger('my_logger')
 	logger.setLevel(logging.DEBUG)
 	fh = logging.FileHandler('system.log')
 	fh.setLevel(logging.DEBUG)
@@ -262,41 +282,40 @@ if __name__ == '__main__':
 	logger.addHandler(fh)
 	logger.addHandler(ch)
 
+	logger.info('\n\n\nNEW FLIGHT\n')
+
 	# UAV connection
-	logging.info('Waiting for UAV')
+	logger.info('Waiting for UAV')
 	while True:
 		try:
 			uav = connect(uav_connect_path, baud = uav_baud, heartbeat_timeout = 60, rate = 20, wait_ready = True)
 			break
 		except OSError:
-			logging.critical('Cannot find device, is the UAV plugged in? Retrying...')
+			logger.critical('Cannot find device, is the UAV plugged in? Retrying...')
 			time.sleep(5)
 		except:
-			logging.critical('UAV connection timed out. Retrying...')
+			logger.critical('UAV connection timed out. Retrying...')
 	
-	logging.info('UAV pixhawk connected to UAV ODROID')
+	logger.info('UAV pixhawk connected to UAV')
 
 	if(uav.parameters['ARMING_CHECK'] != 1):
-		logging.warning('UAV reports arming checks are not standard!')
+		logger.warning('UAV reports arming checks are not standard!')
 
 	# GCS connection
-	logging.info('Waiting for GCS')
+	logger.info('Waiting for GCS')
 	while True:
 		try:
 			gcs = connect(gcs_connect_path, baud = gcs_baud, heartbeat_timeout = 60, rate = 20, wait_ready = True)
 			break
 		except OSError:
-			logging.critical('Cannot find device, is the GCS plugged in? Retrying...')
+			logger.critical('Cannot find device, is the GCS plugged in? Retrying...')
 			time.sleep(5)
-#		except:
-#			logging.critical('GCS connection timed out. Retrying...')
+		except:
+			logger.critical('GCS connection timed out. Retrying...')
 	
-	logging.info('GCS pixhawk connected to UAV ODROID')
+	logger.info('GCS pixhawk connected to UAV')
 
 	# Bunch of seemingly necessary callbacks
-	logging_time=0
-	uav_start_time = 0
-	rasp_start_time = 0
 
 	timed_out_gcs = False
 	@gcs.on_attribute('last_heartbeat')   
@@ -305,19 +324,24 @@ if __name__ == '__main__':
 			global timed_out_gcs
 			if value > 3 and not timed_out_gcs:
 				timed_out_gcs = True
-				logging.critical('GCS pixhawk connection lost!')
+				logger.critical('GCS pixhawk connection lost!')
 			if value < 3 and timed_out_gcs:
 				timed_out_gcs = False;
-				logging.info('GCS pixhawk connection restored.')
+				logger.info('GCS pixhawk connection restored.')
 
+	gps_lock_odroid_time = 0
+	gps_lock_gps_time = 0
 	@uav.on_message('SYSTEM_TIME')
 	def uav_time_callback(self, attr_name, msg):
-		global uav_start_time
-		if(uav_start_time is 0 and msg.time_unix_usec > 0):
-			uav_start_time = msg.time_unix_usec/1000000
-			logging_time = '%0.4f' % time.time()
-			logging.info('UAV got GPS lock at %s' % logging_time)
-			rasp_start_time = time.clock()
+		'''
+		This function does not currently work correctly! msg.time_unix_usec is always greater than 0, even without GPS lock.
+		'''
+		global gps_lock_gps_time
+		if(gps_lock_gps_time is 0 and uav.gps_0.fix_type == 3):
+			gps_lock_gps_time = msg.time_unix_usec/1000000
+			logger.info('UAV got GPS lock at GPS time of: %s', gps_lock_gps_time)
+			gps_lock_odroid_time = '%0.4f' % time.time()
+			logger.info('UAV got GPS lock at ODROID time of: %s', gps_lock_odroid_time)
 
 	timed_out_uav = False
 	@uav.on_attribute('last_heartbeat')   
@@ -326,21 +350,21 @@ if __name__ == '__main__':
 			global timed_out_uav
 			if value > 3 and not timed_out_uav:
 				timed_out_uav = True
-				logging.critical('UAV pixhawk connection lost!')
+				logger.critical('UAV pixhawk connection lost!')
 			if value < 3 and timed_out_uav:
 				timed_out_uav = False;
-				logging.info('UAV pixhawk connection restored.')
+				logger.info('UAV pixhawk connection restored.')
 
 	@uav.on_attribute('armed')
 	def arm_disarm_callback(self,attr_name, msg):
-		logging.info('UAV is now %sarmed ' % ('' if uav.armed else 'dis'))
+		logger.info('UAV is now %sarmed ' % ('' if uav.armed else 'dis'))
 
 	@uav.on_attribute('mode')
 	def mode_callback(self,attr_name, mode):
-		logging.info('UAV mode changed to %s' % mode.name)
+		logger.info('UAV mode changed to %s' % mode.name)
 
-	logging.info('------------------SYSTEM IS READY!!------------------')
-	logging.info('-----------------------------------------------------\n')
+	logger.info('------------------SYSTEM IS READY!!------------------')
+	logger.info('-----------------------------------------------------\n')
 
 	# Initialize the node
 	rospy.init_node('flight_companion_node')

@@ -6,7 +6,7 @@
 # Note that for this to work, you must have the ardupilot git repo cloned in the
 # same directory as the aerowake repo.
 cd ~/aerowake_sitl_ws/ardupilot/APMrover2/
-python ../Tools/autotest/sim_vehicle.py -j4 -I 2 -L BriggsField --map --console --out 127.0.0.1:14554 --out 127.0.0.1:14556
+python ../Tools/autotest/sim_vehicle.py -j4 -I 2 -L NorSou --map --console --speedup=1 --aircraft=GCS --out 127.0.0.1:14554 --out 127.0.0.1:14556
 # kill %1 # end the _run_gcs command
 
 #### Manually Enter These Commands

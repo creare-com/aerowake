@@ -78,7 +78,7 @@ def takeoff(vehicle,name,aTargetAltitude):
 		print ' %s taking off' %(name)
 		vehicle.simple_takeoff(aTargetAltitude) # Take off to target altitude
 		# Wait until the vehicle reaches a safe height before processing the goto (otherwise the command after vehicle.simple_takeoff will execute immediately).
-		while vehicle.location.global_relative_frame.alt <= aTargetAltitude*0.95: #Trigger just below target alt.
+		while vehicle.location.global_relative_frame.alt <= aTargetAltitude*0.85: #Trigger just below target alt.
 			print ' Altitude: ', vehicle.location.global_relative_frame.alt 
 			time.sleep(1)
 		print ' %s reached target altitude\n' %(name)
