@@ -1,0 +1,79 @@
+#---------------
+# Remaining Setup Steps (Send questions to draper@mit.edu)
+#---------------
+
+Initially the ODROID will not boot due to having no hard disk space. To get it to boot, complete the following:
+
+1. Press CTRL + ALT + F1 to enter a terminal
+2. Login by typing odroid as the login and then again as the password
+3. Start the ODROID Utility by typing "sudo odroid-utility.sh"
+4. Within ODROID Utility, complete "4 Resize your root partition"
+5. Within ODROID Utility, complete "7 Change Hostname", and change the hostname as desired -- DO NOT USE UNDERSCORES IN HOSTNAME
+6. Once completed, reboot the ODROID using "sudo reboot now"
+
+Once the ODROID boots to the desktop, complete the following:
+
+1. Ensure you are connected to the internet
+2. Start ODROID UTILITY again, and select "2 Update your Kernel/Firmware" then complete "1 Update Kernel"
+3. Reboot using "sudo reboot now"
+4. Then issue the following commands in order:
+sudo apt-get update && sudo apt-get upgrade
+cd ~/creare_ws/src
+git clone https://Brndn004@bitbucket.org/Brndn004/creare.git
+catkin_create_package aerowake
+cd ~/creare_ws
+catkin_make
+cd ~/creare_ws/src/aerowake
+git clone https://github.com/creare-com/aerowake.git aerowake_git
+cd aerowake_git
+git checkout may-2018-flight-testing
+cd ~/creare_ws
+catkin_make
+rosdep install --from-paths ~/creare_ws/src --ignore-src
+sudo ln -s ~/creare_ws/src/aerowake/aerowake_git/Flight\ source/FA39.rules /etc/udev/rules.d/
+sudo udevadm control --reload-rules && sudo udevadm trigger
+git config --global user.email <your email>
+git config --global user.name <your name>
+sudo reboot now
+
+#---------------
+# Programs Installed on this Installation Different from Base Ubuntu Image 
+#---------------
+
+- ROS Indigo
+- ROS image_view package for when monitor attached to odroid
+- ROS Catkin Workspace in ~/creare_ws/
+- ROS Pointgrey Camera Driver built from source in ~/creare_ws/src/
+- terminator (CTRL + ALT + T to open)
+- pip
+- Dronekit
+- MAVProxy
+
+#---------------
+# Exact steps taken to set up this installation for Creare Aerowake
+#---------------
+
+<set system to allow updates from main, universe, restricted, and multiverse)
+sudo apt-get update && sudo apt-get upgrade
+sudo apt-get install terminator
+<install ros by following directions at wiki.ros.org/indigo/installation/Ubuntu>
+<set up catkin workspace in the ~/creare_ws/ directory by following directions at wiki.ros.org/ROS/Tutorials/InstallingandConfiguringROSEnvironment#Create_a_ROS_Workspace>
+sudo apt-get install ros-indigo-image-view
+sudo apt-get install python-rosinstall
+cd ~/creare_ws/src
+git clone https://github.com/ros-drivers/pointgrey_camera_driver.git
+rosdep install --from-paths /path/to/your/catkin_ws/src --ignore-src
+cd ~/creare_ws
+catkin_make
+<create /etc/udev/rules.d/40-pgr-custom.rules and paste inside:>
+	SUBSYSTEM=="usb", ATTRS{idVendor}=="1e10", ATTRS{idProduct}=="3300", GROUP=="plugdev", SYMLINK+="firefly", MODE:="0666"
+sudo service udev restart
+sudo apt-get install libtcmalloc-minimal4
+echo "export LD_PRELOAD=\"/usr/lib/libtcmalloc_minimal.so.4\"" >> ~/.bashrc
+sudo apt-get install python-pip
+sudo pip install dronekit
+sudo pip install MAVProxy
+sudo nano /usr/local/lib/python2.7/dist-packages/dronekit/__init__.py
+<search for "timeout = kwargs" and change value from 30 to 180>
+<change hostname in ODROID Utility -- DO NOT USE UNDERSCORES>
+sudo reboot now
