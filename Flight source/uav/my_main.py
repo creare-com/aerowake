@@ -196,7 +196,7 @@ class DroneCommanderNode(object):
 				else:
 					if not current_wp is None:
 						logger.info('Tracking waypoint %d',current_wp)
-						refLoc = gcs.location.global_frame
+						refLoc = gcs.location.global_relative_frame
 						logger.debug('refLocNav,%s',refLoc)
 						dNorth = wp_N[current_wp]
 						dEast = wp_E[current_wp]
@@ -224,7 +224,7 @@ class DroneCommanderNode(object):
 					disarm_vehicle(uav,'UAV')
 				elif command == 357 and uav.armed:
 					logger.info('Taking off')
-					takeoff(uav,'UAV',3)
+					takeoff(uav,'UAV',5)
 					goto_reference(uav, uav.location.global_frame, 0, 0, 0)
 					condition_yaw(uav, 0, relative = True)
 					in_the_air = True
