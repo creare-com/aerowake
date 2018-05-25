@@ -1,5 +1,5 @@
 #---------------
-# Remaining Setup Steps (Send questions to draper@mit.edu)
+# Setup Steps After Flashing aerowakebasic Image (Send questions to draper@mit.edu)
 #---------------
 
 Initially the ODROID will not boot due to having no hard disk space. To get it to boot, complete the following:
@@ -29,11 +29,11 @@ cd aerowake_git
 git checkout may-2018-flight-testing
 cd ~/creare_ws
 catkin_make
-rosdep install --from-paths ~/creare_ws/src --ignore-src
 sudo ln -s ~/creare_ws/src/aerowake/aerowake_git/Flight\ source/FA39.rules /etc/udev/rules.d/
 sudo udevadm control --reload-rules && sudo udevadm trigger
-git config --global user.email <your email>
-git config --global user.name <your name>
+git config --global user.email "Your Email"
+git config --global user.name "Your Name"
+mkdir ~/.ros/aerowake-logs
 sudo reboot now
 
 #---------------
