@@ -288,12 +288,9 @@ if __name__ == '__main__':
 		try:
 			uav = connect(uav_connect_path, baud = uav_baud, heartbeat_timeout = 60, rate = 20, wait_ready = True)
 			break
-		except OSError:
-			logger.critical('Cannot find device, is the UAV plugged in? Retrying...')
-			time.sleep(5)
-		except:
-			logger.critical('UAV connection timed out. Retrying...')
-			time.sleep(1)
+		except Exception as e:
+			logger.critical('UAV failed to connect with message: %s' %(e.message))
+			break
 	
 	logger.info('UAV pixhawk connected to UAV')
 
@@ -306,11 +303,9 @@ if __name__ == '__main__':
 		try:
 			gcs = connect(gcs_connect_path, baud = gcs_baud, heartbeat_timeout = 60, rate = 20, wait_ready = True)
 			break
-		except OSError:
-			logger.critical('Cannot find device, is the GCS plugged in? Retrying...')
-			time.sleep(5)
-		except:
-			logger.critical('GCS connection timed out. Retrying...')
+		except Exception as e:
+			logger.critical('GCS failed to connect with message: %s' %(e.message))
+			break
 	
 	logger.info('GCS pixhawk connected to UAV')
 
