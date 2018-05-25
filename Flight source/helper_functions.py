@@ -30,10 +30,17 @@ def arm_vehicle(vehicle,name):
 		logger.info(' Arming motors on %s' %(name))
 		vehicle.mode = VehicleMode('GUIDED')
 		vehicle.armed = True
-		while not vehicle.armed:
-			logger.info(' Waiting for %s to arm...' %(name))
+		#while not vehicle.armed:
+		#	logger.info(' Waiting for %s to arm...' %(name))
+		#	time.sleep(1)
+		if vehicle.armed:
+			logger.info(' %s armed\n' %(name))
+		else:
 			time.sleep(1)
-		logger.info(' %s armed\n' %(name))
+			if vehicle.armed:
+				logger.info(' %s armed\n' %(name))
+			else:
+				logger.info(' %s not recognized to be armed\n' %(name))
 	else:
 		logger.info(' %s is already armed\n' %(name))
 
