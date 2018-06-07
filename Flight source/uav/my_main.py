@@ -196,7 +196,7 @@ class DroneCommanderNode(object):
 				else:
 					if not current_wp is None:
 						logger.info('Tracking waypoint %d',current_wp)
-						refLoc = gcs.location.global_relative_frame
+						refLoc = gcs.location.global_frame
 						logger.debug('refLocNav,%s',refLoc)
 						dNorth = wp_N[current_wp]
 						dEast = wp_E[current_wp]
