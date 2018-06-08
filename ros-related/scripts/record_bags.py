@@ -2,28 +2,26 @@
 
 import rosbag
 import rospy
+from sensor_msgs.msg import Image
 
 def cbImageRecord(data):
 	global i
-	if i%10 == 0:
-		bag.write('/camera/image_raw/compressed', data)
-		print '2'
+	# Camera will nominally operate at 15 hz, so i%val = image rate in rosbag.
+	val = 7.5
+	if i%val == 0:
+		bag.write('/camera/image_raw', data)
 	i = i + 1
 
 def listener():
 	rospy.init_node('listener', anonymous=True)
-	rospy.Subscriber('/turtle1/cmd_vel', Twist, callback)
-	print '1'
+	rospy.Subscriber('/camera/image_raw', Image, cbImageRecord)
 	rospy.spin()
 
 if __name__ == '__main__':
 	global i
 	i = 0
-	print '0'
-	bag = rosbag.Bag('rest.bag', 'w')
+	bag = rosbag.Bag('rest.bag', mode='w', compression='bz2')
 	listener()
 	while not rospy.is_shutdown():
 		pass
-	print '-1'
 	bag.close()
-	print '-2'
