@@ -25,35 +25,7 @@ import os.path
 
 #-------------------------------------------------------------------------------
 #
-# Global Parameters and Constants
-#
-#-------------------------------------------------------------------------------
-
-# Set connection path to UAV and GCS
-#uav_connect_path = '127.0.0.1:14552'
-#uav_baud = 115200
-#gcs_connect_path = '127.0.0.1:14554'
-#gcs_baud = 115200
-
-# uav_connect_path = '/dev/ttyACM0' # Use for odroid through pixhawk usb cord
-# uav_connect_path = '/dev/ttyUSB0' # Use for odroid through usb to serial converter
-# uav_connect_path = '/dev/ttySAC0' # Use for odroid through GPIO pins
-uav_connect_path = '/dev/pixhawk' # Use after configuring symbolic link through udevadm
-uav_baud = 57600
-
-#gcs_connect_path = '/dev/ttyUSB0' # Use for telemetry radio through usb port
-gcs_connect_path = '/dev/radioacl33' # Use after configuring symbolic link through udevadm
-gcs_baud = 57600
-
-# Extract mission information
-wp_N = mission_rot.wp_N
-wp_E = mission_rot.wp_E
-wp_D = mission_rot.wp_D
-num_wp = mission_rot.num_wp[0]
-
-#-------------------------------------------------------------------------------
-#
-# Define ROS Node
+# Define ROS Node for Flight
 #
 #-------------------------------------------------------------------------------
 
@@ -255,13 +227,41 @@ class DroneCommanderNode(object):
 	def cbYawDeg(self, data):
 		self.__yaw_cmd = data.data
 
-#-------------------------------------------------------------------------------
-#
-# Start ROS Node
-#
-#-------------------------------------------------------------------------------
-
 if __name__ == '__main__':
+
+	#-----------------------------------------------------------------------------
+	#
+	# Global Parameters and Constants
+	#
+	#-----------------------------------------------------------------------------
+
+	# Set connection path to UAV and GCS
+	#uav_connect_path = '127.0.0.1:14552'
+	#uav_baud = 115200
+	#gcs_connect_path = '127.0.0.1:14554'
+	#gcs_baud = 115200
+
+	# uav_connect_path = '/dev/ttyACM0' # Use for odroid through pixhawk usb cord
+	# uav_connect_path = '/dev/ttyUSB0' # Use for odroid through usb to serial converter
+	# uav_connect_path = '/dev/ttySAC0' # Use for odroid through GPIO pins
+	uav_connect_path = '/dev/pixhawk' # Use after configuring symbolic link through udevadm
+	uav_baud = 57600
+
+	#gcs_connect_path = '/dev/ttyUSB0' # Use for telemetry radio through usb port
+	gcs_connect_path = '/dev/radioacl33' # Use after configuring symbolic link through udevadm
+	gcs_baud = 57600
+
+	# Extract mission information
+	wp_N = mission_rot.wp_N
+	wp_E = mission_rot.wp_E
+	wp_D = mission_rot.wp_D
+	num_wp = mission_rot.num_wp[0]
+
+	#-----------------------------------------------------------------------------
+	#
+	# Start ROS Node
+	#
+	#-----------------------------------------------------------------------------
 
 	# Log Setup
 	logger_name = 'uav_logger'
@@ -313,6 +313,10 @@ if __name__ == '__main__':
 	# Listeners for Logging
 	#------------------------------------
 
+	@gcs.on_message('SYSTEM_TIME')
+	def gcs_time_callback(self,attr_name, msg):
+		logger.debug('gcsGPSTIME,%s' %msg)
+
 	timed_out_gcs = False
 	@gcs.on_attribute('last_heartbeat')   
 	def gcs_last_heartbeat_listener(self, attr_name, value):
@@ -363,10 +367,6 @@ if __name__ == '__main__':
 	@uav.on_message('SYSTEM_TIME')
 	def uav_time_callback(self,attr_name, msg):
 		logger.debug('uavGPSTIME,%s' %msg)
-
-	@gcs.on_message('SYSTEM_TIME')
-	def gcs_time_callback(self,attr_name, msg):
-		logger.debug('gcsGPSTIME,%s' %msg)
 
 	@uav.on_message('LOCAL_POSITION_NED')
 	def local_position_NED_callback(self,attr_name, msg):
