@@ -15,7 +15,7 @@ def open():
     mc.setVelocityProfile(max_ad, max_ad) # no smoothing
     mc.clearFaultAndEnable() # movement may occur after this point
 
-speed_rpm = 20
+speed_rpm = 0
 speed_inc = 5
 def updateSpeed():
     global mc
