@@ -25,8 +25,10 @@ if len(sys.argv) > 1 and sys.argv[1] == 'sim':
 	gcs_connect_path = '127.0.0.1:14556'
 	gcs_baud = 115200
 else:
-	gcs_connect_path = '/dev/ttyACM0'
-	gcs_baud = 57600
+	gcs_connect_path = '/dev/ttyAMA0' # For Creare RPi
+	gcs_baud = 115200 # For Creare RPi
+	#gcs_connect_path = '/dev/ttyACM0' # For laptop USB
+	#gcs_baud = 57600 # For laptop USB
 
 # Determine number of waypoints
 num_wp = mission_rot.num_wp[0]
