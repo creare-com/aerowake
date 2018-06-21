@@ -86,8 +86,8 @@ class DroneCommanderNode(object):
 		gcs.parameters['PIVOT_TURN_ANGLE'] = 100
 
 		# Set UAV acceleration limit and groundspeed
-		uav.parameters['WPNAV_ACCEL'] = 50 # 50-500 [cm/s/s]
-		uav.parameters['WPNAV_SPEED'] = 50 # 20-2000 by 50 [cm/s]
+		uav.parameters['WPNAV_ACCEL'] = 75 # 50-500 [cm/s/s]
+		uav.parameters['WPNAV_SPEED'] = 250 # 20-2000 by 50 [cm/s]
 		# uav.groundspeed = 5 # [m/s]
 
 		logger.debug('WPNAV_ACCEL,%s' %(uav.parameters['WPNAV_ACCEL']))
@@ -235,11 +235,11 @@ if __name__ == '__main__':
 	#
 	#-----------------------------------------------------------------------------
 
-	# Set connection path to UAV and GCS
-	#uav_connect_path = '127.0.0.1:14552'
-	#uav_baud = 115200
-	#gcs_connect_path = '127.0.0.1:14554'
-	#gcs_baud = 115200
+	# # Set connection path to UAV and GCS
+	# uav_connect_path = '127.0.0.1:14552'
+	# uav_baud = 115200
+	# gcs_connect_path = '127.0.0.1:14554'
+	# gcs_baud = 115200
 
 	# uav_connect_path = '/dev/ttyACM0' # Use for odroid through pixhawk usb cord
 	# uav_connect_path = '/dev/ttyUSB0' # Use for odroid through usb to serial converter
