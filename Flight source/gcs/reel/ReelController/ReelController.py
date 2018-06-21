@@ -66,6 +66,7 @@ class ReelController:
             self._mc = MockPyMotorController()
         
         # Configure motor controller
+        self._mc.setOperatingMode('PROFILE_POSITION')
         self._gear_ratio = self._mc.getGearRatioNumerator() / self._mc.getGearRatioDenominator()
         if self._REELING_OUT_DECEL_RPMS == None:
             self._REELING_OUT_DECEL_RPMS = self._mc.getMaxAccelDecel()
@@ -76,7 +77,7 @@ class ReelController:
         
         # Initialize tether system
         self.youAreHome()
-        self._mc.clearFault() # movement may occur after this point
+        self._mc.clearFaultAndEnable() # movement may occur after this point
 
     # Conversion functions
     def motorPositionFromTetherLength(self, tether_length_m):
@@ -150,14 +151,15 @@ class ReelController:
             else:
                 tension_n -= self._T_DEADBAND_N # Prevent "step" up when exiting deadband
                 tension_limited_speed = self._KT_MPS_PER_N * tension_n
-                speed_limit = min(self._MAX_MPS, length_limited_speed, tension_limited_speed)
+                # speed_limit = min(self._MAX_MPS, length_limited_speed, tension_limited_speed)
+                speed_limit = tension_limited_speed # For now, just do tension
                 mv = 't' if speed_limit == tension_limited_speed else ('l' if speed_limit == length_limited_speed else '-')
                 dir = "->"
                 actual_max_mps = self._setMaxTetherSpeedMps(speed_limit, reeling_out=True)
                 self._recommandMotorPosition() # Causes the motor controller to move at the new speed
         
-#        status_str = dir[0] + mv + dir[1] + " %3.3fm->%3.3f @%3.8fmps %03.8fN "%(current_length, target_length, actual_max_mps, tension_n)
-#        logging.info(status_str)
+        status_str = dir[0] + mv + dir[1] + " %3.3fm->%3.3f @%3.8fmps %03.8fN "%(current_length, target_length, actual_max_mps, tension_n)
+        logging.info(status_str)
 
     def stopMoving(self):
         self._mc.haltMovement()
