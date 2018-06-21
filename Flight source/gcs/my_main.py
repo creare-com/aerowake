@@ -25,8 +25,10 @@ if len(sys.argv) > 1 and sys.argv[1] == 'sim':
 	gcs_connect_path = '127.0.0.1:14556'
 	gcs_baud = 115200
 else:
-	gcs_connect_path = '/dev/ttyACM0'
-	gcs_baud = 57600
+	gcs_connect_path = '/dev/ttyAMA0' # For Creare RPi
+	gcs_baud = 115200 # For Creare RPi
+	#gcs_connect_path = '/dev/ttyACM0' # For laptop USB
+	#gcs_baud = 57600 # For laptop USB
 
 # Determine number of waypoints
 num_wp = mission_rot.num_wp[0]
@@ -48,7 +50,7 @@ if __name__ == '__main__':
 	logger = logging.getLogger('gcs_logger')
 	logger.setLevel(logging.DEBUG)
 	# Create file handler that sends all logger messages (DEBUG and above) to file
-	fh = logging.FileHandler('%s/.ros/aerowake-logs/gcs-%s.log' %(os.path.expanduser('~'),time.strftime('%m-%d-%Hh-%Mm-%Ss', time.localtime())))
+	fh = logging.FileHandler('%s/logs/aerowake-logs/gcs-%s.log' %(os.path.expanduser('~'),time.strftime('%m-%d-%Hh-%Mm-%Ss', time.localtime())))
 	fh.setLevel(logging.DEBUG)
 	# Create console handler that sends some messages (INFO and above) to screen
 	ch = logging.StreamHandler(sys.stdout)
