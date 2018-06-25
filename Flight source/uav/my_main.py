@@ -117,37 +117,46 @@ class DroneCommanderNode(object):
 			if param == 103 and not command == 103:
 				logger.info('Got kill UAV motors command')
 				command = param
+				gcs.parameters['ACRO_TURN_RATE'] = 103
 			elif listening:
 				logger.info('Listening')
 				if param == 100:
 					logger.info('Got stop listening command')
 					listening = False
+					gcs.parameters['ACRO_TURN_RATE'] = 100
 				elif param == 102 and not command == 102:
 					logger.info('Got clear waypoint command')
 					command = param
+					gcs.parameters['ACRO_TURN_RATE'] = 102
 				elif param == 359 and not command == 359:
 					logger.info('Got arm command')
 					command = param
+					gcs.parameters['ACRO_TURN_RATE'] = 359
 				elif param == 358 and not command == 358:
 					logger.info('Got disarm command')
 					command = param
+					gcs.parameters['ACRO_TURN_RATE'] = 358
 				elif param == 357 and not command == 357:
 					logger.info('Got takeoff command')
 					command = param
+					gcs.parameters['ACRO_TURN_RATE'] = 357
 				elif param == 356 and not command == 356:
 					logger.info('Got land command')
 					command = param
+					gcs.parameters['ACRO_TURN_RATE'] = 356
 				elif param < num_wp:
 					# NOTE: GCS will not allow a non-existent index to be passed. The handling of incorrect indices is included in the conditional above as a redundant safety feature. 
 					if not command == param:
 						logger.info('Got navigate to waypoint %d command',param)
 						command = param
 						current_wp = int(param)
+						# gcs.parameters['ACRO_TURN_RATE'] = param
 			else:
 				logger.info('Not listening')
 				if param == 101:
 					logger.info('Got start listening command')
 					listening = True
+					gcs.parameters['ACRO_TURN_RATE'] = 101
 
 			# Do the action that corresponds to the current value of 'command'		
 			if command == 103 and uav.armed:
@@ -236,20 +245,20 @@ if __name__ == '__main__':
 	#-----------------------------------------------------------------------------
 
 	# # Set connection path to UAV and GCS
-	# uav_connect_path = '127.0.0.1:14552'
-	# uav_baud = 115200
-	# gcs_connect_path = '127.0.0.1:14554'
-	# gcs_baud = 115200
+	uav_connect_path = '127.0.0.1:14552'
+	uav_baud = 115200
+	gcs_connect_path = '127.0.0.1:14554'
+	gcs_baud = 115200
 
 	# uav_connect_path = '/dev/ttyACM0' # Use for odroid through pixhawk usb cord
 	# uav_connect_path = '/dev/ttyUSB0' # Use for odroid through usb to serial converter
 	# uav_connect_path = '/dev/ttySAC0' # Use for odroid through GPIO pins
-	uav_connect_path = '/dev/pixhawk' # Use after configuring symbolic link through udevadm
-	uav_baud = 57600
+	# uav_connect_path = '/dev/pixhawk' # Use after configuring symbolic link through udevadm
+	# uav_baud = 57600
 
 	#gcs_connect_path = '/dev/ttyUSB0' # Use for telemetry radio through usb port
-	gcs_connect_path = '/dev/radioacl33' # Use after configuring symbolic link through udevadm
-	gcs_baud = 57600
+	# gcs_connect_path = '/dev/radioacl33' # Use after configuring symbolic link through udevadm
+	# gcs_baud = 57600
 
 	# Extract mission information
 	wp_N = mission_rot.wp_N
