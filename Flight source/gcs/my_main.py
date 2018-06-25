@@ -97,11 +97,14 @@ if __name__ == '__main__':
 	#
 	#-----------------------------------------------------------------------------
 
-	arm_vehicle(gcs,'GCS')
+	#arm_vehicle(gcs,'GCS')
 	print str_allowed_input
 
 	# Set initial GCS value. For safety, the GCS should start and end on this value. This value tells the UAV to follow the previous command. If no previous command exists, then this value tells the UAV to do nothing. 
 	gcs.parameters['PIVOT_TURN_ANGLE'] = 100
+
+	# Set initial UAV Value.  For safety, the UAV should start and end on this value.  This value tells the GCS what command it is currently following.
+	gcs.parameters['ACRO_TURN_RATE'] = 100
 
 	'''
 	This while loop waits for user input, and then commands the UAV to perform some action. The command is sent by setting a parameter on the GCS. The UAV is constantly reading this parameter and acting according to its value. The parameter PIVOT_TURN_ANGLE accepts values from 0 - 359, inclusive, and has no effect on GCS performance. 
@@ -126,7 +129,8 @@ if __name__ == '__main__':
 
 	user_in = None
 	uav_listening = False
-	prev_command = 'No previous command.\n'
+	prev_command_gcs = 'No previous command.\n'
+	prev_command_uav = 100
 	try:
 		while not user_in == 'quit':
 			# Wait for user input
@@ -147,25 +151,28 @@ if __name__ == '__main__':
 			elif user_in == 'help':
 				invalid_input = False
 				logger.info(str_allowed_input)
+				continue
 
 			elif user_in == 'quit':
 				invalid_input = False
 				# Will terminate on next loop. UAV will continue with previous command
 				logger.info('Terminating GCS loop.')
-				logger.info(' UAV is following previous command of: \n %s' %(prev_command))
+				logger.info(' UAV is following previous command of: \n %s' %(prev_command_gcs))
+				continue
 
 			elif user_in == 'listen':
 				invalid_input = False
 				# UAV knows that 101 means start listening to commands
 				gcs.parameters['PIVOT_TURN_ANGLE'] = 101
 				logger.info('Commanding UAV to listen to commands\n')
-				prev_command = 'Command UAV to listen to commands\n'
+				prev_command_gcs = 'Command UAV to listen to commands\n'
 				uav_listening = True
 
 			elif not uav_listening:
 				# UAV not listening and input is something other than 'listen'
 				invalid_input = False
 				logger.info(listening_err_str)
+				continue
 			else:
 				# UAV is listening
 				if user_in == 'arm':
@@ -173,35 +180,35 @@ if __name__ == '__main__':
 					# UAV knows that 359 means arm
 					gcs.parameters['PIVOT_TURN_ANGLE'] = 359
 					logger.info('Commanding UAV to Arm\n')
-					prev_command = 'Command UAV to Arm\n'
+					prev_command_gcs = 'Command UAV to Arm\n'
 
 				elif user_in == 'disarm':
 					invalid_input = False
 					# UAV knows that 358 means disarm
 					gcs.parameters['PIVOT_TURN_ANGLE'] = 358
 					logger.info('Commanding UAV to Disarm\n')
-					prev_command = 'Command UAV to Disarm\n'
+					prev_command_gcs = 'Command UAV to Disarm\n'
 
 				elif user_in == 'takeoff':
 					invalid_input = False
 					# UAV knows that 357 means takeoff
 					gcs.parameters['PIVOT_TURN_ANGLE'] = 357
 					logger.info('Commanding UAV to Takeoff\n')
-					prev_command = 'Command UAV to Takeoff\n'
+					prev_command_gcs = 'Command UAV to Takeoff\n'
 
 				elif user_in == 'land':
 					invalid_input = False
 					# UAV knows that 356 means land
 					gcs.parameters['PIVOT_TURN_ANGLE'] = 356
 					logger.info('Commanding UAV to Land\n')
-					prev_command = 'Command UAV to Land\n'
+					prev_command_gcs = 'Command UAV to Land\n'
 
 				elif user_in == 'clear':
 					invalid_input = False
 					# UAV knows that 102 means clear
 					gcs.parameters['PIVOT_TURN_ANGLE'] = 102
 					logger.info('Commanding UAV to clear the current waypoint\n')
-					prev_command = 'Command UAV to clear the current waypoint\n'
+					prev_command_gcs = 'Command UAV to clear the current waypoint\n'
 
 				else:
 					try:
@@ -211,7 +218,7 @@ if __name__ == '__main__':
 							invalid_input = False
 							if uav_listening:
 								logger.info('Commanding UAV to waypoint %s\n' %(user_in))
-								prev_command = 'Command UAV to waypoint %s\n' %(user_in)
+								prev_command_gcs = 'Command UAV to waypoint %s\n' %(user_in)
 								gcs.parameters['PIVOT_TURN_ANGLE'] = user_in
 							else:
 								print listening_err_str
@@ -221,8 +228,54 @@ if __name__ == '__main__':
 
 			if invalid_input:
 				logger.info('Invalid input. Type \'help\' for allowed commands.')
-				logger.info(' UAV is following previous command of: \n %s' %(prev_command))
+				logger.info(' UAV is following previous command of: \n %s' %(prev_command_gcs))
 				# print str_allowed_input
+				continue
+
+			time.sleep(1)
+			# GCS check of UAV parameter
+			UAV_param = gcs.parameters['ACRO_TURN_RATE']
+			repeated_command = True
+
+			#check if parameter has changed
+			for i in range(2):
+				if UAV_param != prev_command_uav:
+					repeated_command = False
+				else:
+					logger.info('Command not received, trying again.')
+					time.sleep(2)
+
+			if not repeated_command:
+				if UAV_param == 103:
+					# kills motors
+					logger.info('UAV received command to kill motors.\n')
+				elif UAV_param == 102:
+					# clear current waypoint
+					logger.info('UAV received command to clear current waypoint.\n')
+				elif UAV_param == 101:
+					# begin listening
+					logger.info('UAV received command to listen.\n')
+				elif UAV_param == 100:
+					# stop listening
+					logger.info('UAV received command to stop listening.\n')
+				elif UAV_param == 359:
+					# arm
+					logger.info('UAV received command to arm.\n')
+				elif UAV_param == 358:
+					# disarm
+					logger.info('UAV received command to disarm.\n')
+				elif UAV_param == 357:
+					# takeoff
+					logger.info('UAV received command to takeoff.\n')
+				elif UAV_param == 356:
+					# land
+					logger.info('UAV receieved command to land.\n')
+				else:
+					# commanding waypoint
+					logger.info('UAV received command to go to waypoint %d.\n', UAV_param)
+			else:
+				logger.info('Command not received by UAV.\n')
+
 	except KeyboardInterrupt:
 		logger.info('\nGot CTRL+C. Cleaning up and exiting.\n')
 
