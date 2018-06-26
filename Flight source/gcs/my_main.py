@@ -232,17 +232,19 @@ if __name__ == '__main__':
 				# print str_allowed_input
 				continue
 
+			# sleep to account for radio delay
 			time.sleep(1)
+
 			# GCS check of UAV parameter
 			UAV_param = gcs.parameters['ACRO_TURN_RATE']
 			repeated_command = True
 
-			#check if parameter has changed
-			for i in range(2):
+			# check if parameter has changed
+			for i in range(3):
 				if UAV_param != prev_command_uav:
 					repeated_command = False
 				else:
-					logger.info('Command not received, trying again.')
+					logger.info('Command not received yet, trying again.')
 					time.sleep(2)
 
 			if not repeated_command:
