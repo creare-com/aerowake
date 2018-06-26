@@ -91,6 +91,36 @@ if __name__ == '__main__':
 	def local_position_NED_callback(self,attr_name, msg):
 		logger.debug('localPosNED,%s' %msg)
 
+	@gcs.parameters.on_attribute('ACRO_TURN_RATE')
+	def UAV_parameter_callback(self, attr_name, UAV_param):
+		if UAV_param == 103:
+			# kills motors
+			logger.info('UAV received command to kill motors.\n')
+		elif UAV_param == 102:
+			# clear current waypoint
+			logger.info('UAV received command to clear current waypoint.\n')
+		elif UAV_param == 101:
+			# begin listening
+			logger.info('UAV received command to listen.\n')
+		elif UAV_param == 100:
+			# stop listening
+			logger.info('UAV received command to stop listening.\n')
+		elif UAV_param == 359:
+			# arm
+			logger.info('UAV received command to arm.\n')
+		elif UAV_param == 358:
+			# disarm
+			logger.info('UAV received command to disarm.\n')
+		elif UAV_param == 357:
+			# takeoff
+			logger.info('UAV received command to takeoff.\n')
+		elif UAV_param == 356:
+			# land
+			logger.info('UAV receieved command to land.\n')
+		else:
+			# commanding waypoint
+			logger.info('UAV received command to go to waypoint %d.\n', UAV_param)
+
 	#-----------------------------------------------------------------------------
 	#
 	# Control Code
@@ -110,17 +140,17 @@ if __name__ == '__main__':
 	This while loop waits for user input, and then commands the UAV to perform some action. The command is sent by setting a parameter on the GCS. The UAV is constantly reading this parameter and acting according to its value. The parameter PIVOT_TURN_ANGLE accepts values from 0 - 359, inclusive, and has no effect on GCS performance. 
 	
 	The parameter values corresponding actions to be performed are:
-	 	100		UAV will stop listening to these commands
-	 					UAV will follow prev command, or do nothing if no command sent yet
-	 	101		UAV will begin listening to these commands
-		102		UAV will clear its current waypoint
-		103		UAV kills its motors immediately
-	 	359		UAV will arm
-	 	358		UAV will disarm
-	 	357		UAV will takeoff to a pre-programmed height and relative position
-	 	356		UAV will land according to its landing protocol
-	 	0+		UAV will navigate to the waypoint at the index specified
-	 					The acceptable waypoint indices are 0 through num_wp - 1
+		100     UAV will stop listening to these commands
+						UAV will follow prev command, or do nothing if no command sent yet
+		101     UAV will begin listening to these commands
+		102     UAV will clear its current waypoint
+		103     UAV kills its motors immediately
+		359     UAV will arm
+		358     UAV will disarm
+		357     UAV will takeoff to a pre-programmed height and relative position
+		356     UAV will land according to its landing protocol
+		0+      UAV will navigate to the waypoint at the index specified
+						The acceptable waypoint indices are 0 through num_wp - 1
 	
 	If an invalid input is entered, such as a typo or a waypoint number that does not exist, the UAV will follow the previous command. The GCS will echo this behavior to the terminal, notifying the user of the UAV's behavior in the event of an invalid input. 
 	
@@ -232,51 +262,6 @@ if __name__ == '__main__':
 				# print str_allowed_input
 				continue
 
-			# sleep to account for radio delay
-			time.sleep(1)
-
-			# GCS check of UAV parameter
-			UAV_param = gcs.parameters['ACRO_TURN_RATE']
-			repeated_command = True
-
-			# check if parameter has changed
-			for i in range(3):
-				if UAV_param != prev_command_uav:
-					repeated_command = False
-				else:
-					logger.info('Command not received yet, trying again.')
-					time.sleep(2)
-
-			if not repeated_command:
-				if UAV_param == 103:
-					# kills motors
-					logger.info('UAV received command to kill motors.\n')
-				elif UAV_param == 102:
-					# clear current waypoint
-					logger.info('UAV received command to clear current waypoint.\n')
-				elif UAV_param == 101:
-					# begin listening
-					logger.info('UAV received command to listen.\n')
-				elif UAV_param == 100:
-					# stop listening
-					logger.info('UAV received command to stop listening.\n')
-				elif UAV_param == 359:
-					# arm
-					logger.info('UAV received command to arm.\n')
-				elif UAV_param == 358:
-					# disarm
-					logger.info('UAV received command to disarm.\n')
-				elif UAV_param == 357:
-					# takeoff
-					logger.info('UAV received command to takeoff.\n')
-				elif UAV_param == 356:
-					# land
-					logger.info('UAV receieved command to land.\n')
-				else:
-					# commanding waypoint
-					logger.info('UAV received command to go to waypoint %d.\n', UAV_param)
-			else:
-				logger.info('Command not received by UAV.\n')
 
 	except KeyboardInterrupt:
 		logger.info('\nGot CTRL+C. Cleaning up and exiting.\n')
