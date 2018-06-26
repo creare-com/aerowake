@@ -150,7 +150,7 @@ class DroneCommanderNode(object):
 						logger.info('Got navigate to waypoint %d command',param)
 						command = param
 						current_wp = int(param)
-						# gcs.parameters['ACRO_TURN_RATE'] = param
+						gcs.parameters['ACRO_TURN_RATE'] = param
 			else:
 				logger.info('Not listening')
 				if param == 101:
