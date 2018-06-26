@@ -120,6 +120,7 @@ if __name__ == '__main__':
 		else:
 			# commanding waypoint
 			logger.info('UAV received command to go to waypoint %d.\n', UAV_param)
+			
 
 	#-----------------------------------------------------------------------------
 	#
