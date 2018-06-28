@@ -91,6 +91,7 @@ if __name__ == '__main__':
 	def local_position_NED_callback(self,attr_name, msg):
 		logger.debug('localPosNED,%s' %msg)
 
+	# This callback listens for a change in the parameter set by the UAV, any change tells that the UAV received a command from the gcs
 	@gcs.parameters.on_attribute('ACRO_TURN_RATE')
 	def UAV_parameter_callback(self, attr_name, UAV_param):
 		if UAV_param == 103:
@@ -120,7 +121,7 @@ if __name__ == '__main__':
 		else:
 			# commanding waypoint
 			logger.info('UAV received command to go to waypoint %d.\n', UAV_param)
-			
+
 
 	#-----------------------------------------------------------------------------
 	#
@@ -131,15 +132,15 @@ if __name__ == '__main__':
 	#arm_vehicle(gcs,'GCS')
 	print str_allowed_input
 
-	# Set initial GCS value. For safety, the GCS should start and end on this value. This value tells the UAV to follow the previous command. If no previous command exists, then this value tells the UAV to do nothing. 
+	# Set initial GCS value. For safety, the GCS should start and end on this value. This value tells the UAV to follow the previous command. If no previous command exists, then this value tells the UAV to do nothing.
 	gcs.parameters['PIVOT_TURN_ANGLE'] = 100
 
 	# Set initial UAV Value.  For safety, the UAV should start and end on this value.  This value tells the GCS what command it is currently following.
 	gcs.parameters['ACRO_TURN_RATE'] = 100
 
 	'''
-	This while loop waits for user input, and then commands the UAV to perform some action. The command is sent by setting a parameter on the GCS. The UAV is constantly reading this parameter and acting according to its value. The parameter PIVOT_TURN_ANGLE accepts values from 0 - 359, inclusive, and has no effect on GCS performance. 
-	
+	This while loop waits for user input, and then commands the UAV to perform some action. The command is sent by setting a parameter on the GCS. The UAV is constantly reading this parameter and acting according to its value. The parameter PIVOT_TURN_ANGLE accepts values from 0 - 359, inclusive, and has no effect on GCS performance.
+
 	The parameter values corresponding actions to be performed are:
 		100     UAV will stop listening to these commands
 						UAV will follow prev command, or do nothing if no command sent yet
@@ -152,10 +153,10 @@ if __name__ == '__main__':
 		356     UAV will land according to its landing protocol
 		0+      UAV will navigate to the waypoint at the index specified
 						The acceptable waypoint indices are 0 through num_wp - 1
-	
-	If an invalid input is entered, such as a typo or a waypoint number that does not exist, the UAV will follow the previous command. The GCS will echo this behavior to the terminal, notifying the user of the UAV's behavior in the event of an invalid input. 
-	
-	When the quit command is given, the UAV will continue to follow its most recent command. 
+
+	If an invalid input is entered, such as a typo or a waypoint number that does not exist, the UAV will follow the previous command. The GCS will echo this behavior to the terminal, notifying the user of the UAV's behavior in the event of an invalid input.
+
+	When the quit command is given, the UAV will continue to follow its most recent command.
 	'''
 
 	user_in = None
@@ -244,7 +245,7 @@ if __name__ == '__main__':
 				else:
 					try:
 						user_in = int(user_in)
-						# If user enters an integer, set the chosen GCS parameter to that integer value. The UAV will read this parameter and navigate to that waypoint. E.g. if user enters 2, then UAV will navigate to the waypoint at index 2. 
+						# If user enters an integer, set the chosen GCS parameter to that integer value. The UAV will read this parameter and navigate to that waypoint. E.g. if user enters 2, then UAV will navigate to the waypoint at index 2.
 						if user_in >= 0 and user_in < num_wp:
 							invalid_input = False
 							if uav_listening:
@@ -271,7 +272,7 @@ if __name__ == '__main__':
 	# Outside of while loop
 	#------------------------------------
 
-	# Set final GCS value. For safety, the GCS should start and end on this value. This value tells the UAV to follow the previous command. If no previous command exists, then this value tells the UAV to do nothing. 
+	# Set final GCS value. For safety, the GCS should start and end on this value. This value tells the UAV to follow the previous command. If no previous command exists, then this value tells the UAV to do nothing.
 	gcs.parameters['PIVOT_TURN_ANGLE'] = 100
 
 	# Disarm and close GCS object before exiting script
