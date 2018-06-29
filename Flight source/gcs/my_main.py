@@ -8,6 +8,7 @@ sys.path.append('../')
 from dronekit import connect
 from helper_functions import arm_vehicle, disarm_vehicle
 import mission_rot
+import rotate_mission
 
 # Required for logging
 import logging
@@ -120,7 +121,7 @@ if __name__ == '__main__':
 		else:
 			# commanding waypoint
 			logger.info('UAV received command to go to waypoint %d.\n', UAV_param)
-			
+
 
 	#-----------------------------------------------------------------------------
 	#
