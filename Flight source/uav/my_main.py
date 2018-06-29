@@ -7,6 +7,7 @@ import os.path as path, sys
 current_dir = path.dirname(path.abspath(getsourcefile(lambda:0)))
 sys.path.insert(0, current_dir[:current_dir.rfind(path.sep)])
 import mission_rot
+import rotate_mission
 from helper_functions import arm_vehicle, condition_yaw, disarm_vehicle, emergency_stop, get_bearing, get_distance_metres, get_home_location, get_location_metres, goto, goto_position_target_local_ned, goto_reference, land, send_global_velocity, send_ned_velocity, set_roi, takeoff
 sys.path.pop(0)
 
@@ -84,6 +85,9 @@ class DroneCommanderNode(object):
 
 		# Ensure that at startup the UAV will not be listening 
 		gcs.parameters['PIVOT_TURN_ANGLE'] = 100
+
+		# We start with a 0 roation on the mission to match what we have on the gcs
+		gcs.parameters['PIVOT_TURN_RATE'] = 0
 
 		# Set UAV acceleration limit and groundspeed
 		uav.parameters['WPNAV_ACCEL'] = 75 # 50-500 [cm/s/s]
@@ -380,6 +384,11 @@ if __name__ == '__main__':
 	@uav.on_message('LOCAL_POSITION_NED')
 	def local_position_NED_callback(self,attr_name, msg):
 		logger.debug('localPosNED,%s' %msg)
+
+	# Listener to rotate mission	
+	@gcs.parameters.on_attribute('PIVOT_TURN_RATE')
+	def UAV_parameter_callback(self, attr_name, rotate_param):
+		rotate_mission(rotate_param)
 
 	# @uav.on_message('*')
 	# def any_message_listener(self, name, message):
