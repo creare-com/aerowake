@@ -43,6 +43,21 @@ str_allowed_input = '\n\nAllowed input:\n -\n  Kill UAV motors when input starts
 
 listening_err_str = 'First use listen command to tell UAV to listen.\n'
 
+# Reel function
+def get_reel_data():
+	'''
+	Returns the current length of the tether in meters as believed by the reel controller.
+	
+	Expected to return {"L": <length in meters as double>, "T": <tension in newtons as double>}
+	'''
+	try:
+		reel_reading = data_from_reel.get(False)
+	except Empty:
+		reel_reading = {'L':'-', 'T':'-'}
+	logger.debug('reelData,%s',reel_reading)
+	return reel_reading
+
+
 #-------------------------------------------------------------------------------
 #
 # Start Main Process
@@ -181,14 +196,6 @@ if __name__ == '__main__':
 	prev_command_uav = 100
 	try:
 		while not user_in == 'quit':
-			# Get Reel Info:
-			try:
-				# Expected to return {"L": <length in meters, as double>, "T": <tension in newtons, as double>}
-				reel_reading = data_from_reel.get(False)
-			except Empty:
-				reel_reading = {'L':'-', 'T':'-'}
-			logger.debug('reelData,%s',reel_reading)
-
 			# Wait for user input
 			print 'Enter command:'
 			user_in = raw_input()
@@ -226,22 +233,34 @@ if __name__ == '__main__':
 
 			elif user_in == 'rhalt':
 				invalid_input = False
-				logger.info('Commanding reel to halt\n')
+				logger.info('Commanding reel to halt')
 				commands_to_reel.put({'cmd':'halt'})
+				reel_data = get_reel_data()
+				logger.info(' Reel halting at: %s\n',reel_data['L'])
 
 			elif user_in == 'rsethome':
 				invalid_input = False
-				logger.info('Commanding reel to reset home to this position\n')
+				logger.info('Commanding reel to reset home to this position')
 				commands_to_reel.put({'cmd':'rehome'})
+				reel_data = get_reel_data()
+				logger.info(' Reel home set to: %s\n',reel_data)
+
+			elif user_in == 'rgetdata':
+				invalid_input = False
+				logger.info('Commanding reel to report data')
+				reel_data = get_reel_data()
+				logger.info(' Reel at: %s\n',reel_data)
 
 			elif user_in.startswith('rsetlength'):
 				invalid_input = False
 				try: 
 					L = float(user_in.split(" ")[-1])
-					logger.info('Setting reel length to %0.01f meters\n' %(L))
-	        commands_to_reel.put({"cmd":"goto", "L":L})
-        except:
-        	logger.info('Invalid length. Usage: "rsetlength <length in m>"')
+					logger.info('Setting reel length to %0.01f meters' %(L))
+					commands_to_reel.put({"cmd":"goto", "L":L})
+					reel_data = get_reel_data()
+					logger.info(' Reel length currently at: %s\n',reel_data['L'])
+				except:
+					logger.info(' Invalid length. Usage: "rsetlength <length in m>"\n')
 
 			elif not uav_listening:
 				# UAV not listening and input is something other than 'listen'
