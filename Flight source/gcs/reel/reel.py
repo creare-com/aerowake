@@ -22,7 +22,7 @@ class reel_run (Process):
 
         # Setup logger
         # NOTE: Logger is singleton as long as handled by the same Python interpreter. Calling logging.getLogger('logger_name') from multiple scripts on the same computer will use the same file (except in advanced cases not relevant here).
-        logger = logging.getLogger('gcs_logger')
+        self._logger = logging.getLogger('gcs_logger')
 
     def run(self):
         run = True
@@ -42,16 +42,16 @@ class reel_run (Process):
             if cmd != None and cmd.has_key('cmd'):
                 if cmd['cmd'] == 'goto':
                     L = cmd['L']
-                    logging.info("Setting tether length to %fm"%L)
+                    self._logger.info("Setting tether length to %0.01f m\n"%L)
                     self._rc.setTetherLengthM(L)
                 elif cmd['cmd'] == 'rehome':
-                    logging.info("Homing tether")
+                    self._logger.info("Homing tether\n")
                     self._rc.youAreHome()
                 elif cmd['cmd'] == 'halt':
-                    logging.info("Halting reel")
+                    self._logger.info("Halting reel\n")
                     self._rc.stopMoving()
                 elif cmd['cmd'] == 'exit':
-                    logging.info("Halting reel")
+                    self._logger.info("Halting reel\n")
                     self._rc.stopMoving()
                     del self._rc
                     run = False

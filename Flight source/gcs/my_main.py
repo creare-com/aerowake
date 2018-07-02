@@ -18,6 +18,7 @@ import time
 from multiprocessing import Queue
 from Queue import Empty
 from reel.reel import reel_run
+import math
 
 #-------------------------------------------------------------------------------
 #
@@ -39,7 +40,7 @@ else:
 num_wp = mission_rot.num_wp[0]
 
 # Define a string that will print to show allowed user input
-str_allowed_input = '\n\nAllowed input:\n -\n  Kill UAV motors when input starts with minus sign\n listen\n  Tell UAV to start listening to commands\n arm\n  Command UAV to arm throttle\n disarm\n  Command UAV to disarm throttle\n takeoff\n  Command UAV to takeoff to 10 m\n Waypoint Number (0-%d)\n  Navigate to designated waypoint\n clear\n  Clear current waypoint\n land\n  Command UAV to land\n help\n  Show this list of allowed inputs\n quit\n  Terminate program\n\n' %(num_wp - 1)
+str_allowed_input = '\n\nAllowed input:\n -\n  Kill UAV motors when input starts with minus sign\n listen\n  Tell UAV to start listening to commands\n arm\n  Command UAV to arm throttle\n disarm\n  Command UAV to disarm throttle\n takeoff\n  Command UAV to takeoff to 10 m\n Waypoint Number (0-%d)\n  Navigate to designated waypoint\n clear\n  Clear current waypoint\n land\n  Command UAV to land\n rsethome\n  Set current reel position to home\n rsetlength <L in m>\n  Set reel to specified length in meters\n rhalt\n  Halt reel\n rgetdata\n  Report tether length and tension\n help\n  Show this list of allowed inputs\n quit\n  Terminate program\n\n' %(num_wp - 1)
 
 listening_err_str = 'First use listen command to tell UAV to listen.\n'
 
@@ -56,7 +57,6 @@ def get_reel_data():
 		reel_reading = {'L':'-', 'T':'-'}
 	logger.debug('reelData,%s',reel_reading)
 	return reel_reading
-
 
 #-------------------------------------------------------------------------------
 #
@@ -142,7 +142,6 @@ if __name__ == '__main__':
 			# commanding waypoint
 			logger.info('UAV received command to go to waypoint %d.\n', UAV_param)
 
-
 	#-----------------------------------------------------------------------------
 	#
 	# Control Code
@@ -155,9 +154,10 @@ if __name__ == '__main__':
 	try:
 		reel = reel_run(commands_to_reel, data_from_reel)
 	except Exception:
-		logging.critical('Problem connection to reel. Aborting.')
+		logging.critical('Problem connecting to reel. Aborting.')
 		setup_abort("Reel System Failure")
 	reel.start()
+	# commands_to_reel.put({'cmd':'rehome'})
 
 	# Arm vehicle and print the allowed commands
 	#arm_vehicle(gcs,'GCS')
@@ -194,6 +194,7 @@ if __name__ == '__main__':
 	uav_listening = False
 	prev_command_gcs = 'No previous command.\n'
 	prev_command_uav = 100
+
 	try:
 		while not user_in == 'quit':
 			# Wait for user input
@@ -288,6 +289,8 @@ if __name__ == '__main__':
 					# UAV knows that 357 means takeoff
 					gcs.parameters['PIVOT_TURN_ANGLE'] = 357
 					logger.info('Commanding UAV to Takeoff\n')
+					# Note: Takeoff altitude is hardcoded in helper_functions.py
+					commands_to_reel.put({"cmd":"goto", "L":1*1.15})
 					prev_command_gcs = 'Command UAV to Takeoff\n'
 
 				elif user_in == 'land':
@@ -315,7 +318,14 @@ if __name__ == '__main__':
 								prev_command_gcs = 'Command UAV to waypoint %s\n' %(user_in)
 								gcs.parameters['PIVOT_TURN_ANGLE'] = user_in
 								# Command reel to desired length based on current waypoint
-								#commands_to_reel.put({"cmd":"goto", "L":L})
+								dN = mission_rot.wp_N[user_in]
+								dE = mission_rot.wp_E[user_in]
+								dD = mission_rot.wp_D[user_in]
+								dist = math.sqrt((dN**2) + (dE**2) + (dD**2))
+								safety_factor = 1.15
+								logger.info('Commanding reel to a distance of %s meters', dist*safety_factor)
+								logger.info('(dN,dE, dD) = (%.01f,%.01f,%.01f)'%(dN,dE, dD))
+								commands_to_reel.put({"cmd":"goto", "L":dist*safety_factor})
 							else:
 								print listening_err_str
 					except ValueError:
