@@ -20,24 +20,9 @@ class reel_run (Process):
         self._dt_des =1/200.0
         self._cycles = 0
 
-        #### Logging Setup. ####
-
-         #!# This logger will create a 'system.log', which will allow debugging later if the UAV system is not 
-         #!# not working properly for some reason or another. Messages will be printed to the console, and to the 
-         #!# log file. Messages shoudl be priorities with 'info', 'critical', or 'debug'. 
-         
-        self.logger = logging.getLogger()
-        self.logger.setLevel(logging.DEBUG)
-        fh = logging.FileHandler('system.log')
-        fh.setLevel(logging.DEBUG)
-        ch = logging.StreamHandler(sys.stdout)
-        ch.setLevel(logging.DEBUG)
-        form_fh = logging.Formatter('%(relativeCreated)s,%(levelname)s: %(message)s')
-        form_ch = logging.Formatter('%(levelname)s: %(message)s')
-        fh.setFormatter(form_fh)
-        ch.setFormatter(form_ch)
-        self.logger.addHandler(fh)
-        self.logger.addHandler(ch)
+        # Setup logger
+        # NOTE: Logger is singleton as long as handled by the same Python interpreter. Calling logging.getLogger('logger_name') from multiple scripts on the same computer will use the same file (except in advanced cases not relevant here).
+        logger = logging.getLogger('gcs_logger')
 
     def run(self):
         run = True
@@ -79,6 +64,11 @@ class reel_run (Process):
             if(self._cycles >= SKIP_CYCLES):
                 L = self._rc.getTetherLengthM()
                 T = self._rc.getTetherTensionN()
+                try:
+                    self._data_out.get(False)
+                except Empty:
+                    # GCS main code will occasionally pull out this data, so we need to protect against an empty Queue
+                    pass
                 self._data_out.put({"L": L, "T": T})
                 self._cycles = 0
             else:
