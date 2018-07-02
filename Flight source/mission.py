@@ -14,16 +14,16 @@ NOTE: z cooresponds to down, which means a value of z = -10 indicates that the U
 
 # Mission 0: Takeoff to 3 m altitude, move 2 m towards gcs, return to landing spot, land
 # Note: Takeoff and land are not seen as waypoints
-wp_N = [20, 15, 15]
-wp_E = [ 0,  0,  5]
-wp_D = [-5, -5, -8]
-num_wp = [len(wp_N)]
+# wp_N = [20, 15, 15]
+# wp_E = [ 0,  0,  5]
+# wp_D = [-5, -5, -8]
+# num_wp = [len(wp_N)]
 
 # # Mission 1: Back and forth on east-to-west line at 10 m alt
-# wp_N = [ 20,  20,  20,  20,  20]
-# wp_E = [  0,  10,   0, -10,   0]
-# wp_D = [-10, -10, -10, -10, -10]
-# num_wp = [len(wp_N)]
+wp_N = [ 20,  20,  20,  20,  20]
+wp_E = [  0,  10,   0, -10,   0]
+wp_D = [-10, -10, -10, -10, -10]
+num_wp = [len(wp_N)]
 
 # # Mission 2: Back and forth on east-to-west line at 1 m alt
 # wp_N = [20, 20, 20,  20, 20]
