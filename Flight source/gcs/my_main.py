@@ -14,6 +14,11 @@ import logging
 import os.path
 import time
 
+# Required for reel control
+from multiprocessing import Queue
+from Queue import Empty
+from reel.reel import reel_run
+
 #-------------------------------------------------------------------------------
 #
 # Global Parameters and Constants
@@ -97,7 +102,18 @@ if __name__ == '__main__':
 	#
 	#-----------------------------------------------------------------------------
 
-	arm_vehicle(gcs,'GCS')
+	# Start reel controller
+	commands_to_reel = Queue()
+	data_from_reel = Queue()
+	try:
+		reel = reel_run(commands_to_reel, data_from_reel)
+	except Exception:
+		logging.critical('Problem connection to reel. Aborting.')
+		setup_abort("Reel System Failure")
+	reel.start()
+
+	# Arm vehicle and print the allowed commands
+	#arm_vehicle(gcs,'GCS')
 	print str_allowed_input
 
 	# Set initial GCS value. For safety, the GCS should start and end on this value. This value tells the UAV to follow the previous command. If no previous command exists, then this value tells the UAV to do nothing. 
@@ -107,17 +123,17 @@ if __name__ == '__main__':
 	This while loop waits for user input, and then commands the UAV to perform some action. The command is sent by setting a parameter on the GCS. The UAV is constantly reading this parameter and acting according to its value. The parameter PIVOT_TURN_ANGLE accepts values from 0 - 359, inclusive, and has no effect on GCS performance. 
 	
 	The parameter values corresponding actions to be performed are:
-	 	100		UAV will stop listening to these commands
-	 					UAV will follow prev command, or do nothing if no command sent yet
-	 	101		UAV will begin listening to these commands
-		102		UAV will clear its current waypoint
-		103		UAV kills its motors immediately
-	 	359		UAV will arm
-	 	358		UAV will disarm
-	 	357		UAV will takeoff to a pre-programmed height and relative position
-	 	356		UAV will land according to its landing protocol
-	 	0+		UAV will navigate to the waypoint at the index specified
-	 					The acceptable waypoint indices are 0 through num_wp - 1
+		100   UAV will stop listening to these commands
+						UAV will follow prev command, or do nothing if no command sent yet
+		101   UAV will begin listening to these commands
+		102   UAV will clear its current waypoint
+		103   UAV kills its motors immediately
+		359   UAV will arm
+		358   UAV will disarm
+		357   UAV will takeoff to a pre-programmed height and relative position
+		356   UAV will land according to its landing protocol
+		0+    UAV will navigate to the waypoint at the index specified
+						The acceptable waypoint indices are 0 through num_wp - 1
 	
 	If an invalid input is entered, such as a typo or a waypoint number that does not exist, the UAV will follow the previous command. The GCS will echo this behavior to the terminal, notifying the user of the UAV's behavior in the event of an invalid input. 
 	
@@ -129,6 +145,14 @@ if __name__ == '__main__':
 	prev_command = 'No previous command.\n'
 	try:
 		while not user_in == 'quit':
+			# Get Reel Info:
+			try:
+				# Expected to return {"L": <length in meters, as double>, "T": <tension in newtons, as double>}
+				reel_reading = data_from_reel.get(False)
+			except Empty:
+				reel_reading = {'L':'-', 'T':'-'}
+			logger.debug('reelData,%s',reel_reading)
+
 			# Wait for user input
 			print 'Enter command:'
 			user_in = raw_input()
@@ -162,10 +186,30 @@ if __name__ == '__main__':
 				prev_command = 'Command UAV to listen to commands\n'
 				uav_listening = True
 
+			elif user_in == 'rhalt':
+				invalid_input = False
+				logger.info('Commanding reel to halt\n')
+				commands_to_reel.put({'cmd':'halt'})
+
+			elif user_in == 'rsethome':
+				invalid_input = False
+				logger.info('Commanding reel to reset home to this position\n')
+				commands_to_reel.put({'cmd':'rehome'})
+
+			elif user_in.startswith('rsetlength'):
+				invalid_input = False
+				try: 
+					L = float(user_in.split(" ")[-1])
+					logger.info('Setting reel length to %0.01f meters\n' %(L))
+	        commands_to_reel.put({"cmd":"goto", "L":L})
+        except:
+        	logger.info('Invalid length. Usage: "rsetlength <length in m>"')
+
 			elif not uav_listening:
 				# UAV not listening and input is something other than 'listen'
 				invalid_input = False
 				logger.info(listening_err_str)
+
 			else:
 				# UAV is listening
 				if user_in == 'arm':
@@ -213,6 +257,8 @@ if __name__ == '__main__':
 								logger.info('Commanding UAV to waypoint %s\n' %(user_in))
 								prev_command = 'Command UAV to waypoint %s\n' %(user_in)
 								gcs.parameters['PIVOT_TURN_ANGLE'] = user_in
+								# Command reel to desired length based on current waypoint
+								#commands_to_reel.put({"cmd":"goto", "L":L})
 							else:
 								print listening_err_str
 					except ValueError:
@@ -236,5 +282,9 @@ if __name__ == '__main__':
 	# Disarm and close GCS object before exiting script
 	disarm_vehicle(gcs,'GCS')
 	gcs.close()
+
+	# Shutdown reel controller
+	commands_to_reel.put({'cmd':'exit'})
+	reel.join()
 
 	print('GCS program completed\n')
