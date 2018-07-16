@@ -6,7 +6,7 @@ from inspect import getsourcefile
 import os.path as path, sys
 current_dir = path.dirname(path.abspath(getsourcefile(lambda:0)))
 sys.path.insert(0, current_dir[:current_dir.rfind(path.sep)])
-import mission_rot
+import mission
 import rotate_mission
 from helper_functions import arm_vehicle, condition_yaw, disarm_vehicle, emergency_stop, get_bearing, get_distance_metres, get_home_location, get_location_metres, goto, goto_position_target_local_ned, goto_reference, land, send_global_velocity, send_ned_velocity, set_roi, takeoff
 sys.path.pop(0)
@@ -183,9 +183,9 @@ class DroneCommanderNode(object):
 						logger.info('Tracking waypoint %d',current_wp)
 						refLoc = gcs.location.global_frame
 						logger.debug('refLocNav,%s',refLoc)
-						dNorth = wp_N[current_wp]
-						dEast = wp_E[current_wp]
-						dDown = wp_D[current_wp]
+						dNorth = uav_mission[0][current_wp]
+						dEast = uav_mission[1][current_wp]
+						dDown = uav_mission[2][current_wp]
 						# Calculate desired location for logging purposes only. Actual desired location is calculated within the goto_reference function.
 						desLoc = get_location_metres(refLoc, dNorth, dEast)
 						desLoc.alt = refLoc.alt - dDown
@@ -264,11 +264,9 @@ if __name__ == '__main__':
 	# gcs_connect_path = '/dev/radioacl33' # Use after configuring symbolic link through udevadm
 	# gcs_baud = 57600
 
-	# Extract mission information
-	wp_N = mission_rot.wp_N
-	wp_E = mission_rot.wp_E
-	wp_D = mission_rot.wp_D
-	num_wp = mission_rot.num_wp[0]
+	# Extract mission information and create local mission
+	uav_mission = [mission.wp_N, mission.wp_E, mission.wp_D]
+	num_wp = mission.num_wp[0]
 
 	#-----------------------------------------------------------------------------
 	#
@@ -388,7 +386,7 @@ if __name__ == '__main__':
 	# Listener for change in PIVOT_TURN_RATE, change is degree to rotate mission
 	@gcs.parameters.on_attribute('PIVOT_TURN_RATE')
 	def UAV_parameter_callback(self, attr_name, rotate_param):
-		rotate_mission(rotate_param)
+		uav_mission = rotate_mission.calculate_new_coords(rotate_param, uav_mission)
 		gcs.parameters['ACRO_TURN_RATE'] = 355
 
 	# @uav.on_message('*')
