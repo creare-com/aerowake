@@ -7,7 +7,6 @@ sys.path.append('../')
 # Required for messaging the drone
 from dronekit import connect
 from helper_functions import arm_vehicle, disarm_vehicle
-import mission_rot
 import rotate_mission
 import mission
 
@@ -33,7 +32,7 @@ else:
 	#gcs_baud = 57600 # For laptop USB
 
 # Determine number of waypoints
-num_wp = mission_rot.num_wp[0]
+num_wp = mission.num_wp[0]
 
 # Define a string that will print to show allowed user input
 str_allowed_input = '\n\nAllowed input:\n -\n  Kill UAV motors when input starts with minus sign\n listen\n  Tell UAV to start listening to commands\n arm\n  Command UAV to arm throttle\n disarm\n  Command UAV to disarm throttle\n takeoff\n  Command UAV to takeoff to 10 m\n Waypoint Number (0-%d)\n  Navigate to designated waypoint\n clear\n  Clear current waypoint\n land\n  Command UAV to land\n help\n  Show this list of allowed inputs\n quit\n  Terminate program\n rotate (0-359)\n Rotates mission by inputed degrees\n\n' %(num_wp - 1)
@@ -119,6 +118,9 @@ if __name__ == '__main__':
 		elif UAV_param == 356:
 			# land
 			logger.info('UAV receieved command to land.\n')
+		elif UAV_param == 355:
+			#rotate
+			logger.info('UAV received command to rotate.\n')
 		else:
 			# commanding waypoint
 			logger.info('UAV received command to go to waypoint %d.\n', UAV_param)
@@ -139,6 +141,9 @@ if __name__ == '__main__':
 	# Set initial UAV Value.  For safety, the UAV should start and end on this value.  This value tells the GCS what command it is currently following.
 	gcs.parameters['ACRO_TURN_RATE'] = 100
 
+	# Set initial heading to be 0.  Both GCS and UAV will start with this value, can be changed with the rotate commandself.
+	gcs.parameters['PIVOT_TURN_RATE'] = 0
+
 	'''
 	This while loop waits for user input, and then commands the UAV to perform some action. The command is sent by setting a parameter on the GCS. The UAV is constantly reading this parameter and acting according to its value. The parameter PIVOT_TURN_ANGLE accepts values from 0 - 359, inclusive, and has no effect on GCS performance.
 
@@ -152,6 +157,7 @@ if __name__ == '__main__':
 		358     UAV will disarm
 		357     UAV will takeoff to a pre-programmed height and relative position
 		356     UAV will land according to its landing protocol
+		355		UAV will rotate to heading given by parameter PIVOT_TURN_RATE
 		0+      UAV will navigate to the waypoint at the index specified
 						The acceptable waypoint indices are 0 through num_wp - 1
 
@@ -242,6 +248,16 @@ if __name__ == '__main__':
 					gcs.parameters['PIVOT_TURN_ANGLE'] = 102
 					logger.info('Commanding UAV to clear the current waypoint\n')
 					prev_command_gcs = 'Command UAV to clear the current waypoint\n'
+				elif "rotate" in user_in:
+					invalid_input = False
+					#instruct UAV and GCS to rotate mission to given heading
+					heading = user_in[6:len(user_in)]
+					rotate_mission(heading)
+					logger.info('Commanding GCS to rotate heading to %s\n' %(heading))
+					gcs.parameters['PIVOT_TURN_ANGLE'] = 355
+					gcs.parameters['PIVOT_TURN_RATE'] = heading
+					logger.info('Commanding UAV to rotate heading to %s\n' %(heading))
+					prev_command_gcs = 'Command UAV to roate heading to %s\n' %(heading)
 
 				else:
 					try:
