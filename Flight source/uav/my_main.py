@@ -389,6 +389,7 @@ if __name__ == '__main__':
 	@gcs.parameters.on_attribute('PIVOT_TURN_RATE')
 	def UAV_parameter_callback(self, attr_name, rotate_param):
 		rotate_mission(rotate_param)
+		gcs.parameters['ACRO_TURN_RATE'] = 355
 
 	# @uav.on_message('*')
 	# def any_message_listener(self, name, message):
