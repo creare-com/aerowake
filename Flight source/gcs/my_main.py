@@ -34,8 +34,11 @@ else:
 # Determine number of waypoints
 num_wp = mission.num_wp[0]
 
+# Define local mission
+gcs_mission = [mission.wp_N, mission.wp_E, mission.wp_D]
+
 # Define a string that will print to show allowed user input
-str_allowed_input = '\n\nAllowed input:\n -\n  Kill UAV motors when input starts with minus sign\n listen\n  Tell UAV to start listening to commands\n arm\n  Command UAV to arm throttle\n disarm\n  Command UAV to disarm throttle\n takeoff\n  Command UAV to takeoff to 10 m\n Waypoint Number (0-%d)\n  Navigate to designated waypoint\n clear\n  Clear current waypoint\n land\n  Command UAV to land\n help\n  Show this list of allowed inputs\n quit\n  Terminate program\n rotate (0-359)\n Rotates mission by inputed degrees\n\n' %(num_wp - 1)
+str_allowed_input = '\n\nAllowed input:\n -\n  Kill UAV motors when input starts with minus sign\n listen\n  Tell UAV to start listening to commands\n arm\n  Command UAV to arm throttle\n disarm\n  Command UAV to disarm throttle\n takeoff\n  Command UAV to takeoff to 10 m\n Waypoint Number (0-%d)\n  Navigate to designated waypoint\n clear\n  Clear current waypoint\n land\n  Command UAV to land\n help\n  Show this list of allowed inputs\n quit\n  Terminate program\n rotate 0-359\n  Rotates mission by inputed degrees\n\n' %(num_wp - 1)
 
 listening_err_str = 'First use listen command to tell UAV to listen.\n'
 
@@ -141,7 +144,7 @@ if __name__ == '__main__':
 	# Set initial UAV Value.  For safety, the UAV should start and end on this value.  This value tells the GCS what command it is currently following.
 	gcs.parameters['ACRO_TURN_RATE'] = 100
 
-	# Set initial heading to be 0.  Both GCS and UAV will start with this value, can be changed with the rotate commandself.
+	# Set initial bearing to be 0.  Both GCS and UAV will start with this value, can be changed with the rotate commandself.
 	gcs.parameters['PIVOT_TURN_RATE'] = 0
 
 	'''
@@ -157,7 +160,7 @@ if __name__ == '__main__':
 		358     UAV will disarm
 		357     UAV will takeoff to a pre-programmed height and relative position
 		356     UAV will land according to its landing protocol
-		355		UAV will rotate to heading given by parameter PIVOT_TURN_RATE
+		355		UAV will rotate to bearing given by parameter PIVOT_TURN_RATE
 		0+      UAV will navigate to the waypoint at the index specified
 						The acceptable waypoint indices are 0 through num_wp - 1
 
@@ -250,14 +253,14 @@ if __name__ == '__main__':
 					prev_command_gcs = 'Command UAV to clear the current waypoint\n'
 				elif "rotate" in user_in:
 					invalid_input = False
-					#instruct UAV and GCS to rotate mission to given heading
-					heading = user_in[6:len(user_in)]
-					rotate_mission(heading)
-					logger.info('Commanding GCS to rotate heading to %s\n' %(heading))
+					#instruct UAV and GCS to rotate mission to given bearing
+					bearing = user_in[6:len(user_in)]
+					gcs_mission = rotate_mission.calculate_new_coords(bearing, gcs_mission)
+					logger.info('Commanding GCS to rotate bearing to %s\n' %(bearing))
 					gcs.parameters['PIVOT_TURN_ANGLE'] = 355
-					gcs.parameters['PIVOT_TURN_RATE'] = heading
-					logger.info('Commanding UAV to rotate heading to %s\n' %(heading))
-					prev_command_gcs = 'Command UAV to roate heading to %s\n' %(heading)
+					gcs.parameters['PIVOT_TURN_RATE'] = bearing
+					logger.info('Commanding UAV to rotate bearing to %s\n' %(bearing))
+					prev_command_gcs = 'Command UAV to rotate bearing to %s\n' %(bearing)
 
 				else:
 					try:
