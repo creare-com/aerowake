@@ -148,6 +148,11 @@ class DroneCommanderNode(object):
 					logger.info('Got land command')
 					command = param
 					gcs.parameters['ACRO_TURN_RATE'] = 356
+				elif param == 355 and not command == 355:
+					logger.info('Got rotate command')
+					command = param
+					gcs.parameters['ACRO_TURN_RATE'] = 355
+					print(gcs.parameters['ACRO_TURN_RATE'])
 				elif param < num_wp:
 					# NOTE: GCS will not allow a non-existent index to be passed. The handling of incorrect indices is included in the conditional above as a redundant safety feature.
 					if not command == param:
@@ -385,8 +390,8 @@ if __name__ == '__main__':
 
 	# Listener for change in PIVOT_TURN_RATE, change is degree to rotate mission
 	@gcs.parameters.on_attribute('PIVOT_TURN_RATE')
-	def UAV_parameter_callback(self, attr_name, rotate_param):
-		uav_mission = rotate_mission.calculate_new_coords(rotate_param, uav_mission)
+	def UAV_parameter_callback(self, attr_name, bearing):
+		new_mission = rotate_mission.calculate_new_coords(bearing, uav_mission)
 		gcs.parameters['ACRO_TURN_RATE'] = 355
 
 	# @uav.on_message('*')
