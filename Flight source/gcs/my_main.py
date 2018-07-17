@@ -258,7 +258,7 @@ if __name__ == '__main__':
 					gcs_mission = rotate_mission.calculate_new_coords(bearing, gcs_mission)
 					logger.info('Commanding GCS to rotate bearing to %s\n' %(bearing))
 					gcs.parameters['PIVOT_TURN_ANGLE'] = 355
-					gcs.parameters['PIVOT_TURN_RATE'] = bearing
+					gcs.parameters['PIVOT_TURN_RATE'] = int(bearing)
 					logger.info('Commanding UAV to rotate bearing to %s\n' %(bearing))
 					prev_command_gcs = 'Command UAV to rotate bearing to %s\n' %(bearing)
 
