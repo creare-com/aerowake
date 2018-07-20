@@ -5,25 +5,22 @@ The mission is specified in Cartesian coordinates with respect to a North-East-D
 
 The convention is as follows:
 	- origin at GCS GPS module
-	- x coordinate goes East
-	- y coordinate goes North
-	- z coordinate goes Down 
 
 NOTE: z cooresponds to down, which means a value of z = -10 indicates that the UAV should fly 10 meters above the GCS altitude.
+
+NOTE: Takeoff and land are not seen as waypoints
 '''
 
-# Mission 0: Takeoff to 3 m altitude, move 2 m towards gcs, return to landing spot, land
-# Note: Takeoff and land are not seen as waypoints
-wp_N = [20, 20, 15, 15, 15, 20]
-wp_E = [ 0,  5,  5,  0, -5, -5]
-wp_D = [-5, -5, -5, -5, -5, -5]
+wp_N = [ 1,  1,  1]
+wp_E = [ 0,  1,  0]
+wp_D = [-1, -1, -1]
 num_wp = [len(wp_N)]
 
 # # Mission 1: Back and forth on east-to-west line at 10 m alt
-# wp_N = [ 20,  20,  20,  20,  20]
-# wp_E = [  0,  10,   0, -10,   0]
-# wp_D = [-10, -10, -10, -10, -10]
-# num_wp = [len(wp_N)]
+#wp_N = [ 20,  20,  20,  20,  20]
+#wp_E = [  0,  10,   0, -10,   0]
+#wp_D = [-10, -10, -10, -10, -10]
+#num_wp = [len(wp_N)]
 
 # # Mission 2: Back and forth on east-to-west line at 1 m alt
 # wp_N = [20, 20, 20,  20, 20]

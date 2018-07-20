@@ -6,7 +6,8 @@ from inspect import getsourcefile
 import os.path as path, sys
 current_dir = path.dirname(path.abspath(getsourcefile(lambda:0)))
 sys.path.insert(0, current_dir[:current_dir.rfind(path.sep)])
-import mission_rot
+import mission
+import rotate_mission
 from helper_functions import arm_vehicle, condition_yaw, disarm_vehicle, emergency_stop, get_bearing, get_distance_metres, get_home_location, get_location_metres, goto, goto_position_target_local_ned, goto_reference, land, send_global_velocity, send_ned_velocity, set_roi, takeoff
 sys.path.pop(0)
 
@@ -31,13 +32,13 @@ import os.path
 
 class DroneCommanderNode(object):
 	'''
-	This class will connect to the Pixhawks on the GCS and UAV. It will then generate MAVLink commands to send to the UAV Pixhawk that will control the UAV. 
+	This class will connect to the Pixhawks on the GCS and UAV. It will then generate MAVLink commands to send to the UAV Pixhawk that will control the UAV.
 
-	Most commands are generated based upon what the GCS tells the UAV to do. The UAV reads a GCS parameter, the value of which corresponds to a particular action. 
+	Most commands are generated based upon what the GCS tells the UAV to do. The UAV reads a GCS parameter, the value of which corresponds to a particular action.
 
-	The UAV also obtains commands from the /yaw_deg ROS topic. This topic contains an integer (Int16) value in degrees corresponding to the desired yaw of the UAV. A positive value indicates CCW yaw of the specified magnitude, while a negative value indicates CW yaw. 
+	The UAV also obtains commands from the /yaw_deg ROS topic. This topic contains an integer (Int16) value in degrees corresponding to the desired yaw of the UAV. A positive value indicates CCW yaw of the specified magnitude, while a negative value indicates CW yaw.
 	'''
-	
+
 	def __init__(self,uav_handle,gcs_handle,logger_name):
 		# Initialize private variables
 		self.__yaw_cmd = 0 # [deg]
@@ -49,6 +50,11 @@ class DroneCommanderNode(object):
 
 		# Subscribe to topic that reports yaw commands
 		self.sub_yaw_deg = rospy.Subscriber("yaw_deg",Int16,self.cbYawDeg)
+
+		# Extract mission and create a defined local mission
+		uav_mission = [mission.wp_N, mission.wp_E, mission.wp_D]
+		num_wp = mission.num_wp[0]
+		bearing = 0
 
 		#---------------------------------------------------------------------------
 		#
@@ -82,8 +88,11 @@ class DroneCommanderNode(object):
 		# Ensure that at startup the UAV will not be tracking any waypoint
 		current_wp = None
 
-		# Ensure that at startup the UAV will not be listening 
+		# Ensure that at startup the UAV will not be listening
 		gcs.parameters['PIVOT_TURN_ANGLE'] = 100
+
+		# We start with a 0 roation on the mission to match what we have on the gcs
+		gcs.parameters['PIVOT_TURN_RATE'] = 0
 
 		# Set UAV acceleration limit and groundspeed
 		uav.parameters['WPNAV_ACCEL'] = 75 # 50-500 [cm/s/s]
@@ -106,9 +115,9 @@ class DroneCommanderNode(object):
 			logger.debug('uavLoc,%s', uav.location.global_frame)
 
 			'''
-			The variable 'command' is what controls the drone. It is only updated when a valid and non-repeated param value is set. This ensures that the UAV does not continue commanding the same thing over and over. 
+			The variable 'command' is what controls the drone. It is only updated when a valid and non-repeated param value is set. This ensures that the UAV does not continue commanding the same thing over and over.
 
-			The 'command' variable can only be set while 'listening' is True. If the UAV is not listening to the GCS, then it will follow the most recent 'command' variable. 
+			The 'command' variable can only be set while 'listening' is True. If the UAV is not listening to the GCS, then it will follow the most recent 'command' variable.
 
 			It is occasionally desireable for waypoint commands to be repeated, so waypoint commands are handled later on in the code.
 
@@ -144,8 +153,12 @@ class DroneCommanderNode(object):
 					logger.info('Got land command')
 					command = param
 					gcs.parameters['ACRO_TURN_RATE'] = 356
+				elif param == 355 and not command == 355:
+					logger.info('Got rotate command')
+					command = param
+					gcs.parameters['ACRO_TURN_RATE'] = 355
 				elif param < num_wp:
-					# NOTE: GCS will not allow a non-existent index to be passed. The handling of incorrect indices is included in the conditional above as a redundant safety feature. 
+					# NOTE: GCS will not allow a non-existent index to be passed. The handling of incorrect indices is included in the conditional above as a redundant safety feature.
 					if not command == param:
 						logger.info('Got navigate to waypoint %d command',param)
 						command = param
@@ -158,7 +171,7 @@ class DroneCommanderNode(object):
 					listening = True
 					gcs.parameters['ACRO_TURN_RATE'] = 101
 
-			# Do the action that corresponds to the current value of 'command'		
+			# Do the action that corresponds to the current value of 'command'
 			if command == 103 and uav.armed:
 				logger.info('Killing UAV motors')
 				emergency_stop(uav,'UAV')
@@ -174,15 +187,25 @@ class DroneCommanderNode(object):
 					logger.info('Landing')
 					land(uav,'UAV')
 					in_the_air = False
+				if command == 355:
+					new_bearing = gcs.parameters['PIVOT_TURN_RATE']
+					if new_bearing - bearing < 0:
+						rotation = 360 + new_bearing - bearing
+					else:
+						rotation = new_bearing - bearing
+					uav_mission = rotate_mission.calculate_new_coords(rotation, uav_mission)
+					bearing = new_bearing
+					command = current_wp
+					gcs.parameters['PIVOT_TURN_ANGLE'] = current_wp
 				else:
 					if not current_wp is None:
 						logger.info('Tracking waypoint %d',current_wp)
 						refLoc = gcs.location.global_frame
 						logger.debug('refLocNav,%s',refLoc)
-						dNorth = wp_N[current_wp]
-						dEast = wp_E[current_wp]
-						dDown = wp_D[current_wp]
-						# Calculate desired location for logging purposes only. Actual desired location is calculated within the goto_reference function. 
+						dNorth = uav_mission[0][current_wp]
+						dEast = uav_mission[1][current_wp]
+						dDown = uav_mission[2][current_wp]
+						# Calculate desired location for logging purposes only. Actual desired location is calculated within the goto_reference function.
 						desLoc = get_location_metres(refLoc, dNorth, dEast)
 						desLoc.alt = refLoc.alt - dDown
 						logger.debug('desLoc,%s',desLoc)
@@ -260,12 +283,6 @@ if __name__ == '__main__':
 	# gcs_connect_path = '/dev/radioacl33' # Use after configuring symbolic link through udevadm
 	# gcs_baud = 57600
 
-	# Extract mission information
-	wp_N = mission_rot.wp_N
-	wp_E = mission_rot.wp_E
-	wp_D = mission_rot.wp_D
-	num_wp = mission_rot.num_wp[0]
-
 	#-----------------------------------------------------------------------------
 	#
 	# Start ROS Node
@@ -300,7 +317,7 @@ if __name__ == '__main__':
 		except Exception as e:
 			logger.critical('UAV failed to connect with message: %s' %(e.message))
 			break
-	
+
 	logger.info('UAV pixhawk connected to UAV')
 
 	if(uav.parameters['ARMING_CHECK'] != 1):
@@ -315,7 +332,7 @@ if __name__ == '__main__':
 		except Exception as e:
 			logger.critical('GCS failed to connect with message: %s' %(e.message))
 			break
-	
+
 	logger.info('GCS pixhawk connected to UAV')
 
 	#------------------------------------
@@ -327,7 +344,7 @@ if __name__ == '__main__':
 		logger.debug('gcsGPSTIME,%s' %msg)
 
 	timed_out_gcs = False
-	@gcs.on_attribute('last_heartbeat')   
+	@gcs.on_attribute('last_heartbeat')
 	def gcs_last_heartbeat_listener(self, attr_name, value):
 		if(attr_name is 'last_heartbeat'):
 			global timed_out_gcs
@@ -350,7 +367,7 @@ if __name__ == '__main__':
 			logger.info('UAV got GPS lock at ODROID time of: %s', gps_lock_odroid_time)
 
 	timed_out_uav = False
-	@uav.on_attribute('last_heartbeat')   
+	@uav.on_attribute('last_heartbeat')
 	def uav_last_heartbeat_listener(self, attr_name, value):
 		if(attr_name is 'last_heartbeat'):
 			global timed_out_uav
@@ -383,7 +400,7 @@ if __name__ == '__main__':
 
 	# @uav.on_message('*')
 	# def any_message_listener(self, name, message):
-	# 	# Comment out this listener before flight or file created will be enormous. 
+	# 	# Comment out this listener before flight or file created will be enormous.
 	# 	logger.info('fromUAV: %s :: %s',name,message)
 
 	logger.info('------------------SYSTEM IS READY!!------------------')
@@ -391,7 +408,7 @@ if __name__ == '__main__':
 
 	# Initialize the node
 	rospy.init_node('flight_companion_node')
-	
+
 	# Create the drone command node
 	node = DroneCommanderNode(uav,gcs,logger_name)
 
