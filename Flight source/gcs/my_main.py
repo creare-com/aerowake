@@ -8,7 +8,7 @@ sys.path.append('../')
 from dronekit import connect
 from helper_functions import arm_vehicle, disarm_vehicle
 import rotate_mission
-import mission
+import mission_rot
 
 # Required for logging
 import logging
@@ -38,10 +38,10 @@ else:
 	#gcs_baud = 57600 # For laptop USB
 
 # Determine number of waypoints
-num_wp = mission.num_wp[0]
+num_wp = mission_rot.num_wp[0]
 
 # Define local mission
-gcs_mission = [mission.wp_N, mission.wp_E, mission.wp_D]
+gcs_mission = [mission_rot.wp_N, mission_rot.wp_E, mission_rot.wp_D]
 
 # Define a string that will print to show allowed user input
 str_allowed_input = '\n\nAllowed input:\n -\n  Kill UAV motors when input starts with minus sign\n listen\n  Tell UAV to start listening to commands\n arm\n  Command UAV to arm throttle\n disarm\n  Command UAV to disarm throttle\n takeoff\n  Command UAV to takeoff to 10 m\n Waypoint Number (0-%d)\n  Navigate to designated waypoint\n clear\n  Clear current waypoint\n land\n  Command UAV to land\n help\n  Show this list of allowed inputs\n quit\n  Terminate program\n rotate 0-359\n  Rotates mission by inputed degrees\n rsethome\n  Set current reel position to home\n rsetlength <L in m>\n  Set reel to specified length in meters\n rhalt\n  Halt reel\n rgetdata\n  Report tether length and tension\n help\n  Show this list of allowed inputs\n quit\n  Terminate program\n\n' %(num_wp - 1)
@@ -74,8 +74,8 @@ if __name__ == '__main__':
 	logger = logging.getLogger('gcs_logger')
 	logger.setLevel(logging.DEBUG)
 	# Create file handler that sends all logger messages (DEBUG and above) to file
-	fh = logging.FileHandler('%s/logs/aerowake-logs/gcs-%s.log' %(os.path.expanduser('~'),time.strftime('%m-%d-%Hh-%Mm-%Ss', time.localtime())))
-	print 'Logging to %s/logs/aerowake-logs/gcs-%s.log' %(os.path.expanduser('~'),time.strftime('%m-%d-%Hh-%Mm-%Ss', time.localtime()))
+	fh = logging.FileHandler('%s/logs/gcs-logs/gcs-%s.log' %(os.path.expanduser('~'),time.strftime('%m-%d-%Hh-%Mm-%Ss', time.localtime())))
+	print 'Logging to %s/logs/gcs-logs/gcs-%s.log' %(os.path.expanduser('~'),time.strftime('%m-%d-%Hh-%Mm-%Ss', time.localtime()))
 	fh.setLevel(logging.DEBUG)
 	# Create console handler that sends some messages (INFO and above) to screen
 	ch = logging.StreamHandler(sys.stdout)
@@ -303,7 +303,7 @@ if __name__ == '__main__':
 					gcs.parameters['PIVOT_TURN_ANGLE'] = 357
 					logger.info('Commanding UAV to Takeoff\n')
 					# Note: Takeoff altitude is hardcoded in helper_functions.py
-					commands_to_reel.put({"cmd":"goto", "L":1*1.15})
+					commands_to_reel.put({"cmd":"goto", "L":5*1.15})
 					prev_command_gcs = 'Command UAV to Takeoff\n'
 
 				elif user_in == 'land':
