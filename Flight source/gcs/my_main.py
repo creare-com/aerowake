@@ -224,6 +224,10 @@ if __name__ == '__main__':
 					logger.info('Commanding UAV to Arm\n')
 					prev_command_gcs = 'Command UAV to Arm\n'
 
+				### TEST IF STATEMENT, CAN BE DELETED ###	
+				elif user_in == 'bearing':
+					print gcs.parameters['PIVOT_TURN_RATE']
+
 				elif user_in == 'disarm':
 					invalid_input = False
 					# UAV knows that 358 means disarm
