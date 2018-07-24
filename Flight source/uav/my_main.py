@@ -51,6 +51,10 @@ class DroneCommanderNode(object):
 		# Subscribe to topic that reports yaw commands
 		self.sub_yaw_deg = rospy.Subscriber("yaw_deg",Int16,self.cbYawDeg)
 
+		# Extract mission and create a defined local mission
+		uav_mission = [mission.wp_N, mission.wp_E, mission.wp_D]
+		num_wp = mission.num_wp[0]
+
 		#---------------------------------------------------------------------------
 		#
 		# Control Code
@@ -152,7 +156,8 @@ class DroneCommanderNode(object):
 					logger.info('Got rotate command')
 					command = param
 					gcs.parameters['ACRO_TURN_RATE'] = 355
-					print(gcs.parameters['ACRO_TURN_RATE'])
+					uav_mission = rotate_mission.calculate_new_coords(gcs.parameters['PIVOT_TURN_RATE'], uav_mission)
+
 				elif param < num_wp:
 					# NOTE: GCS will not allow a non-existent index to be passed. The handling of incorrect indices is included in the conditional above as a redundant safety feature.
 					if not command == param:
@@ -269,10 +274,6 @@ if __name__ == '__main__':
 	# gcs_connect_path = '/dev/radioacl33' # Use after configuring symbolic link through udevadm
 	# gcs_baud = 57600
 
-	# Extract mission information and create local mission
-	uav_mission = [mission.wp_N, mission.wp_E, mission.wp_D]
-	num_wp = mission.num_wp[0]
-
 	#-----------------------------------------------------------------------------
 	#
 	# Start ROS Node
@@ -387,12 +388,6 @@ if __name__ == '__main__':
 	@uav.on_message('LOCAL_POSITION_NED')
 	def local_position_NED_callback(self,attr_name, msg):
 		logger.debug('localPosNED,%s' %msg)
-
-	# Listener for change in PIVOT_TURN_RATE, change is degree to rotate mission
-	@gcs.parameters.on_attribute('PIVOT_TURN_RATE')
-	def UAV_parameter_callback(self, attr_name, bearing):
-		new_mission = rotate_mission.calculate_new_coords(bearing, uav_mission)
-		gcs.parameters['ACRO_TURN_RATE'] = 355
 
 	# @uav.on_message('*')
 	# def any_message_listener(self, name, message):
