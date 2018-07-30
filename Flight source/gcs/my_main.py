@@ -145,6 +145,7 @@ if __name__ == '__main__':
 	gcs.parameters['ACRO_TURN_RATE'] = 100
 
 	# Set initial bearing to be 0.  Both GCS and UAV will start with this value, can be changed with the rotate commandself.
+	bearing = 0
 	gcs.parameters['PIVOT_TURN_RATE'] = 0
 
 	'''
@@ -258,8 +259,13 @@ if __name__ == '__main__':
 				elif "rotate" in user_in:
 					invalid_input = False
 					#instruct UAV and GCS to rotate mission to given bearing
-					bearing = user_in[6:len(user_in)]
-					gcs_mission = rotate_mission.calculate_new_coords(bearing, gcs_mission)
+					new_bearing = int(user_in[6:len(user_in)])
+					if new_bearing - bearing < 0:
+						rotation = 360 + new_bearing - bearing
+					else:
+						rotation = new_bearing - bearing
+					gcs_mission = rotate_mission.calculate_new_coords(rotation, gcs_mission)
+					bearing = new_bearing
 					logger.info('Commanding GCS to rotate bearing to %s\n' %(bearing))
 					gcs.parameters['PIVOT_TURN_ANGLE'] = 355
 					gcs.parameters['PIVOT_TURN_RATE'] = int(bearing)
