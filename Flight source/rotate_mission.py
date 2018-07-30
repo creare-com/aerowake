@@ -47,7 +47,8 @@ def calculate_new_coords(brg,orig_coords):
 	# Check bearing given and convert to radians
 	brg = float(brg)
 	if brg < 0 or brg > 360.0:
-		raise ValueError('Bearing must be between 0 and 360 degrees.')
+		print 'Bearing must be between 0 and 360 degrees.'
+		return orig_coords
 	brg = brg*np.pi/180
 
 	# Create rotation matrix
