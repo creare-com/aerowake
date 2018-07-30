@@ -54,6 +54,7 @@ class DroneCommanderNode(object):
 		# Extract mission and create a defined local mission
 		uav_mission = [mission.wp_N, mission.wp_E, mission.wp_D]
 		num_wp = mission.num_wp[0]
+		bearing = 0
 
 		#---------------------------------------------------------------------------
 		#
@@ -156,7 +157,7 @@ class DroneCommanderNode(object):
 					logger.info('Got rotate command')
 					command = param
 					gcs.parameters['ACRO_TURN_RATE'] = 355
-					uav_mission = rotate_mission.calculate_new_coords(gcs.parameters['PIVOT_TURN_RATE'], uav_mission)
+
 
 				elif param < num_wp:
 					# NOTE: GCS will not allow a non-existent index to be passed. The handling of incorrect indices is included in the conditional above as a redundant safety feature.
@@ -188,6 +189,16 @@ class DroneCommanderNode(object):
 					logger.info('Landing')
 					land(uav,'UAV')
 					in_the_air = False
+				if command == 355:
+					new_bearing = gcs.parameters['PIVOT_TURN_RATE']
+					if new_bearing - bearing < 0:
+						rotation = 360 + new_bearing - bearing
+					else:
+						rotation = new_bearing - bearing
+					uav_mission = rotate_mission.calculate_new_coords(rotation, uav_mission)
+					bearing = new_bearing
+					command = current_wp
+					gcs.parameters['PIVOT_TURN_ANGLE'] = current_wp
 				else:
 					if not current_wp is None:
 						logger.info('Tracking waypoint %d',current_wp)
