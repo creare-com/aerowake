@@ -1,6 +1,6 @@
 # This mission file created using rotate_mission.py, a part of the Creare AeroWake project.
 
-wp_N = [-14.14214, -21.2132, -14.14214, -7.07107, -14.14214]
-wp_E = [14.14214, 7.07107, 14.14214, 21.2132, 14.14214]
-wp_D = [-10, -10, -10, -10, -10]
+wp_N = [1.0, 1.0, 1.0]
+wp_E = [0.0, 1.0, 0.0]
+wp_D = [-1, -1, -1]
 num_wp = [len(wp_N)]

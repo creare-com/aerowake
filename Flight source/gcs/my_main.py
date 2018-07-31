@@ -15,6 +15,12 @@ import logging
 import os.path
 import time
 
+# Required for reel control
+from multiprocessing import Queue
+from Queue import Empty
+from reel.reel import reel_run
+import math
+
 #-------------------------------------------------------------------------------
 #
 # Global Parameters and Constants
@@ -38,9 +44,23 @@ num_wp = mission.num_wp[0]
 gcs_mission = [mission.wp_N, mission.wp_E, mission.wp_D]
 
 # Define a string that will print to show allowed user input
-str_allowed_input = '\n\nAllowed input:\n -\n  Kill UAV motors when input starts with minus sign\n listen\n  Tell UAV to start listening to commands\n arm\n  Command UAV to arm throttle\n disarm\n  Command UAV to disarm throttle\n takeoff\n  Command UAV to takeoff to 10 m\n Waypoint Number (0-%d)\n  Navigate to designated waypoint\n clear\n  Clear current waypoint\n land\n  Command UAV to land\n help\n  Show this list of allowed inputs\n quit\n  Terminate program\n rotate 0-359\n  Rotates mission by inputed degrees\n\n' %(num_wp - 1)
+str_allowed_input = '\n\nAllowed input:\n -\n  Kill UAV motors when input starts with minus sign\n listen\n  Tell UAV to start listening to commands\n arm\n  Command UAV to arm throttle\n disarm\n  Command UAV to disarm throttle\n takeoff\n  Command UAV to takeoff to 10 m\n Waypoint Number (0-%d)\n  Navigate to designated waypoint\n clear\n  Clear current waypoint\n land\n  Command UAV to land\n help\n  Show this list of allowed inputs\n quit\n  Terminate program\n rotate 0-359\n  Rotates mission by inputed degrees\n rsethome\n  Set current reel position to home\n rsetlength <L in m>\n  Set reel to specified length in meters\n rhalt\n  Halt reel\n rgetdata\n  Report tether length and tension\n help\n  Show this list of allowed inputs\n quit\n  Terminate program\n\n' %(num_wp - 1)
 
 listening_err_str = 'First use listen command to tell UAV to listen.\n'
+
+# Reel function
+def get_reel_data():
+	'''
+	Returns the current length of the tether in meters as believed by the reel controller.
+	
+	Expected to return {"L": <length in meters as double>, "T": <tension in newtons as double>}
+	'''
+	try:
+		reel_reading = data_from_reel.get(False)
+	except Empty:
+		reel_reading = {'L':'-', 'T':'-'}
+	logger.debug('reelData,%s',reel_reading)
+	return reel_reading
 
 #-------------------------------------------------------------------------------
 #
@@ -95,6 +115,7 @@ if __name__ == '__main__':
 	def local_position_NED_callback(self,attr_name, msg):
 		logger.debug('localPosNED,%s' %msg)
 
+	# This callback listens for a change in the parameter set by the UAV, any change tells that the UAV received a command from the gcs
 	@gcs.parameters.on_attribute('ACRO_TURN_RATE')
 	def UAV_parameter_callback(self, attr_name, UAV_param):
 		if UAV_param == 103:
@@ -128,13 +149,24 @@ if __name__ == '__main__':
 			# commanding waypoint
 			logger.info('UAV received command to go to waypoint %d.\n', UAV_param)
 
-
 	#-----------------------------------------------------------------------------
 	#
 	# Control Code
 	#
 	#-----------------------------------------------------------------------------
 
+	# Start reel controller
+	commands_to_reel = Queue()
+	data_from_reel = Queue()
+	try:
+		reel = reel_run(commands_to_reel, data_from_reel)
+	except Exception:
+		logging.critical('Problem connecting to reel. Aborting.')
+		setup_abort("Reel System Failure")
+	reel.start()
+	# commands_to_reel.put({'cmd':'rehome'})
+
+	# Arm vehicle and print the allowed commands
 	#arm_vehicle(gcs,'GCS')
 	print str_allowed_input
 
@@ -174,6 +206,7 @@ if __name__ == '__main__':
 	uav_listening = False
 	prev_command_gcs = 'No previous command.\n'
 	prev_command_uav = 100
+
 	try:
 		while not user_in == 'quit':
 			# Wait for user input
@@ -211,11 +244,42 @@ if __name__ == '__main__':
 				prev_command_gcs = 'Command UAV to listen to commands\n'
 				uav_listening = True
 
+			elif user_in == 'rhalt':
+				invalid_input = False
+				logger.info('Commanding reel to halt')
+				commands_to_reel.put({'cmd':'halt'})
+				reel_data = get_reel_data()
+				logger.info(' Reel halting at: %s\n',reel_data['L'])
+
+			elif user_in == 'rsethome':
+				invalid_input = False
+				logger.info('Commanding reel to reset home to this position')
+				commands_to_reel.put({'cmd':'rehome'})
+				reel_data = get_reel_data()
+				logger.info(' Reel home set to: %s\n',reel_data)
+
+			elif user_in == 'rgetdata':
+				invalid_input = False
+				logger.info('Commanding reel to report data')
+				reel_data = get_reel_data()
+				logger.info(' Reel at: %s\n',reel_data)
+
+			elif user_in.startswith('rsetlength'):
+				invalid_input = False
+				try: 
+					L = float(user_in.split(" ")[-1])
+					logger.info('Setting reel length to %0.01f meters' %(L))
+					commands_to_reel.put({"cmd":"goto", "L":L})
+					reel_data = get_reel_data()
+					logger.info(' Reel length currently at: %s\n',reel_data['L'])
+				except:
+					logger.info(' Invalid length. Usage: "rsetlength <length in m>"\n')
+
 			elif not uav_listening:
 				# UAV not listening and input is something other than 'listen'
 				invalid_input = False
 				logger.info(listening_err_str)
-				continue
+
 			else:
 				# UAV is listening
 				if user_in == 'arm':
@@ -224,10 +288,6 @@ if __name__ == '__main__':
 					gcs.parameters['PIVOT_TURN_ANGLE'] = 359
 					logger.info('Commanding UAV to Arm\n')
 					prev_command_gcs = 'Command UAV to Arm\n'
-
-				### TEST IF STATEMENT, CAN BE DELETED ###	
-				elif user_in == 'bearing':
-					print gcs.parameters['PIVOT_TURN_RATE']
 
 				elif user_in == 'disarm':
 					invalid_input = False
@@ -241,6 +301,8 @@ if __name__ == '__main__':
 					# UAV knows that 357 means takeoff
 					gcs.parameters['PIVOT_TURN_ANGLE'] = 357
 					logger.info('Commanding UAV to Takeoff\n')
+					# Note: Takeoff altitude is hardcoded in helper_functions.py
+					commands_to_reel.put({"cmd":"goto", "L":1*1.15})
 					prev_command_gcs = 'Command UAV to Takeoff\n'
 
 				elif user_in == 'land':
@@ -256,6 +318,7 @@ if __name__ == '__main__':
 					gcs.parameters['PIVOT_TURN_ANGLE'] = 102
 					logger.info('Commanding UAV to clear the current waypoint\n')
 					prev_command_gcs = 'Command UAV to clear the current waypoint\n'
+
 				elif "rotate" in user_in:
 					invalid_input = False
 					#instruct UAV and GCS to rotate mission to given bearing
@@ -282,6 +345,15 @@ if __name__ == '__main__':
 								logger.info('Commanding UAV to waypoint %s\n' %(user_in))
 								prev_command_gcs = 'Command UAV to waypoint %s\n' %(user_in)
 								gcs.parameters['PIVOT_TURN_ANGLE'] = user_in
+								# Command reel to desired length based on current waypoint
+								dN = mission_rot.wp_N[user_in]
+								dE = mission_rot.wp_E[user_in]
+								dD = mission_rot.wp_D[user_in]
+								dist = math.sqrt((dN**2) + (dE**2) + (dD**2))
+								safety_factor = 1.15
+								logger.info('Commanding reel to a distance of %s meters', dist*safety_factor)
+								logger.info('(dN,dE, dD) = (%.01f,%.01f,%.01f)'%(dN,dE, dD))
+								commands_to_reel.put({"cmd":"goto", "L":dist*safety_factor})
 							else:
 								print listening_err_str
 					except ValueError:
@@ -291,9 +363,6 @@ if __name__ == '__main__':
 			if invalid_input:
 				logger.info('Invalid input. Type \'help\' for allowed commands.')
 				logger.info(' UAV is following previous command of: \n %s' %(prev_command_gcs))
-				# print str_allowed_input
-				continue
-
 
 	except KeyboardInterrupt:
 		logger.info('\nGot CTRL+C. Cleaning up and exiting.\n')
@@ -308,5 +377,9 @@ if __name__ == '__main__':
 	# Disarm and close GCS object before exiting script
 	disarm_vehicle(gcs,'GCS')
 	gcs.close()
+
+	# Shutdown reel controller
+	commands_to_reel.put({'cmd':'exit'})
+	reel.join()
 
 	print('GCS program completed\n')
