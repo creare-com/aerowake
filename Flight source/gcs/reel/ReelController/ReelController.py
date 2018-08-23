@@ -27,12 +27,12 @@ class ReelController:
         self._REELING_OUT_DECEL_RPMS = None # Decelerate quicker while reeling out to prevent letting the tether off the pulleys.  Set to None here to read it from the motor controller.
         self._REEL_MAX_VEL_RPM       = None #100 # Set as the max RPM - profile velocity will be limited to this value.  Set to None here to compute it based on the motor.
         self._MAX_RPM                = 60 # The highest RPM commanded by the tether speed equations
-        self._MIN_RPM                = 6  # The lowest  RPM commanded by the tether speed equations
+        self._MIN_RPM                = 24  # The lowest  RPM commanded by the tether speed equations, changed this value from 6 to 24 on 7/31/18 after flight test 1
         
         # Sensor settings
         self._N_PER_ADC_COUNT        = 0.0045203
-        self._SENSOR_BASELINE_COUNTS = 7848
-        self._SENSOR_DEADBAND_COUNTS = 500
+        self._SENSOR_BASELINE_COUNTS = 7848  # subtracting 77 7/31/18 to try to offset tension zero point
+        self._SENSOR_DEADBAND_COUNTS = 250 # Changed this value from 500 to 250 on 7/31/18 after flight test 1
         self._T_DEADBAND_N           = self._N_PER_ADC_COUNT * self._SENSOR_DEADBAND_COUNTS
 
         # Reel system settings
@@ -41,7 +41,7 @@ class ReelController:
         self._MIN_MPS                = self.tetherMpsFromReelRpm(self._MIN_RPM) # _MIN_RPM in mps
         self._L_MAX_SPEED_M          = 10 # length no longer limits reel speed beyond this range
         self._T_MAX_SPEED_N          = 5  # Above this many newtons of force, don't limit payout rate
-        self._KT_MPS_PER_N           =  self._L_MAX_SPEED_M / (self._T_MAX_SPEED_N - self._T_DEADBAND_N)
+        self._KT_MPS_PER_N           = (self._L_MAX_SPEED_M / (self._T_MAX_SPEED_N - self._T_DEADBAND_N)) * (3.6/2.6) # last multiplier is a workaround to keep preious gain, added on 7/31/18 after flight test 1
         self._KL_MPS_PER_M           = (self._MAX_MPS - self._MIN_MPS) / self._L_MAX_SPEED_M
         self._QC_PER_M               = self._QC_PER_TURN / (math.pi * self._reel_diam_m)
         self._home_pos_m             = 0
