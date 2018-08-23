@@ -75,6 +75,7 @@ if __name__ == '__main__':
 	logger.setLevel(logging.DEBUG)
 	# Create file handler that sends all logger messages (DEBUG and above) to file
 	fh = logging.FileHandler('%s/logs/aerowake-logs/gcs-%s.log' %(os.path.expanduser('~'),time.strftime('%m-%d-%Hh-%Mm-%Ss', time.localtime())))
+	print 'Logging to %s/logs/aerowake-logs/gcs-%s.log' %(os.path.expanduser('~'),time.strftime('%m-%d-%Hh-%Mm-%Ss', time.localtime()))
 	fh.setLevel(logging.DEBUG)
 	# Create console handler that sends some messages (INFO and above) to screen
 	ch = logging.StreamHandler(sys.stdout)
@@ -176,7 +177,7 @@ if __name__ == '__main__':
 	# Set initial UAV Value.  For safety, the UAV should start and end on this value.  This value tells the GCS what command it is currently following.
 	gcs.parameters['ACRO_TURN_RATE'] = 100
 
-	# Set initial bearing to be 0.  Both GCS and UAV will start with this value, can be changed with the rotate commandself.
+	# Set initial bearing to be 0.  Both GCS and UAV will start with this value, can be changed with the rotate command
 	bearing = 0
 	gcs.parameters['PIVOT_TURN_RATE'] = 0
 

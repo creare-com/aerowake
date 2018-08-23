@@ -41,12 +41,11 @@ class ReelController:
         self._MIN_MPS                = self.tetherMpsFromReelRpm(self._MIN_RPM) # _MIN_RPM in mps
         self._L_MAX_SPEED_M          = 10 # length no longer limits reel speed beyond this range
         self._T_MAX_SPEED_N          = 5  # Above this many newtons of force, don't limit payout rate
-        self._KT_MPS_PER_N           = (self._L_MAX_SPEED_M / (self._T_MAX_SPEED_N - self._T_DEADBAND_N)) * (3.6/2.6) # last multiplier is a workaround to keep preious gain, added on 7/31/18 after flight test 1
+        self._KT_MPS_PER_N           = (self._L_MAX_SPEED_M / (self._T_MAX_SPEED_N - self._T_DEADBAND_N)) * (3.6/2.6) # last multiplier is a workaround to keep preious gain, added on 7/31/18 after flight test
         self._KL_MPS_PER_M           = (self._MAX_MPS - self._MIN_MPS) / self._L_MAX_SPEED_M
         self._QC_PER_M               = self._QC_PER_TURN / (math.pi * self._reel_diam_m)
         self._home_pos_m             = 0
         
-        # For easier testing, create mock objects if the real ones fail.
         try:
             from TensionSensor import TensionSensor
             self._tension_sensor = TensionSensor(adc_per_ct=self._N_PER_ADC_COUNT, adc_baseline=self._SENSOR_BASELINE_COUNTS)

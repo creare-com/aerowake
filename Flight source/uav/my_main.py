@@ -157,8 +157,6 @@ class DroneCommanderNode(object):
 					logger.info('Got rotate command')
 					command = param
 					gcs.parameters['ACRO_TURN_RATE'] = 355
-
-
 				elif param < num_wp:
 					# NOTE: GCS will not allow a non-existent index to be passed. The handling of incorrect indices is included in the conditional above as a redundant safety feature.
 					if not command == param:
