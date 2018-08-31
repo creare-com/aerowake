@@ -130,7 +130,7 @@ if load_mission == 2:
 
 
 '''
-Mission 2: Mulit-alt arc of 10 waypoints at specified radius and alts. Altitude rises between 2 and 3, and falls between 7 and 8.
+Mission 3: Mulit-alt arc of 10 waypoints at specified radius and alts. Altitude rises between 2 and 3, and falls between 7 and 8.
 
           --0/5--            
     --6/9-   |   -1/4--       ^
