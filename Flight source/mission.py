@@ -2,12 +2,18 @@ import numpy as np
 from rotate_mission import rotate
 
 '''
+Usage:
+python mission.py
+
 The mission is specified in Cartesian coordinates with respect to a North-East-Down (NED) coordinate frame centered at the GCS. The rotate_mission.py script can be used to rotate the mission to a specified bearing. 
 
 The convention is as follows:
 	- origin at GCS GPS module
+  - North will be rotated to face aft
+  - East will be rotated to port
+  - Down will remain facing downwards
 
-NOTE: If a variable is called 'alt', 'altitude', or some similar variation, then you should enter the desired height above the ground station. HOWEVER, the third axis cooresponds to down, which means a value of wp_D = -10 indicates that the UAV should fly 10 meters ABOVE the GCS altitude. The final wp_D list should be entirely negative.
+NOTE: If a variable is called 'alt', 'altitude', or some similar variation, then you should enter the desired height above ground. HOWEVER, the third axis cooresponds to down, which means a value of wp_D = -10 indicates that the UAV should fly 10 meters ABOVE the GCS altitude. The final wp_D list in mission_rot.py should be entirely negative.
 
 NOTE: Takeoff and land are not waypoints.
 
