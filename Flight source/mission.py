@@ -1,4 +1,5 @@
 import numpy as np
+from rotate_mission import rotate
 
 '''
 The mission is specified in Cartesian coordinates with respect to a North-East-Down (NED) coordinate frame centered at the GCS. The rotate_mission.py script can be used to rotate the mission to a specified bearing. 
@@ -21,15 +22,43 @@ try:
   print mission_str
 
   load_mission = input("What mission do you want to fly? ")
-  radius       = input("What radius? [m] ")
-  alt_low      = input("What primary altitude? [m] ")
+  while load_mission not in [1, 2, 3]:
+    print "You must enter a valid mission number."
+    load_mission = input("What mission do you want to fly? ")
+
+  radius = input("What radius? [m] ")
+  while radius < 5:
+    print "Radius must be at least 5 meters."
+    radius = input("What radius? [m] ")
+
+  alt_1 = input("What primary altitude? [m] ")
+  while alt_1 <= 0:
+    print "Primary altitude must be positive."
+    alt_1 = input("What primary altitude? [m] ")
+
   if load_mission == 3:
-    alt_high = input("What secondary altitude? [m] ")
+    alt_2 = input("What secondary altitude? [m] ")
+    while alt_2 <= 0:
+      print "Secondary altitude must be positive."
+      alt_2 = input("What secondary altitude? [m] ")
+
   if load_mission == 1:
     step_E = input("What horizontal spacing? [m] ")
-  # bearing = input("What is the bearing when facing the back of the ship? [deg] ")
+    while step_E < 0:
+      print "Horizontal spacing must be positive."
+      step_E = input("What horizontal spacing? [m] ")
+
+  bearing = input("What is the bearing when facing the back of the ship? [deg] ")
+  while bearing < 0 or bearing >= 360:
+    print "Bearing must be in the interval [0,360)."
+    bearing = input("What is the bearing when facing the back of the ship? [deg] ")
+
 except KeyboardInterrupt as e:
-  print 'Got ^C. Cancelling mission creation.'
+  print '\n\nGot ^C. Cancelling mission creation.'
+  load_mission = 0
+
+except NameError as e:
+  print "Enter only numbers."
   load_mission = 0
 
 
@@ -60,7 +89,7 @@ if load_mission == 1:
   # Set characteristics
   dist_N = radius # [m]
   step_E = step_E # [m]
-  alt    = alt_low # [m]
+  alt    = alt_1 # [m]
 
   # Create mission
   dist_N  = [dist_N] # Change to list for list multiplication
@@ -88,7 +117,7 @@ Mission 2: Simple arc of 8 waypoints at specified radius and alt.
 if load_mission == 2:
   # Set characteristics
   r   = radius
-  alt = alt_low
+  alt = alt_1
 
   # Create mission
   step_E  = round(r*np.cos(np.pi/4)/2,2) # Horizontal distance between waypoints
@@ -115,9 +144,9 @@ Mission 2: Mulit-alt arc of 10 waypoints at specified radius and alts. Altitude 
 
 if load_mission == 3:
   # Set characteristics
-  r        = radius
-  alt_low  = alt_low
-  alt_high = alt_high
+  r     = radius
+  alt_1 = alt_1
+  alt_2 = alt_2
 
   # Create mission
   step_E  = round(r*np.cos(np.pi/4)/2,2) # Horizontal distance between waypoints
@@ -126,10 +155,16 @@ if load_mission == 3:
   num_wp  = 10
   wp_E    = [i*step_E for i in basic_E]
   wp_N    = get_N(wp_E,r)
-  wp_D    = [1.0*alt_low if i == 0 else 1.0*alt_high for i in basic_D]
+  wp_D    = [1.0*alt_1 if i == 0 else 1.0*alt_2 for i in basic_D]
 
 
 
 if not load_mission == 0:
+  # Rotate mission
+  orig_coords = (wp_N,wp_E,wp_D)
+  wp_Nr,wp_Er,wp_Dr = rotate(bearing,orig_coords)
+
   # Print the calculated mission
-  print "\nYour mission:\n  wp_N %s\n  wp_E %s\n  wp_D %s\n  num_wp %s" %(wp_N,wp_E,wp_D, num_wp)
+  print '\n\nFind the rotated mission in mission_rot.py'
+  print '\nYour mission:\n  wp_N %s\n  wp_E %s\n  wp_D %s\n  num_wp %s' %(wp_N,wp_E,wp_D, num_wp)
+  print '\nRotated:\n  wp_N %s\n  wp_E %s\n  wp_D %s\n  num_wp %s' %(wp_Nr,wp_Er,wp_Dr, num_wp)
