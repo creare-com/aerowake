@@ -6,64 +6,114 @@ The mission is specified in Cartesian coordinates with respect to a North-East-D
 The convention is as follows:
 	- origin at GCS GPS module
 
-NOTE: z cooresponds to down, which means a value of z = -10 indicates that the UAV should fly 10 meters above the GCS altitude.
+NOTE: If a variable is called 'alt', 'altitude', or some similar variation, then you should enter the desired height above the ground station. HOWEVER, the third axis cooresponds to down, which means a value of wp_D = -10 indicates that the UAV should fly 10 meters ABOVE the GCS altitude. The final wp_D list should be entirely negative.
 
-NOTE: Takeoff and land are not seen as waypoints
+NOTE: Takeoff and land are not waypoints.
+
+Missions:
+  1 Back and forth on a line at specified distances and altitudes
+  2 Single-altitude arc at specified radius and altitude
+  3 Double-altitude arc at specified radius and altitudes
 '''
 
-wp_N = [ 1,  1,  1]
-wp_E = [ 0,  1,  0]
-wp_D = [-1, -1, -1]
-num_wp = [len(wp_N)]
+load_mission = 3 # Index of mission to load
+alt_low      = 5
+radius       = 20
+step_E       = 5 # Only needed if loading mission 1
+alt_high     = 8 # Only needed if loading mission 3
 
-# # Mission 1: Back and forth on east-to-west line at 10 m alt
-#wp_N = [ 20,  20,  20,  20,  20]
-#wp_E = [  0,  10,   0, -10,   0]
-#wp_D = [-10, -10, -10, -10, -10]
-#num_wp = [len(wp_N)]
 
-# # Mission 2: Back and forth on east-to-west line at 1 m alt
-# wp_N = [20, 20, 20,  20, 20]
-# wp_E = [ 0, 10,  0, -10,  0]
-# wp_D = [-1, -1, -1,  -1, -1]
-# num_wp = [len(wp_N)]
 
-# Mission 3: Simulate a 20 m arc traveling east-to-west at 10 m alt
-#def get_y3(x,r):
-#	'''
-#	Returns the y coordinate corresponding with the given x coordinate on an arc of radius r centered at the origin.
-#	'''
-#	return  round(np.sqrt(r**2 - x**2),2)
-#basic_E = [2.5,5,7.5,10,12.5]
-#basic_E_neg = [-x for x in basic_E]
-#center_E = [0.0]
-#end_E = [15]
-#end_E_neg = [-15]
-#wp_E = list(center_E) + list(basic_E) + list(end_E) + list(reversed(basic_E)) + list(center_E) + list(basic_E_neg) + list(end_E_neg) + list(reversed(basic_E_neg)) + list(center_E)
-#wp_N = [get_y3(x,20) for x in wp_E]
-#wp_D = [-10]*len(wp_N)
-#num_wp = [len(wp_N)]
+def get_N(wp_E,r):
+	'''
+	Returns the wp_N coordinate list corresponding with the given wp_E coordinate list on a spherical arc of radius r centered at the origin.
+	'''
+	return [round(np.sqrt(r**2 - E**2),2) for E in wp_E]
 
-# # Mission 4: Abbreviated arc at Brigg's field
-# def get_y4(x,r):
-# 	return round(np.sqrt(r**2 - x**2),2)
-# wp_E = [0, 4.5,8.5,4.5,0,-4.5,-8.5,-4.5,0]
-# wp_N = [get_y4(x,12) for x in wp_E]
-# wp_D = [-2]*len(wp_N)
-# num_wp = [len(wp_N)]
 
-# Mission 5: Abbreviated arc at stadium
-def get_y5(x,r):
-	return round(np.sqrt(r**2 - x**2),2)
-wp_E = [0, 5.67,10.6,5.67,0,-5.67,-10.6,-5.67,0]
-wp_N = [get_y5(x,15) for x in wp_E]
-wp_D = [-1]*len(wp_N)
-num_wp = [len(wp_N)]
 
-# # Mission 6: Arc on turf
-# def get_y6(x,r):
-# 	return round(np.sqrt(r**2 - x**2),2)
-# wp_E = [0, -6.5, -11.1, -15.7, -11.1, -6.5, 0]
-# wp_N = [get_y6(x,20) for x in wp_E]
-# wp_D = [-1]*len(wp_N)
-# num_wp = [len(wp_N)]
+'''
+Mission 1: Simple line of 4 waypoints on E axis at specified dist and alt
+
+      step_E
+      <-->
+
+3---0/2---1  
+     |       ^
+     |       | dist_N
+     |       |
+     |       V
+     G 
+'''
+
+if load_mission == 1:
+  # Set characteristics
+  dist_N = radius # [m]
+  step_E = step_E # [m]
+  alt    = alt_low # [m]
+
+  # Create mission
+  dist_N  = [dist_N] # Change to list for list multiplication
+  basic_E = [0, 1, 0, -1]
+  num_wp  = 4
+  wp_N    = dist_N*num_wp
+  wp_E    = [i*step_E for i in basic_E]
+  wp_D    = [-i*alt for i in np.ones(num_wp)]
+
+
+
+'''
+Mission 2: Simple arc of 8 waypoints at specified radius and alt.
+
+        --0/4--            
+  --5/7-   |   -1/3--     ^
+6-         |         -2   |
+           |              | radius, r
+           |              |
+           |              |
+           |              V
+           G
+'''
+
+if load_mission == 2:
+  # Set characteristics
+  r   = 20
+  alt = 5
+
+  # Create mission
+  step_E  = round(r*np.cos(np.pi/4)/2,2) # Horizontal distance between waypoints
+  basic_E = [0, 1, 2, 1, 0, -1, -2, -1]
+  num_wp  = 8
+  wp_E    = [i*step_E for i in basic_E]
+  wp_N    = get_N(wp_E,r)
+  wp_D    = [-i*alt for i in np.ones(num_wp)]
+
+
+
+'''
+Mission 2: Mulit-alt arc of 10 waypoints at specified radius and alts. Altitude rises between 2 and 3, and falls between 7 and 8.
+
+          --0/5--            
+    --6/9-   |   -1/4--       ^
+7/8-         |         -2/3   |
+             |                | radius, r
+             |                |
+             |                |
+             |                V
+             G
+'''
+
+if load_mission == 3:
+  # Set characteristics
+  r        = radius
+  alt_low  = alt_low
+  alt_high = alt_high
+
+  # Create mission
+  step_E  = round(r*np.cos(np.pi/4)/2,2) # Horizontal distance between waypoints
+  basic_E = [0, 1, 2, 2, 1, 0, -1, -2, -2, -1]
+  basic_D = [0, 0, 0, 1, 1, 1,  1,  1,  0,  0]
+  num_wp  = 10
+  wp_E    = [i*step_E for i in basic_E]
+  wp_N    = get_N(wp_E,r)
+  wp_D    = [1.0*alt_low if i == 0 else 1.0*alt_high for i in basic_D]
