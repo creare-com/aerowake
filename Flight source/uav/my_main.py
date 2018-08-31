@@ -280,7 +280,7 @@ if __name__ == '__main__':
 	uav_baud = 57600
 
 	# gcs_connect_path = '/dev/ttyUSB0' # Use for telemetry radio through usb port
-	cs_connect_path = '/dev/radioacl33' # Use after configuring symbolic link through udevadm
+	gcs_connect_path = '/dev/radioacl33' # Use after configuring symbolic link through udevadm
 	gcs_baud = 57600
 
 	#-----------------------------------------------------------------------------
@@ -316,7 +316,7 @@ if __name__ == '__main__':
 			break
 		except Exception as e:
 			logger.critical('UAV failed to connect with message: %s' %(e.message))
-			break
+			raise e
 
 	logger.info('UAV pixhawk connected to UAV')
 
@@ -331,7 +331,7 @@ if __name__ == '__main__':
 			break
 		except Exception as e:
 			logger.critical('GCS failed to connect with message: %s' %(e.message))
-			break
+			raise e
 
 	logger.info('GCS pixhawk connected to UAV')
 
