@@ -16,11 +16,21 @@ Missions:
   3 Double-altitude arc at specified radius and altitudes
 '''
 
-load_mission = 3 # Index of mission to load
-alt_low      = 5
-radius       = 20
-step_E       = 5 # Only needed if loading mission 1
-alt_high     = 8 # Only needed if loading mission 3
+try:
+  mission_str = "\nMissions:\n  1: Back and forth on E-W line (4 wp)\n  2: Single-altitude arc (8 wp)\n  3: Double-altitude arc (10 wp)\n"
+  print mission_str
+
+  load_mission = input("What mission do you want to fly? ")
+  radius       = input("What radius? [m] ")
+  alt_low      = input("What primary altitude? [m] ")
+  if load_mission == 3:
+    alt_high = input("What secondary altitude? [m] ")
+  if load_mission == 1:
+    step_E = input("What horizontal spacing? [m] ")
+  # bearing = input("What is the bearing when facing the back of the ship? [deg] ")
+except KeyboardInterrupt as e:
+  print 'Got ^C. Cancelling mission creation.'
+  load_mission = 0
 
 
 
@@ -77,8 +87,8 @@ Mission 2: Simple arc of 8 waypoints at specified radius and alt.
 
 if load_mission == 2:
   # Set characteristics
-  r   = 20
-  alt = 5
+  r   = radius
+  alt = alt_low
 
   # Create mission
   step_E  = round(r*np.cos(np.pi/4)/2,2) # Horizontal distance between waypoints
@@ -117,3 +127,9 @@ if load_mission == 3:
   wp_E    = [i*step_E for i in basic_E]
   wp_N    = get_N(wp_E,r)
   wp_D    = [1.0*alt_low if i == 0 else 1.0*alt_high for i in basic_D]
+
+
+
+if not load_mission == 0:
+  # Print the calculated mission
+  print "\nYour mission:\n  wp_N %s\n  wp_E %s\n  wp_D %s\n  num_wp %s" %(wp_N,wp_E,wp_D, num_wp)
