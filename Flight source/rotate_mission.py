@@ -8,7 +8,7 @@ import sys
 This function takes a list of North-East-Down (NED) coordinates from a specified file and rotates them in 2D space so that the North direction is aligned with the specified heading. The Down coordinates are unchanged by this function.
 
 Usage:
-	python rotate_mission.py <mission file fir> <mission file name> <new bearing>
+	python rotate_mission.py <mission file dir> <mission file name> <new bearing>
 
 '''
 
@@ -47,7 +47,8 @@ def calculate_new_coords(brg,orig_coords):
 	# Check bearing given and convert to radians
 	brg = float(brg)
 	if brg < 0 or brg > 360.0:
-		raise ValueError('Bearing must be between 0 and 360 degrees.')
+		print 'Bearing must be between 0 and 360 degrees.'
+		return orig_coords
 	brg = brg*np.pi/180
 
 	# Create rotation matrix

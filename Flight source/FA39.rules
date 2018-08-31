@@ -1,0 +1,15 @@
+# Set up symbolic links for Aerowake project. 
+# First, get identifying information for the sensor:
+# 	udevadm info /dev/ttyUSB0 --attribute-walk
+# Then, take some of that info and copy it here:
+# 	KERNELS=="2-1:1.0", DRIVERS=="cp210x", SYMLINK+="radioacl33"
+# Next, link this file to /etc/udev/rules.d/:
+# 	sudo ln -s ~/creare_ws/src/aerowake/aerowake_git/Flight\ source/FA39.rules /etc/udev/rules.d/
+# Finally, reload the rules:
+# 	sudo udevadm control --reload-rules && sudo udevadm trigger
+
+# Telem Radio ACL33 in USB 2.0 Port
+KERNELS=="2-1:1.0", DRIVERS=="cp210x", SYMLINK+="radioacl33"
+
+# Pixhawk via GPIO Pins
+KERNELS=="12c00000.serial", SYMLINK+="pixhawk"

@@ -1,492 +1,388 @@
 #!/usr/bin/env python2
- 
-# GCS BASED MAIN LOOP
 
-import csv
-import datetime
-import glob
-import logging
-import math
-import os
-import subprocess
+# Required for importing mission and helper functions
 import sys
-import threading
+sys.path.append('../')
+
+# Required for messaging the drone
+from dronekit import connect
+from helper_functions import arm_vehicle, disarm_vehicle
+import rotate_mission
+import mission_rot
+
+# Required for logging
+import logging
+import os.path
 import time
+
+# Required for reel control
 from multiprocessing import Queue
 from Queue import Empty
-
-import mission
-from dronekit import APIException, VehicleMode, connect, mavutil, Command
 from reel.reel import reel_run
-from interface.interface import interface_run
+import math
 
-import cProfile, pstats, StringIO
+#-------------------------------------------------------------------------------
+#
+# Global Parameters and Constants
+#
+#-------------------------------------------------------------------------------
 
-# Constants
-GCS_PH_WAYPOINTS_TIMEOUT = 5
+# Set connection path to GCS
+if len(sys.argv) > 1 and sys.argv[1] == 'sim':
+	gcs_connect_path = '127.0.0.1:14556'
+	gcs_baud = 115200
+else:
+	gcs_connect_path = '/dev/ttyAMA0' # For Creare RPi
+	gcs_baud = 115200 # For Creare RPi
+	#gcs_connect_path = '/dev/ttyACM0' # For laptop USB
+	#gcs_baud = 57600 # For laptop USB
 
+# Determine number of waypoints
+num_wp = mission_rot.num_wp[0]
 
- #!# All comments to explain system will be prefaced with "#!#"
+# Define local mission
+gcs_mission = [mission_rot.wp_N, mission_rot.wp_E, mission_rot.wp_D]
 
- #!# Setting up connection path for the Autopilots. 
-#gcs_connect_path = '/dev/ttyAMA0' #Choose which ever is applicable
-#gcs_connect_path = '/dev/ttyS0' #For the RaspPi3 
-#gcs_connect_path = '/dev/ttyUSB0'
-gcs_connect_path = '/dev/ttyACM0'
-gcs_baud = 115200
+# Define a string that will print to show allowed user input
+str_allowed_input = '\n\nAllowed input:\n -\n  Kill UAV motors when input starts with minus sign\n listen\n  Tell UAV to start listening to commands\n arm\n  Command UAV to arm throttle\n disarm\n  Command UAV to disarm throttle\n takeoff\n  Command UAV to takeoff to 10 m\n Waypoint Number (0-%d)\n  Navigate to designated waypoint\n clear\n  Clear current waypoint\n land\n  Command UAV to land\n help\n  Show this list of allowed inputs\n quit\n  Terminate program\n rotate 0-359\n  Rotates mission by inputed degrees\n rsethome\n  Set current reel position to home\n rsetlength <L in m>\n  Set reel to specified length in meters\n rhalt\n  Halt reel\n rgetdata\n  Report tether length and tension\n help\n  Show this list of allowed inputs\n quit\n  Terminate program\n\n' %(num_wp - 1)
 
-if len(sys.argv) >= 2 and sys.argv[1].startswith('sim'):
-     #!# For SITL testing, use the following. The UAV is located on Port 14552 and GCS 14554
-    gcs_connect_path = '127.0.0.1:14556'
-    gcs_baud = 115200
- 
+listening_err_str = 'First use listen command to tell UAV to listen.\n'
+
+# Reel function
+def get_reel_data():
+	'''
+	Returns the current length of the tether in meters as believed by the reel controller.
+	
+	Expected to return {"L": <length in meters as double>, "T": <tension in newtons as double>}
+	'''
+	try:
+		reel_reading = data_from_reel.get(False)
+	except Empty:
+		reel_reading = {'L':'-', 'T':'-'}
+	logger.debug('reelData,%s',reel_reading)
+	return reel_reading
+
+#-------------------------------------------------------------------------------
+#
+# Start Main Process
+#
+#-------------------------------------------------------------------------------
+
 if __name__ == '__main__':
 
-    try:
-        #####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        #####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! SYSTEM SETUP !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        #####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-
-
-
-        ####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Local System Setup !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-        #### Logging Setup. ####
-
-         #!# This logger will create a 'system.log', which will allow debugging later if the UAV system is not 
-         #!# not working properly for some reason or another. Messages will be printed to the console, and to the 
-         #!# log file. Messages shoudl be priorities with 'info', 'critical', or 'debug'. 
-
-        logger = logging.getLogger()
-        logger.setLevel(logging.DEBUG)
-        fh = logging.FileHandler('system.log')
-        fh.setLevel(logging.DEBUG)
-        ch = logging.StreamHandler(sys.stdout)
-        ch.setLevel(logging.DEBUG)
-        form_fh = logging.Formatter('%(relativeCreated)s,%(levelname)s: %(message)s')
-        form_ch = logging.Formatter('%(levelname)s: %(message)s')
-        fh.setFormatter(form_fh)
-        ch.setFormatter(form_ch)
-        logger.addHandler(fh)
-        logger.addHandler(ch)
-        logging.getLogger('Adafruit_I2C').setLevel(logging.ERROR)
-
-
-
-
-         #!# This function is called if there is a problem with the vehicle setup. It will kill the script. 
-
-
-        def setup_abort(abort_reason=None):
-            t = 0
-            #display items on screen
-            while t<10:
-                logging.critical("System aborting due to error: %s" %abort_reason) 
-                time.sleep(1)
-                t+=1
-            sys.exit(1)
-        print "\n\n\n\n\n\n"
-        logging.info("------------ STARTING AEROWAKE SYSTEM ------------")
-        logging.info("-------------------- GCS NODE --------------------")
-    #    time.sleep(2)
-        #### External Drive Setup ####
-
-
-        ####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Multiprocessing System Setup !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-         #!# This block will start both the interface and the reel controller. 
-        #!# Both of these systems use the multiprocessing infrastructure. 
-
-        status_to_interface = Queue()
-        data_from_interface = Queue()
-
-        try:
-            ui = interface_run(status_to_interface,data_from_interface)
-        except Exception:
-            logging.critical('Problem connecting to UI')
-            setup_abort("UI Failure")
-        ui.start()
-
-
-        #### Start Reel Controller ####
-        commands_to_reel = Queue()
-        data_from_reel = Queue()
-        try:
-            reel = reel_run(commands_to_reel, data_from_reel)
-        except Exception:
-            logging.critical('Problem connection to reel. Aborting.')
-            setup_abort("Reel System Failure")
-            #sys.exit(1)
-        reel.start()
-
-
-        ####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Pixhawk System Setup !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-         #!# This block will connect to the GCS pixhawk. The autopilot will be given 60 seconds to connect. 
-         #!# If the connection fails, the script will exit. During connection the Pixhawk should be powered on, 
-         #!# initialized, and blinking green or yellow. If the script continually fails, reboot the pixhawk and check the paths. 
-
-
-        #### Pixhawk Connection ####
-        logging.info("Waiting for Pixhawk")
-        while True:
-            try:
-                #Note: connecting another GCS might mess up stream rates. Start mavproxy with --streamrate=-1 to leave stream params alone.
-                gcs = connect(gcs_connect_path,baud=gcs_baud ,heartbeat_timeout=60, rate=20, wait_ready=True)
-                break
-            except OSError:
-                logging.critical("Cannot find device, is the Pixhawk plugged in? Retrying...")
-                time.sleep(5)
-            except APIException:
-                logging.critical("GCS Pixhawk connection timed out. Retrying...")
-        logging.info("Pixhawk connected!")
-
-
-
-        #### System Time Setup ####
-
-        # We need to get the time from the gcs (which gets it via gps), because the raspi does not have a RTC
-        gcs_start_time = 0
-        rasp_start_time = 0
-        @gcs.on_message('SYSTEM_TIME')
-        def gcs_time_callback(self, attr_name, msg):
-            global gcs_start_time
-            if(gcs_start_time is 0 and msg.time_unix_usec > 0):
-                gcs_start_time = msg.time_unix_usec/1000000
-                human_time = datetime.datetime.fromtimestamp(gcs_start_time).strftime('%Y-%m-%d %H:%M:%S')
-                logging.info("Got GPS lock at %s" % human_time)
-                rasp_start_time = time.clock()
-
-
-
-        #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Pixhawk Callback/Logging System !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-
-         #!# Log if no MAVLink packets are heard for more than a second
-         #!# Also log mode changes, and arm/disarm
-         #!# Normal Dronekit Callbacks. 
-
-        last_heartbeat_dt = 0
-        @gcs.on_attribute('last_heartbeat')   
-        def last_heartbeat_listener(self, attr_name, value):
-            if(attr_name is 'last_heartbeat'):
-                global last_heartbeat_dt
-                last_heartbeat_dt = value
-
-        @gcs.on_attribute('armed')
-        def arm_disarm_callback(self,attr_name, msg):
-            logging.info("Vehicle is now %sarmed " % ("" if gcs.armed else "dis"))
-
-        @gcs.on_attribute('mode')
-        def mode_callback(self,attr_name, mode):
-            logging.info("gcs mode changed to %s" % mode.name)
-
-
-        #####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        #####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Main System !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        #####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-        #### !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Functions !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-
-         #!# This is a functions that is part of DroneKit but is currently not used. 
-        #def send_msg_to_gcs(message):
-        #    msg = gcs.message_factory.statustext_encode(mavutil.mavlink.MAV_SEVERITY_CRITICAL, message)
-        #    gcs.send_mavlink(msg)
-        #    gcs.flush()
-
-
-
-        # def send_ned_velocity(velocity_x, velocity_y, velocity_z):
-        #     """
-        #     Move vehicle in direction based on specified velocity vectors.
-        #     """
-        #     msg = gcs.message_factory.set_position_target_local_ned_encode(
-        #         0,       # time_boot_ms (not used)
-        #         0, 0,    # target system, target component
-        #         mavutil.mavlink.MAV_FRAME_LOCAL_NED, # frame
-        #         0b0000111111000111, # type_mask (only speeds enabled)
-        #         0, 0, 0, # x, y, z positions (not used)
-        #         velocity_x, velocity_y, velocity_z, # x, y, z velocity in m/s
-        #         0, 0, 0, # x, y, z acceleration (not supported yet, ignored in GCS_Mavlink)
-        #         0, 0)    # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink)
-        #     gcs.send_mavlink(msg)
-
-        def download_mission():
-            """
-            Downloads the current mission and returns it in a list.
-            It is used in save_mission() to get the file information to save.
-            """
-            missionlist=[]
-            try:
-                cmds = gcs.commands
-                logging.info("Downloading current waypoints...")
-                cmds.download()
-                cmds.wait_ready(timeout=GCS_PH_WAYPOINTS_TIMEOUT)
-                logging.info("Done downloading.")
-                for cmd in cmds:
-                    missionlist.append(cmd)
-            except APIException as err:
-                logging.critical("Couldn't get waypoints on GCS: " + str(err) + "TO=" + str(GCS_PH_WAYPOINTS_TIMEOUT))
-                
-            return missionlist
-
-         #!# This is the important function that sends commands to the UAV. 
-        def set_waypoint(mode,theta,phi,L,extra1=-1,tether_t=-1,extra2=-1):
-            # Command the tether to spool out/reel in to the appropriate length
-            commands_to_reel.put({"cmd":"goto", "L":L})
-
-            try:
-                # Store waypoints in GCS PixHawk.  The UAV Pi will read them out and maneuver the UAV to that position.
-                # Waypoints here are not in a format that ether PixHawk can usefully interpret directly (theta, phi, L).
-                cmds = gcs.commands
-                # logging.info("Downloading current waypoints...")
-                cmds.download()
-                cmds.wait_ready(timeout=GCS_PH_WAYPOINTS_TIMEOUT)
-                # logging.info("Done downloading.")
-                cmds.clear()
-                cmd1=Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, 
-                    mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, mode, 0, 0, 0, theta, phi, L)
-                cmd3=Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, 
-                    mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, -1,  0, 0, 0, extra1, tether_t, extra2)
-                cmds.add(cmd1)
-                cmds.add(cmd3)
-                logging.info("Uploading new waypoints...")
-                cmds.upload() # Asynchronous
-                # cmds.wait_ready(timeout=GCS_PH_WAYPOINTS_TIMEOUT) # Make it synchronous
-                logging.info("Done uploading.")
-            except APIException as err:
-                logging.critical("Couldn't set waypoint on GCS: " + str(err) + "TO=" + str(GCS_PH_WAYPOINTS_TIMEOUT))
-            
-        def print_mission():
-            missionlist = download_mission()
-            for cmd in missionlist:
-                #(cmd.seq,cmd.current,cmd.frame,cmd.command,cmd.param1,cmd.param2,cmd.param3,cmd.param4,cmd.x,cmd.y,cmd.z,cmd.autocontinue)
-                print cmd.param1
-                print cmd.x
-                print cmd.y
-                print cmd.z
-
-        def clear_mission():
-            try:
-                cmds = gcs.commands
-                # logging.info("Downloading current waypoints...")
-                cmds.download()
-                cmds.wait_ready(timeout=GCS_PH_WAYPOINTS_TIMEOUT)
-                # logging.info("Done downloading.")
-                cmds.clear()
-                logging.info("Uploading empty waypoint list...")
-                cmds.upload() # Asynchronous
-                # cmds.wait_ready(timeout=GCS_PH_WAYPOINTS_TIMEOUT) # Make it synchronous
-                logging.info("Done uploading.")
-            except APIException as err:
-                logging.critical("Couldn't clear waypoints on GCS: " + str(err) + "TO=" + str(GCS_PH_WAYPOINTS_TIMEOUT))
-            
-
-        #!# At this point, arm the GCS pixhawk and place it into guided mode. 
-        #1# Might have to set the ARMING CHECK parameter to 0 in the GCS pixhawk. 
-
-        gcs.channels.overrides = {'1':1500, '2':1500, '3':1000, '4':1500, '5':1500,'6':1500}
-
-        gcs.mode = VehicleMode("GUIDED")
-
-        # if not gcs.armed:
-        #     while not gcs.is_armable:
-        #         print "GCS Not Armable"
-        #         time.sleep(.5)
-        #     gcs.armed = True
-        #     while not gcs.armed:
-        #         print 'Waiting for GCS to arm: ',gcs.armed
-        #         time.sleep(1)
-        # gcs.mode = VehicleMode("GUIDED")
-
-
-        #!# System is ready!
-
-        logging.info("------------------SYSTEM IS READY!!------------------")
-        logging.info("-----------------------------------------------------")
-
-
-        #!# These are the different modes that the UAV can be operating in. 
-        #!# waypoint_num=0 is the index for the mission. 
-        GCS_cmd = None
-        G_AUTO = 0
-        G_TAKEOFF = 1
-        G_LAND = 2
-        mode=None
-        waypoint_num=0
-        phi   = '-'
-        theta = '-'
-        L     = '-'
-
-        # Enable the profiler
-        profiler_on = True
-        if profiler_on:
-            # Start the profiler (if desired)
-            pr = cProfile.Profile()
-            pr.enable()
-
-        #!# Start the main loop. 
-        try:
-            run = True
-            reel_reading = {'L':'-', 'T':'-'}
-            while run:
-                display_vars = {}
-                time.sleep(.2)
-                gcs.mode = VehicleMode('GUIDED')
-                gcs.armed=True
-                # print "Run"
-                #Get Reel Info:
-                try:
-                     # Expected to return {"L": <length in meters, as double>, "T": <tension in newtons, as double>}
-                     reel_reading = data_from_reel.get(False)
-                     # print("Got reel data:" + str(reel_reading))
-                     # Currently not used anywhere
-                except Empty:
-                     pass
-
-                # # Determine flight mode and waypoints for the vehicle
-
-                if gcs.armed:
-                    try:
-                        GCS_cmd = data_from_interface.get(False)
-                        print GCS_cmd
-                    except Empty:
-                        pass
-
-                    # # Modes:
-                    # # Take Off = Take the vehicle off with slight pitch up.
-                    # # Auto = Position Control. Needs goal location. 
-                    # # Land = Landing vehicle: Maintain some throttle and reel the tether in.
-                    # # None = Do nothing. Initial state. Motors will be on safe, vehicle disarmed. 
-                    if GCS_cmd == "AUTO_CMD":
-                        waypoint_num=0
-                        phi = mission.PHI[waypoint_num]
-                        theta = mission.THETA[waypoint_num]
-                        L = mission.L[waypoint_num]
-                        mode = G_AUTO
-                        set_waypoint(mode,theta,phi,L)
-                        print "Entered Auto Mode"
-                        print "Mode: ",mode," Theta: %.1f  Phi: %.1f  L: %.1f" %(mission.THETA[waypoint_num],mission.PHI[waypoint_num],mission.L[waypoint_num])
-                        print_mission()
-
-                    elif GCS_cmd == "ADV_CMD":
-                        waypoint_num+=1
-                        if waypoint_num==len(mission.THETA):
-                            waypoint_num=0
-
-                        phi = mission.PHI[waypoint_num]
-                        theta = mission.THETA[waypoint_num]
-                        L = mission.L[waypoint_num]
-                        mode = G_AUTO
-                        set_waypoint(mode,theta,phi,L)
-                        GCS_cmd = "AUTO_CMD"
-                        print "Advanced Goal Target"
-                        print "Mode: ",mode," Theta: %.1f  Phi: %.1f  L: %.1f" %(mission.THETA[waypoint_num],mission.PHI[waypoint_num],mission.L[waypoint_num])
-                        print_mission()
-
-                    elif GCS_cmd == "DEC_CMD":
-                        waypoint_num -= 1
-                        if waypoint_num < 0:
-                            waypoint_num = 0
-
-                        phi = mission.PHI[waypoint_num]
-                        theta = mission.THETA[waypoint_num]
-                        L = mission.L[waypoint_num]
-                        mode = G_AUTO
-                        set_waypoint(mode,theta,phi,L)
-                        GCS_cmd = "AUTO_CMD"
-                        print "Decremented Goal Target"
-                        print "Mode: ",mode," Theta: %.1f  Phi: %.1f  L: %.1f" %(mission.THETA[waypoint_num],mission.PHI[waypoint_num],mission.L[waypoint_num])
-                        print_mission()
-
-                    elif GCS_cmd == "RESEND_CMD":
-                        phi = mission.PHI[waypoint_num]
-                        theta = mission.THETA[waypoint_num]
-                        L = mission.L[waypoint_num]
-                        mode = G_AUTO
-                        set_waypoint(mode,theta,phi,L)
-                        GCS_cmd = "AUTO_CMD"
-                        print "Resent Goal Target"
-                        print "Mode: ",mode," Theta: %.1f  Phi: %.1f  L: %.1f" %(mission.THETA[waypoint_num],mission.PHI[waypoint_num],mission.L[waypoint_num])
-                        print_mission()
-
-
-                    elif GCS_cmd == "TAKEOFF_CMD":
-                        phi = 0
-                        theta = 1.5
-                        L = 20
-                        mode = G_TAKEOFF
-                        set_waypoint(mode,theta,phi,L)
-                        print "Takeoff Waypoint Set"
-                        print "Mode: ",mode
-                        print_mission()
-
-                    elif GCS_cmd == "LAND_CMD":
-                        phi   = 0
-                        theta = 1.5
-                        L     = 20
-                        mode = G_LAND
-                        set_waypoint(mode,theta,phi,L)
-                        print "Land Waypoint Set"
-                        print "Mode: ",mode
-                        print_mission()
-
-                    elif GCS_cmd == "QUIT_CMD":
-                        run = False # Cleanup tasks handled after main loop
-                    
-                    elif GCS_cmd == "HALT_REEL_CMD":
-                        commands_to_reel.put({"cmd":"halt"})
-
-                    GCS_cmd="WAITING"
-
-                else:
-                    print "GCS Not Armed"
-                    
-                # Update the UI
-                mode_string = "Auto position" if mode == G_AUTO else \
-                              "Takeoff"       if mode == G_TAKEOFF else \
-                              "Landing"       if mode == G_LAND else \
-                              "Invalid state"
-                display_hb_dt = round(last_heartbeat_dt, 2)
-                display_vars = [
-                    ("GCS PH heartbeat time",    display_hb_dt    ),
-                    ("System mode",              mode_string      ),
-                    ("Waypoint number",          waypoint_num     ),
-                    ("Target Phi (Az, rad)",     phi              ),
-                    ("Target Theta (el, rad)",   theta            ),
-                    ("Target L (m)",             L                ),
-                    ("Current reel L (m)",       reel_reading['L']),
-                    ("Current reel tension (N)", reel_reading['T']),
-                ]
-                status_to_interface.put(display_vars)
-
-        except KeyboardInterrupt:
-            print("Got ^C inner loop, Cleaning up")
-            if profiler_on:
-                # Stop the profiler and print the results
-                pr.disable()
-                s = StringIO.StringIO()
-                sortby = 'cumulative'
-                ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
-                ps.print_stats()
-                print s.getvalue()
-
-        # A clean exit stops the reel prior to exiting.
-        # An unclean exit might leave the reel moving.
-        commands_to_reel.put({"cmd":"exit"})
-        reel.join()
-        if ui.is_alive(): # under a ctrl-c, this will be oblivious
-            ui.terminate()
-
-    except KeyboardInterrupt:
-        print 'Got CTRL-C outer loop, cleaning up.'
-        if profiler_on:
-            # Stop the profiler and print the results
-            pr.disable()
-            s = StringIO.StringIO()
-            sortby = 'cumulative'
-            ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
-            ps.print_stats()
-            print s.getvalue()
+	# Log Setup
+	logger = logging.getLogger('gcs_logger')
+	logger.setLevel(logging.DEBUG)
+	# Create file handler that sends all logger messages (DEBUG and above) to file
+	fh = logging.FileHandler('%s/logs/gcs-logs/gcs-%s.log' %(os.path.expanduser('~'),time.strftime('%Y-%m-%d-%Hh-%Mm-%Ss', time.localtime())))
+	print 'Logging to %s/logs/gcs-logs/gcs-%s.log' %(os.path.expanduser('~'),time.strftime('%Y-%m-%d-%Hh-%Mm-%Ss', time.localtime()))
+	fh.setLevel(logging.DEBUG)
+	# Create console handler that sends some messages (INFO and above) to screen
+	ch = logging.StreamHandler(sys.stdout)
+	ch.setLevel(logging.INFO)
+	# Set the log format for each handler
+	form_fh = logging.Formatter('%(created)s,%(relativeCreated)s,%(funcName)s,%(levelname)s: %(message)s')
+	form_ch = logging.Formatter('%(levelname)s: %(message)s')
+	fh.setFormatter(form_fh)
+	ch.setFormatter(form_ch)
+	# Add the handler to the logger
+	logger.addHandler(fh)
+	logger.addHandler(ch)
+
+	# GCS connection
+	logger.info('Waiting for GCS')
+	while True:
+		try:
+			gcs = connect(gcs_connect_path, baud = gcs_baud, heartbeat_timeout = 60, rate = 20, wait_ready = True)
+			break
+		except OSError:
+			logger.critical('Cannot find device, is the gcs plugged in? Retrying...')
+			time.sleep(5)
+		except APIException:
+			logger.critical('GCS connection timed out. Retrying...')
+
+	logger.info('GCS pixhawk connected to GCS')
+
+	logger.info('------------------SYSTEM IS READY!!------------------')
+	logger.info('-----------------------------------------------------\n')
+
+	# Callbacks for logging purposes
+
+	@gcs.on_message('SYSTEM_TIME')
+	def time_callback(self,attr_name, msg):
+		logger.debug('gcsGPSTIME,%s' %msg)
+
+	@gcs.on_message('LOCAL_POSITION_NED')
+	def local_position_NED_callback(self,attr_name, msg):
+		logger.debug('localPosNED,%s' %msg)
+
+	# This callback listens for a change in the parameter set by the UAV, any change tells that the UAV received a command from the gcs
+	@gcs.parameters.on_attribute('ACRO_TURN_RATE')
+	def UAV_parameter_callback(self, attr_name, UAV_param):
+		if UAV_param == 103:
+			# kills motors
+			logger.info('UAV received command to kill motors.\n')
+		elif UAV_param == 102:
+			# clear current waypoint
+			logger.info('UAV received command to clear current waypoint.\n')
+		elif UAV_param == 101:
+			# begin listening
+			logger.info('UAV received command to listen.\n')
+		elif UAV_param == 100:
+			# stop listening
+			logger.info('UAV received command to stop listening.\n')
+		elif UAV_param == 359:
+			# arm
+			logger.info('UAV received command to arm.\n')
+		elif UAV_param == 358:
+			# disarm
+			logger.info('UAV received command to disarm.\n')
+		elif UAV_param == 357:
+			# takeoff
+			logger.info('UAV received command to takeoff.\n')
+		elif UAV_param == 356:
+			# land
+			logger.info('UAV receieved command to land.\n')
+		elif UAV_param == 355:
+			#rotate
+			logger.info('UAV received command to rotate.\n')
+		else:
+			# commanding waypoint
+			logger.info('UAV received command to go to waypoint %d.\n', UAV_param)
+
+	#-----------------------------------------------------------------------------
+	#
+	# Control Code
+	#
+	#-----------------------------------------------------------------------------
+
+	# Start reel controller
+	commands_to_reel = Queue()
+	data_from_reel = Queue()
+	try:
+		reel = reel_run(commands_to_reel, data_from_reel)
+	except Exception:
+		logging.critical('Problem connecting to reel. Aborting.')
+		setup_abort("Reel System Failure")
+	reel.start()
+	# commands_to_reel.put({'cmd':'rehome'})
+
+	# Arm vehicle and print the allowed commands
+	#arm_vehicle(gcs,'GCS')
+	print str_allowed_input
+
+	# Set initial GCS value. For safety, the GCS should start and end on this value. This value tells the UAV to follow the previous command. If no previous command exists, then this value tells the UAV to do nothing.
+	gcs.parameters['PIVOT_TURN_ANGLE'] = 100
+
+	# Set initial UAV Value.  For safety, the UAV should start and end on this value.  This value tells the GCS what command it is currently following.
+	gcs.parameters['ACRO_TURN_RATE'] = 100
+
+	# Set initial bearing to be 0.  Both GCS and UAV will start with this value, can be changed with the rotate command
+	bearing = 0
+	gcs.parameters['PIVOT_TURN_RATE'] = 0
+
+	'''
+	This while loop waits for user input, and then commands the UAV to perform some action. The command is sent by setting a parameter on the GCS. The UAV is constantly reading this parameter and acting according to its value. The parameter PIVOT_TURN_ANGLE accepts values from 0 - 359, inclusive, and has no effect on GCS performance.
+
+	The parameter values corresponding actions to be performed are:
+		100     UAV will stop listening to these commands
+						UAV will follow prev command, or do nothing if no command sent yet
+		101     UAV will begin listening to these commands
+		102     UAV will clear its current waypoint
+		103     UAV kills its motors immediately
+		359     UAV will arm
+		358     UAV will disarm
+		357     UAV will takeoff to a pre-programmed height and relative position
+		356     UAV will land according to its landing protocol
+		355		UAV will rotate to bearing given by parameter PIVOT_TURN_RATE
+		0+      UAV will navigate to the waypoint at the index specified
+						The acceptable waypoint indices are 0 through num_wp - 1
+
+	If an invalid input is entered, such as a typo or a waypoint number that does not exist, the UAV will follow the previous command. The GCS will echo this behavior to the terminal, notifying the user of the UAV's behavior in the event of an invalid input.
+
+	When the quit command is given, the UAV will continue to follow its most recent command.
+	'''
+
+	user_in = None
+	uav_listening = False
+	prev_command_gcs = 'No previous command.\n'
+	prev_command_uav = 100
+
+	try:
+		while not user_in == 'quit':
+			# Wait for user input
+			print 'Enter command:'
+			user_in = raw_input()
+			logger.debug('rawUserInput,%s',user_in)
+
+			# Adjust user input for conditional statements
+			user_in = user_in.lower()
+
+			# Perform some action based upon the user input
+			invalid_input = True
+			if len(user_in) > 0 and user_in[0] == '-':
+				invalid_input = False
+				gcs.parameters['PIVOT_TURN_ANGLE'] = 103
+				logger.info('Killing UAV motors.\n')
+
+			elif user_in == 'help':
+				invalid_input = False
+				logger.info(str_allowed_input)
+				continue
+
+			elif user_in == 'quit':
+				invalid_input = False
+				# Will terminate on next loop. UAV will continue with previous command
+				logger.info('Terminating GCS loop.')
+				logger.info(' UAV is following previous command of: \n %s' %(prev_command_gcs))
+				continue
+
+			elif user_in == 'listen':
+				invalid_input = False
+				# UAV knows that 101 means start listening to commands
+				gcs.parameters['PIVOT_TURN_ANGLE'] = 101
+				logger.info('Commanding UAV to listen to commands\n')
+				prev_command_gcs = 'Command UAV to listen to commands\n'
+				uav_listening = True
+
+			elif user_in == 'rhalt':
+				invalid_input = False
+				logger.info('Commanding reel to halt')
+				commands_to_reel.put({'cmd':'halt'})
+				reel_data = get_reel_data()
+				logger.info(' Reel halting at: %s\n',reel_data['L'])
+
+			elif user_in == 'rsethome':
+				invalid_input = False
+				logger.info('Commanding reel to reset home to this position')
+				commands_to_reel.put({'cmd':'rehome'})
+				reel_data = get_reel_data()
+				logger.info(' Reel home set to: %s\n',reel_data)
+
+			elif user_in == 'rgetdata':
+				invalid_input = False
+				logger.info('Commanding reel to report data')
+				reel_data = get_reel_data()
+				logger.info(' Reel at: %s\n',reel_data)
+
+			elif user_in.startswith('rsetlength'):
+				invalid_input = False
+				try: 
+					L = float(user_in.split(" ")[-1])
+					logger.info('Setting reel length to %0.01f meters' %(L))
+					commands_to_reel.put({"cmd":"goto", "L":L})
+					reel_data = get_reel_data()
+					logger.info(' Reel length currently at: %s\n',reel_data['L'])
+				except:
+					logger.info(' Invalid length. Usage: "rsetlength <length in m>"\n')
+
+			elif not uav_listening:
+				# UAV not listening and input is something other than 'listen'
+				invalid_input = False
+				logger.info(listening_err_str)
+
+			else:
+				# UAV is listening
+				if user_in == 'arm':
+					invalid_input = False
+					# UAV knows that 359 means arm
+					gcs.parameters['PIVOT_TURN_ANGLE'] = 359
+					logger.info('Commanding UAV to Arm\n')
+					prev_command_gcs = 'Command UAV to Arm\n'
+
+				elif user_in == 'disarm':
+					invalid_input = False
+					# UAV knows that 358 means disarm
+					gcs.parameters['PIVOT_TURN_ANGLE'] = 358
+					logger.info('Commanding UAV to Disarm\n')
+					prev_command_gcs = 'Command UAV to Disarm\n'
+
+				elif user_in == 'takeoff':
+					invalid_input = False
+					# UAV knows that 357 means takeoff
+					gcs.parameters['PIVOT_TURN_ANGLE'] = 357
+					logger.info('Commanding UAV to Takeoff\n')
+					# Note: Takeoff altitude is hardcoded in helper_functions.py
+					commands_to_reel.put({"cmd":"goto", "L":5*1.15})
+					prev_command_gcs = 'Command UAV to Takeoff\n'
+
+				elif user_in == 'land':
+					invalid_input = False
+					# UAV knows that 356 means land
+					gcs.parameters['PIVOT_TURN_ANGLE'] = 356
+					logger.info('Commanding UAV to Land\n')
+					prev_command_gcs = 'Command UAV to Land\n'
+
+				elif user_in == 'clear':
+					invalid_input = False
+					# UAV knows that 102 means clear
+					gcs.parameters['PIVOT_TURN_ANGLE'] = 102
+					logger.info('Commanding UAV to clear the current waypoint\n')
+					prev_command_gcs = 'Command UAV to clear the current waypoint\n'
+
+				elif "rotate" in user_in:
+					invalid_input = False
+					#instruct UAV and GCS to rotate mission to given bearing
+					new_bearing = int(user_in[6:len(user_in)])
+					if new_bearing - bearing < 0:
+						rotation = 360 + new_bearing - bearing
+					else:
+						rotation = new_bearing - bearing
+					gcs_mission = rotate_mission.calculate_new_coords(rotation, gcs_mission)
+					bearing = new_bearing
+					logger.info('Commanding GCS to rotate bearing to %s\n' %(bearing))
+					gcs.parameters['PIVOT_TURN_ANGLE'] = 355
+					gcs.parameters['PIVOT_TURN_RATE'] = int(bearing)
+					logger.info('Commanding UAV to rotate bearing to %s\n' %(bearing))
+					prev_command_gcs = 'Command UAV to rotate bearing to %s\n' %(bearing)
+
+				else:
+					try:
+						user_in = int(user_in)
+						# If user enters an integer, set the chosen GCS parameter to that integer value. The UAV will read this parameter and navigate to that waypoint. E.g. if user enters 2, then UAV will navigate to the waypoint at index 2.
+						if user_in >= 0 and user_in < num_wp:
+							invalid_input = False
+							if uav_listening:
+								logger.info('Commanding UAV to waypoint %s\n' %(user_in))
+								prev_command_gcs = 'Command UAV to waypoint %s\n' %(user_in)
+								gcs.parameters['PIVOT_TURN_ANGLE'] = user_in
+								# Command reel to desired length based on current waypoint
+								dN = mission_rot.wp_N[user_in]
+								dE = mission_rot.wp_E[user_in]
+								dD = mission_rot.wp_D[user_in]
+								dist = math.sqrt((dN**2) + (dE**2) + (dD**2))
+								safety_factor = 1.15
+								logger.info('Commanding reel to a distance of %s meters', dist*safety_factor)
+								logger.info('(dN,dE, dD) = (%.01f,%.01f,%.01f)'%(dN,dE, dD))
+								commands_to_reel.put({"cmd":"goto", "L":dist*safety_factor})
+							else:
+								print listening_err_str
+					except ValueError:
+						# Will be invalid input and will print such as defined below
+						pass
+
+			if invalid_input:
+				logger.info('Invalid input. Type \'help\' for allowed commands.')
+				logger.info(' UAV is following previous command of: \n %s' %(prev_command_gcs))
+
+	except KeyboardInterrupt:
+		logger.info('\nGot CTRL+C. Cleaning up and exiting.\n')
+
+	#------------------------------------
+	# Outside of while loop
+	#------------------------------------
+
+	# Set final GCS value. For safety, the GCS should start and end on this value. This value tells the UAV to follow the previous command. If no previous command exists, then this value tells the UAV to do nothing.
+	gcs.parameters['PIVOT_TURN_ANGLE'] = 100
+
+	# Disarm and close GCS object before exiting script
+	disarm_vehicle(gcs,'GCS')
+	gcs.close()
+
+	# Shutdown reel controller
+	commands_to_reel.put({'cmd':'exit'})
+	reel.join()
+
+	print('GCS program completed\n')
+
+# Here be dragons

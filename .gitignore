@@ -5,3 +5,6 @@
 *.tlog.raw
 *.parm
 *.py~
+*.swp
+*.bag
+*.save
