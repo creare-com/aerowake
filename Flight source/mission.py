@@ -32,10 +32,16 @@ try:
     print "You must enter a valid mission number."
     load_mission = input("What mission do you want to fly? ")
 
-  radius = input("What radius? [m] ")
-  while radius < 5:
-    print "Radius must be at least 5 meters."
+  if load_mission == 1:
+    radius = input("What distance away? [m] ")
+    while radius < 5:
+      print "Distance must be at least 5 meters."
+      radius = input("What distance away? [m] ")
+  else:
     radius = input("What radius? [m] ")
+    while radius < 5:
+      print "Radius must be at least 5 meters."
+      radius = input("What radius? [m] ")
 
   alt_1 = input("What primary altitude? [m] ")
   while alt_1 <= 0:
@@ -168,7 +174,7 @@ if load_mission == 3:
 if not load_mission == 0:
   # Rotate mission
   orig_coords = (wp_N,wp_E,wp_D)
-  wp_Nr,wp_Er,wp_Dr = rotate(bearing,orig_coords)
+  wp_Nr,wp_Er,wp_Dr = rotate(orig_coords,bearing)
 
   # Print the calculated mission
   print '\n\nFind the rotated mission in mission_rot.py'
