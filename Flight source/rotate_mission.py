@@ -44,7 +44,7 @@ def calculate_new_coords(brg,orig_coords):
 
 	return new_coords
 
-def write2py(coords,filename):
+def write2py(alt_takeoff,coords,filename):
 	'''
 	Writes coords to specified filename. To match desired format of a mission file for Aerowake project, this function will write the new file as:
 
@@ -56,6 +56,7 @@ def write2py(coords,filename):
 	'''
 
 	write_str = '# This mission file created using rotate_mission.py, a part of the Creare AeroWake project.\n\n'
+	write_str = write_str + 'alt_takeoff = %s\n' %(alt_takeoff)
 	write_str = write_str + 'wp_N = %s\n' %(coords[0])
 	write_str = write_str + 'wp_E = %s\n' %(coords[1])
 	write_str = write_str + 'wp_D = %s\n' %(coords[2])

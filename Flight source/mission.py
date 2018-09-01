@@ -43,6 +43,11 @@ try:
       print "Radius must be at least 5 meters."
       radius = input("What radius? [m] ")
 
+  alt_takeoff = input("What takeoff altitude? [m] ")
+  while alt_takeoff <= 0:
+    print "Takeoff altitude must be positive."
+    alt_takeoff = input("What takeoff altitude? [m] ")
+
   alt_1 = input("What primary altitude? [m] ")
   while alt_1 <= 0:
     print "Primary altitude must be positive."
@@ -170,8 +175,8 @@ if not load_mission == 0:
   # Write mission to base_mission.py
   filename = 'base_mission.py'
   coords = (wp_N,wp_E,wp_D)
-  write2py(coords, filename)
+  write2py(alt_takeoff, coords, filename)
 
   # Print the calculated mission
   print '\nFind the mission in %s' %(filename)
-  print '\nYour mission:\n  wp_N %s\n  wp_E %s\n  wp_D %s\n  num_wp %s' %(wp_N,wp_E,wp_D, num_wp)
+  print '\nYour mission:\n  Takeoff to %s meters\n  wp_N %s\n  wp_E %s\n  wp_D %s\n  num_wp %s' %(alt_takeoff,wp_N,wp_E,wp_D,num_wp)
