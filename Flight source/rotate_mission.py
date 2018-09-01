@@ -65,7 +65,4 @@ def write2py(coords,filename):
 		output.write(write_str)
 
 def rotate(orig_coords, bearing):
-	new_coords = calculate_new_coords(bearing,orig_coords)
-	new_filename = 'mission_rot.py'
-	write2py(new_coords,new_filename)
-	return new_coords
+	return calculate_new_coords(bearing,orig_coords)

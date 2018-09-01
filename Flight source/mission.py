@@ -1,5 +1,5 @@
 import numpy as np
-from rotate_mission import rotate
+from rotate_mission import rotate, write2py
 
 '''
 Usage:
@@ -59,11 +59,6 @@ try:
     while step_E < 0:
       print "Horizontal spacing must be positive."
       step_E = input("What horizontal spacing? [m] ")
-
-  bearing = input("What is the bearing when facing the back of the ship? [deg] ")
-  while bearing < 0 or bearing >= 360:
-    print "Bearing must be in the interval [0,360)."
-    bearing = input("What is the bearing when facing the back of the ship? [deg] ")
 
 except KeyboardInterrupt as e:
   print '\n\nGot ^C. Cancelling mission creation.'
@@ -172,11 +167,11 @@ if load_mission == 3:
 
 
 if not load_mission == 0:
-  # Rotate mission
-  orig_coords = (wp_N,wp_E,wp_D)
-  wp_Nr,wp_Er,wp_Dr = rotate(orig_coords,bearing)
+  # Write mission to base_mission.py
+  filename = 'base_mission.py'
+  coords = (wp_N,wp_E,wp_D)
+  write2py(coords, filename)
 
   # Print the calculated mission
-  print '\n\nFind the rotated mission in mission_rot.py'
+  print '\nFind the mission in %s' %(filename)
   print '\nYour mission:\n  wp_N %s\n  wp_E %s\n  wp_D %s\n  num_wp %s' %(wp_N,wp_E,wp_D, num_wp)
-  print '\nRotated:\n  wp_N %s\n  wp_E %s\n  wp_D %s\n  num_wp %s' %(wp_Nr,wp_Er,wp_Dr, num_wp)
