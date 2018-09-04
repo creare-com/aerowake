@@ -2178,7 +2178,7 @@ class Vehicle(HasObservers):
         :param Boolean raise_exception: If ``True`` the method will raise an exception on timeout,
             otherwise the method will return ``False``. The default is ``True`` (raise exception).
         """
-        timeout = kwargs.get('timeout', 30)
+        timeout = kwargs.get('timeout', 180)
         raise_exception = kwargs.get('raise_exception', True)
 
         # Vehicle defaults for wait_ready(True) or wait_ready()
@@ -2456,10 +2456,10 @@ class Parameters(collections.MutableMapping, HasObservers):
                 #time.sleep(0.1)
 
         #if retries > 0:
-	if True:
              #errprinter("timeout setting parameter %s to %f" % (name, value))
-             errprinter("/usr/local/lib/python2.7/dist-packages/dronekit/__init__.py: error setting parameter %s to %f" % (name, value))
-        return False
+        
+	# Silently fail, even though it probably worked
+	return False
 
     def wait_ready(self, **kwargs):
         """
