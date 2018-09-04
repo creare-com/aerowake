@@ -6,9 +6,9 @@ from inspect import getsourcefile
 import os.path as path, sys
 current_dir = path.dirname(path.abspath(getsourcefile(lambda:0)))
 sys.path.insert(0, current_dir[:current_dir.rfind(path.sep)])
-import mission
-import rotate_mission
 from helper_functions import arm_vehicle, condition_yaw, disarm_vehicle, emergency_stop, get_bearing, get_distance_metres, get_home_location, get_location_metres, goto, goto_position_target_local_ned, goto_reference, land, send_global_velocity, send_ned_velocity, set_roi, takeoff
+from rotate_mission import rotate
+import base_mission
 sys.path.pop(0)
 
 # Required for the vision-based yaw system
@@ -51,10 +51,15 @@ class DroneCommanderNode(object):
 		# Subscribe to topic that reports yaw commands
 		self.sub_yaw_deg = rospy.Subscriber("yaw_deg",Int16,self.cbYawDeg)
 
-		# Extract mission and create a defined local mission
-		uav_mission = [mission.wp_N, mission.wp_E, mission.wp_D]
-		num_wp = mission.num_wp[0]
-		bearing = 0
+		# Extract mission and define a local version called uav_mission
+		orig_mission = [base_mission.wp_N, base_mission.wp_E, base_mission.wp_D]
+		num_wp = base_mission.num_wp
+		alt_takeoff = base_mission.alt_takeoff
+
+		# Define parameters to use
+		cmd_param = 'PIVOT_TURN_ANGLE'
+		ack_param = 'ACRO_TURN_RATE'
+		bearing_param = 'RNGFND_TURN_ANGL'
 
 		#---------------------------------------------------------------------------
 		#
@@ -71,17 +76,19 @@ class DroneCommanderNode(object):
 			- read GCS position
 			- read GCS parameter value of PIVOT_TURN_ANGLE to determine next UAV action
 			- perform an action based upon the GCS parameter value
+
 		The parameter values corresponding actions to be performed are:
-			100		UAV will stop listening to these commands
-							UAV will follow prev command, or do nothing if no command sent yet
-			101		UAV will begin listening to these commands
-			102		UAV will clear its current waypoint
-			103		UAV kills its motors immediately
-			359		UAV will arm
-			358		UAV will disarm
-			357		UAV will takeoff to a pre-programmed height and relative position
-			356		UAV will land according to its landing protocol
-			0+		UAV will navigate to the waypoint at the index specified
+			100     UAV will stop listening to these commands
+							UAV will either follow prev command, or do nothing if no command sent yet
+			101     UAV will begin listening to these commands
+			102     UAV will clear its current waypoint
+			103			UAV will end its main.py if it is disarmed
+			359     UAV will arm
+			358     UAV will disarm
+			357     UAV will takeoff to a pre-programmed height
+			356     UAV will land according to its landing protocol
+			355		  UAV will rotate to bearing given by parameter RNGFND_TURN_ANGL
+			0+      UAV will navigate to the waypoint at the index specified
 							The acceptable waypoint indices are 0 through num_wp - 1
 		'''
 
@@ -89,10 +96,10 @@ class DroneCommanderNode(object):
 		current_wp = None
 
 		# Ensure that at startup the UAV will not be listening
-		gcs.parameters['PIVOT_TURN_ANGLE'] = 100
+		gcs.parameters[cmd_param] = 100
 
-		# We start with a 0 roation on the mission to match what we have on the gcs
-		gcs.parameters['PIVOT_TURN_RATE'] = 0
+		# We start with a 0 rotation on the mission to match what we have on the gcs
+		gcs.parameters[bearing_param] = 0
 
 		# Set UAV acceleration limit and groundspeed
 		uav.parameters['WPNAV_ACCEL'] = 75 # 50-500 [cm/s/s]
@@ -106,10 +113,10 @@ class DroneCommanderNode(object):
 		i = 0
 		in_the_air = False
 		listening = False
-		killed_uav = False
 		continue_loop = True
 		while continue_loop and not rospy.is_shutdown():
-			param = gcs.parameters['PIVOT_TURN_ANGLE']
+			param = gcs.parameters[cmd_param]
+			gcs.parameters[ack_param] = param # Acknowledge
 			gcsLoc = gcs.location.global_frame
 			logger.debug('gcsLoc,%s', gcsLoc)
 			logger.debug('uavLoc,%s', uav.location.global_frame)
@@ -119,84 +126,85 @@ class DroneCommanderNode(object):
 
 			The 'command' variable can only be set while 'listening' is True. If the UAV is not listening to the GCS, then it will follow the most recent 'command' variable.
 
-			It is occasionally desireable for waypoint commands to be repeated, so waypoint commands are handled later on in the code.
+			It is occasionally desireable for waypoint commands to be repeated, so waypoint commands are handled slightly differently.
 
-			The parameter for 'stop listening' will be immediately passed through since repeated 'stop listening' commands are occasionally desired.
+			The parameter for 'stop listening' will be immediately passed through since repeated 'stop listening' commands are also occasionally desired.
 			'''
-			if param == 103 and not command == 103:
-				logger.info('Got kill UAV motors command')
-				command = param
-				gcs.parameters['ACRO_TURN_RATE'] = 103
-			elif listening:
+
+			if listening:
 				logger.info('Listening')
 				if param == 100:
 					logger.info('Got stop listening command')
 					listening = False
-					gcs.parameters['ACRO_TURN_RATE'] = 100
-				elif param == 102 and not command == 102:
-					logger.info('Got clear waypoint command')
+				else:
 					command = param
-					gcs.parameters['ACRO_TURN_RATE'] = 102
-				elif param == 359 and not command == 359:
-					logger.info('Got arm command')
-					command = param
-					gcs.parameters['ACRO_TURN_RATE'] = 359
-				elif param == 358 and not command == 358:
-					logger.info('Got disarm command')
-					command = param
-					gcs.parameters['ACRO_TURN_RATE'] = 358
-				elif param == 357 and not command == 357:
-					logger.info('Got takeoff command')
-					command = param
-					gcs.parameters['ACRO_TURN_RATE'] = 357
-				elif param == 356 and not command == 356:
-					logger.info('Got land command')
-					command = param
-					gcs.parameters['ACRO_TURN_RATE'] = 356
-				elif param == 355 and not command == 355:
-					logger.info('Got rotate command')
-					command = param
-					gcs.parameters['ACRO_TURN_RATE'] = 355
-				elif param < num_wp:
-					# NOTE: GCS will not allow a non-existent index to be passed. The handling of incorrect indices is included in the conditional above as a redundant safety feature.
-					if not command == param:
+					if param == 102 and not command == param:
+						logger.info('Got clear waypoint command')
+					elif param == 103 and not command == param:
+						logger.info('Got end UAV main.py command')
+					elif param == 359 and not command == param:
+						logger.info('Got arm command')
+					elif param == 358 and not command == param:
+						logger.info('Got disarm command')
+					elif param == 357 and not command == param:
+						logger.info('Got takeoff command')
+					elif param == 356 and not command == param:
+						logger.info('Got land command')
+					elif param == 355 and not command == param:
+						logger.info('Got rotate command')
+					elif param >= 0 and param < num_wp:
+						# NOTE: GCS will not allow a non-existent index to be passed. The handling of negative indices is included in the conditional above for comprehension.
 						logger.info('Got navigate to waypoint %d command',param)
-						command = param
 						current_wp = int(param)
-						gcs.parameters['ACRO_TURN_RATE'] = param
 			else:
 				logger.info('Not listening')
 				if param == 101:
 					logger.info('Got start listening command')
 					listening = True
-					gcs.parameters['ACRO_TURN_RATE'] = 101
 
 			# Do the action that corresponds to the current value of 'command'
-			if command == 103 and uav.armed:
-				logger.info('Killing UAV motors')
-				emergency_stop(uav,'UAV')
-				continue_loop = False
-				killed_uav = True
-			elif command == 100:
+			if command == 100:
 				logger.info('Waiting for command')
 			elif command == 102 and current_wp is not None:
 				logger.info('Clearing current waypoint')
 				current_wp = None
-			elif in_the_air:
+			elif not in_the_air:
+				if command == 359 and not uav.armed:
+					logger.info('Arming')
+					arm_vehicle(uav,'UAV')
+					bearing = uav.attitude.yaw*180/np.pi
+					# Yaw is reported from -pi to pi with zero pointing North, so we need to convert to 0 to 360 and keep zero pointing North
+					if bearing < 0:
+						bearing = 360 + bearing
+					print bearing
+					logger.info('Rotating mission by %s degrees at arming' %(bearing))
+					uav_mission = rotate(orig_mission,bearing)
+				elif command == 358 and uav.armed:
+					logger.info('Disarming')
+					disarm_vehicle(uav,'UAV')
+				elif command == 357 and uav.armed:
+					logger.info('Taking off')
+					takeoff(uav,'UAV',alt_takeoff)
+					goto_reference(uav, uav.location.global_frame, 0, 0, 0)
+					condition_yaw(uav, 0, relative = True)
+					in_the_air = True
+					current_wp = None
+				elif command == 103 and not uav.armed:
+					continue_loop = False
+			elif in_the_air: # Explicit for comprehension
 				if command == 356:
 					logger.info('Landing')
 					land(uav,'UAV')
 					in_the_air = False
-				if command == 355:
-					new_bearing = gcs.parameters['PIVOT_TURN_RATE']
-					if new_bearing - bearing < 0:
-						rotation = 360 + new_bearing - bearing
-					else:
-						rotation = new_bearing - bearing
-					uav_mission = rotate_mission.calculate_new_coords(rotation, uav_mission)
-					bearing = new_bearing
-					command = current_wp
-					gcs.parameters['PIVOT_TURN_ANGLE'] = current_wp
+				if command == 355 and not current_wp is None:
+					# Only allow rotation of mission if already following a waypoint
+					bearing = gcs.parameters[bearing_param]
+					logger.info('Rotating mission by %s degrees after GCS operator command' %(bearing))
+					uav_mission = rotate(uav_mission,bearing)
+					# Tell the UAV to continue following the current waypoint through the standard pipeline
+					gcs.parameters[cmd_param] = current_wp
+					# Reset the bearing parameter to zero to prevent continual rotation
+					gcs.parameters[bearing_param] = 0
 				else:
 					if not current_wp is None:
 						logger.info('Tracking waypoint %d',current_wp)
@@ -219,20 +227,6 @@ class DroneCommanderNode(object):
 						i = i + 1
 					else:
 						logger.info('In the air, but not tracking a waypoint')
-			elif not in_the_air: # Explicit for comprehension
-				if command == 359 and not uav.armed:
-					logger.info('Arming')
-					arm_vehicle(uav,'UAV')
-				elif command == 358 and uav.armed:
-					logger.info('Disarming')
-					disarm_vehicle(uav,'UAV')
-				elif command == 357 and uav.armed:
-					logger.info('Taking off')
-					takeoff(uav,'UAV',5)
-					goto_reference(uav, uav.location.global_frame, 0, 0, 0)
-					condition_yaw(uav, 0, relative = True)
-					in_the_air = True
-					current_wp = None
 
 			print ''
 			time.sleep(0.5)
@@ -241,9 +235,7 @@ class DroneCommanderNode(object):
 		# Terminating
 		#------------------------------------
 
-		if killed_uav:
-			logger.info('UAV motors killed as abort procedure')
-		elif rospy.is_shutdown():
+		if rospy.is_shutdown():
 			logger.info('Terminating program since ROS is shutdown. Not changing UAV status.\n')
 		else:
 			# The example is completing. LAND at current location.
@@ -294,7 +286,9 @@ if __name__ == '__main__':
 	logger = logging.getLogger(logger_name)
 	logger.setLevel(logging.DEBUG)
 	# Create file handler that sends all logger messages (DEBUG and above) to file
-	fh = logging.FileHandler('%s/logs/uav-logs/uav-%s.log' %(os.path.expanduser('~'),time.strftime('%Y-%m-%d-%Hh-%Mm-%Ss', time.localtime())))
+	logfile = '%s/logs/uav-logs/uav-%s.log' %(os.path.expanduser('~'),time.strftime('%Y-%m-%d-%Hh-%Mm-%Ss', time.localtime()))
+	fh = logging.FileHandler(logfile)
+	print "Logging to %s" %(logfile)
 	fh.setLevel(logging.DEBUG)
 	# Create console handler that sends some messages (INFO and above) to screen
 	ch = logging.StreamHandler(sys.stdout)
@@ -319,9 +313,6 @@ if __name__ == '__main__':
 			raise e
 
 	logger.info('UAV pixhawk connected to UAV')
-
-	if(uav.parameters['ARMING_CHECK'] != 1):
-		logger.warning('UAV reports arming checks are not standard!')
 
 	# GCS connection
 	logger.info('Waiting for GCS')
@@ -409,7 +400,7 @@ if __name__ == '__main__':
 	# Initialize the node
 	rospy.init_node('flight_companion_node')
 
-	# Create the drone command node
+	# Create the node
 	node = DroneCommanderNode(uav,gcs,logger_name)
 
 	# Spin
