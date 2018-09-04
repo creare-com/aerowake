@@ -22,10 +22,8 @@ def calculate_new_coords(brg,orig_coords):
 	E = orig_coords[1]
 	D = orig_coords[2]
 
-	# Check bearing given and convert to radians
+	# Convert to radians
 	brg = float(brg)
-	if brg < 0 or brg > 360.0:
-		raise ValueError('Bearing must be between 0 and 360 degrees.')
 	brg = brg*np.pi/180
 
 	# Create rotation matrix
@@ -60,7 +58,7 @@ def write2py(alt_takeoff,coords,filename):
 	write_str = write_str + 'wp_N = %s\n' %(coords[0])
 	write_str = write_str + 'wp_E = %s\n' %(coords[1])
 	write_str = write_str + 'wp_D = %s\n' %(coords[2])
-	write_str = write_str + 'num_wp = [len(wp_N)]'
+	write_str = write_str + 'num_wp = len(wp_N)'
 	
 	with open(filename, 'w') as output:
 		output.write(write_str)
