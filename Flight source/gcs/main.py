@@ -212,7 +212,7 @@ if __name__ == '__main__':
 	'''
 
 	user_in = None
-	prev_command = 'No previous command.\n'
+	prev_command = 'No previous command.'
 
 	try:
 		while not user_in == 'quit':
@@ -242,62 +242,62 @@ if __name__ == '__main__':
 				invalid_input = False
 				# UAV knows that 101 means start listening to commands
 				gcs.parameters[cmd_param] = 101
-				logger.info('Commanding UAV to listen to commands\n')
-				prev_command = 'Command UAV to listen to commands\n'
+				logger.info('Commanding UAV to listen to commands')
+				prev_command = 'Command UAV to listen to commands'
 
 			elif user_in == 'rgetdata':
 				invalid_input = False
 				if using_reel:
 					logger.info('Commanding reel to report data.')
 					reel_data = get_reel_data()
-					logger.info(' Reel at: %s\n',reel_data)
+					logger.info(' Reel at: %s',reel_data)
 				else:
-					logger.info('rgetdata called when not using reel.\n')
+					logger.info('rgetdata called when not using reel.')
 
 			elif user_in == 'arm':
 				invalid_input = False
 				# UAV knows that 359 means arm
 				gcs.parameters[cmd_param] = 359
-				logger.info('Commanding UAV to Arm\n')
-				prev_command = 'Command UAV to Arm\n'
+				logger.info('Commanding UAV to Arm')
+				prev_command = 'Command UAV to Arm'
 
 			elif user_in == 'disarm':
 				invalid_input = False
 				# UAV knows that 358 means disarm
 				gcs.parameters[cmd_param] = 358
-				logger.info('Commanding UAV to Disarm\n')
-				prev_command = 'Command UAV to Disarm\n'
+				logger.info('Commanding UAV to Disarm')
+				prev_command = 'Command UAV to Disarm'
 
 			elif user_in == 'takeoff':
 				invalid_input = False
 				# UAV knows that 357 means takeoff
 				gcs.parameters[cmd_param] = 357
-				logger.info('Commanding UAV to Takeoff to %s meters\n' %(alt_takeoff))
+				logger.info('Commanding UAV to Takeoff to %s meters' %(alt_takeoff))
 				if using_reel:
-					logger.info('Commanding reel to %s meters\n', alt_takeoff*safety_factor)
+					logger.info('Commanding reel to %s meters', alt_takeoff*safety_factor)
 					commands_to_reel.put({"cmd":"goto", "L":alt_takeoff*safety_factor})
-				prev_command = 'Command UAV to Takeoff\n'
+				prev_command = 'Command UAV to Takeoff'
 
 			elif user_in == 'land':
 				invalid_input = False
 				# UAV knows that 356 means land
 				gcs.parameters[cmd_param] = 356
-				logger.info('Commanding UAV to Land\n')
-				prev_command = 'Command UAV to Land\n'
+				logger.info('Commanding UAV to Land')
+				prev_command = 'Command UAV to Land'
 
 			elif user_in == 'end':
 				invalid_input = False
 				# UAV knows that 103 means attempt to stop UAV main.py
 				gcs.parameters[cmd_param] = 103
-				logger.info('Commanding UAV to stop its main.py\n')
-				prev_command = 'Command UAV to stop its main.py\n'
+				logger.info('Commanding UAV to stop its main.py')
+				prev_command = 'Command UAV to stop its main.py'
 
 			elif user_in == 'clear':
 				invalid_input = False
 				# UAV knows that 102 means clear
 				gcs.parameters[cmd_param] = 102
-				logger.info('Commanding UAV to clear the current waypoint\n')
-				prev_command = 'Command UAV to clear the current waypoint\n'
+				logger.info('Commanding UAV to clear the current waypoint')
+				prev_command = 'Command UAV to clear the current waypoint'
 
 			elif user_in[0:6] == 'rotate':
 				invalid_input = False
@@ -306,16 +306,16 @@ if __name__ == '__main__':
 				try:
 					bearing = int(user_in[7:])
 				except (ValueError, TypeError) as e:
-					logger.info('Invalid rotation input. Please try again.\n')
+					logger.info('Invalid rotation input. Please try again.')
 					attempt_rotate = False
 				if attempt_rotate:
 					if bearing < -max_deg or bearing > max_deg:
-						logger.info('Invalid rotation value. Rotation is relative and must be between -%s and %s degrees.\n' %(max_deg,max_deg))
+						logger.info('Invalid rotation value. Rotation is relative and must be between -%s and %s degrees.' %(max_deg,max_deg))
 					else:
-						logger.info('Commanding UAV to rotate bearing to %s\n' %(bearing))
+						logger.info('Commanding UAV to rotate bearing to %s' %(bearing))
 						gcs.parameters[bearing_param] = bearing
 						gcs.parameters[cmd_param] = 355
-						prev_command = 'Command UAV to rotate bearing by %s degrees\n' %(bearing)
+						prev_command = 'Command UAV to rotate bearing by %s degrees' %(bearing)
 
 			else:
 				try:
@@ -323,7 +323,7 @@ if __name__ == '__main__':
 					# If user enters an integer, set the chosen GCS parameter to that integer value. The UAV will read this parameter and navigate to that waypoint. E.g. if user enters 2, then UAV will navigate to the waypoint at index 2.
 					if user_in >= 0 and user_in < num_wp:
 						invalid_input = False
-						logger.info('Commanding UAV to waypoint %s\n' %(user_in))
+						logger.info('Commanding UAV to waypoint %s' %(user_in))
 						gcs.parameters[cmd_param] = user_in
 						# Command reel to desired length based on current waypoint
 						d_aft = base_mission.wp_N[user_in]
@@ -332,16 +332,19 @@ if __name__ == '__main__':
 						logger.debug('(d_aft,d_port, d_down) = (%.01f,%.01f,%.01f)'%(d_aft,d_port, d_down))
 						if using_reel:
 							dist = math.sqrt((d_aft**2) + (d_port**2) + (d_down**2))
-							logger.info('Commanding reel to %s meters\n', dist*safety_factor)
+							logger.info('Commanding reel to %s meters', dist*safety_factor)
 							commands_to_reel.put({"cmd":"goto", "L":dist*safety_factor})
-						prev_command = 'Command UAV to waypoint %s\n' %(user_in)
+						prev_command = 'Command UAV to waypoint %s' %(user_in)
 				except ValueError:
 					# Will be invalid input and will print such as defined below
 					pass
 
 			if invalid_input:
 				logger.info('Invalid input. Type \'help\' for allowed commands.')
-				logger.info(' UAV is following previous command of: \n %s' %(prev_command))
+				logger.info(' UAV is following previous command of:  %s' %(prev_command))
+
+			time.sleep(0.5)
+			print('')
 
 	except KeyboardInterrupt:
 		logger.info('\nGot CTRL+C. Cleaning up and exiting.\n')

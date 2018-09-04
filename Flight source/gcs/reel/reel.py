@@ -42,7 +42,7 @@ class reel_run (Process):
             if cmd != None and cmd.has_key('cmd'):
                 if cmd['cmd'] == 'goto':
                     L = cmd['L']
-                    self._logger.info("Setting tether length to %0.01f m\n"%L)
+                    self._logger.info("Setting tether length to %0.01f m"%L)
                     self._rc.setTetherLengthM(L)
                 elif cmd['cmd'] == 'rehome':
                     self._logger.info("Homing tether\n")
