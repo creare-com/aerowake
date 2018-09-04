@@ -125,7 +125,7 @@ if __name__ == '__main__':
 	def UAV_parameter_callback(self, attr_name, UAV_param):
 		if UAV_param == 103:
 			# attempts to end uav main.py
-			logger.info('UAV received command to end control program.\n')
+			logger.info('UAV received command to end its main.py.\n')
 		elif UAV_param == 102:
 			# clear current waypoint
 			logger.info('UAV received command to clear current waypoint.\n')
