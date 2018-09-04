@@ -32,7 +32,7 @@ import os.path
 
 class DroneCommanderNode(object):
 	'''
-	This class will connect to the Pixhawks on the GCS and UAV. It will then generate MAVLink commands to send to the UAV Pixhawk that will control the UAV.
+	This class will communicate with the Pixhawks on the GCS and UAV. It will then generate MAVLink commands to send to the UAV Pixhawk that will control the UAV.
 
 	Most commands are generated based upon what the GCS tells the UAV to do. The UAV reads a GCS parameter, the value of which corresponds to a particular action.
 
