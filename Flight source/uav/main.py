@@ -118,8 +118,9 @@ class DroneCommanderNode(object):
 			param = gcs.parameters[cmd_param]
 			gcs.parameters[ack_param] = param # Acknowledge
 			gcsLoc = gcs.location.global_frame
+			uavLoc = uav.location.global_frame
 			logger.debug('gcsLoc,%s', gcsLoc)
-			logger.debug('uavLoc,%s', uav.location.global_frame)
+			logger.debug('uavLoc,%s', uavLoc)
 
 			'''
 			The variable 'command' is what controls the drone. It is only updated when a valid and non-repeated param value is set. This ensures that the UAV does not continue commanding the same thing over and over.
@@ -172,11 +173,12 @@ class DroneCommanderNode(object):
 				if command == 359 and not uav.armed:
 					logger.info('Arming')
 					arm_vehicle(uav,'UAV')
-					bearing = uav.attitude.yaw*180/np.pi
+					# Set arming altitude as the desired reference altitude
+					alt_initial = uav.location.global_frame.alt
 					# Yaw is reported from -pi to pi with zero pointing North, so we need to convert to 0 to 360 and keep zero pointing North
+					bearing = uav.attitude.yaw*180/np.pi
 					if bearing < 0:
 						bearing = 360 + bearing
-					print bearing
 					logger.info('Rotating mission by %s degrees at arming' %(bearing))
 					uav_mission = rotate(orig_mission,bearing)
 				elif command == 358 and uav.armed:
@@ -209,13 +211,14 @@ class DroneCommanderNode(object):
 					if not current_wp is None:
 						logger.info('Tracking waypoint %d',current_wp)
 						refLoc = gcs.location.global_frame
+						refLoc.alt = alt_initial
 						logger.debug('refLocNav,%s',refLoc)
 						dNorth = uav_mission[0][current_wp]
 						dEast = uav_mission[1][current_wp]
 						dDown = uav_mission[2][current_wp]
 						# Calculate desired location for logging purposes only. Actual desired location is calculated within the goto_reference function.
 						desLoc = get_location_metres(refLoc, dNorth, dEast)
-						desLoc.alt = refLoc.alt - dDown
+						desLoc.alt = alt_initial - dDown
 						logger.debug('desLoc,%s',desLoc)
 						logger.debug('currentMissionNED,%s,%s,%s',dNorth,dEast,dDown)
 						goto_reference(uav, refLoc, dNorth, dEast, dDown)
@@ -229,6 +232,7 @@ class DroneCommanderNode(object):
 						logger.info('In the air, but not tracking a waypoint')
 
 			print ''
+			gcs.parameters[ack_param] = param # 2nd acknowledge since the first may not have worked
 			time.sleep(0.5)
 
 		#------------------------------------
