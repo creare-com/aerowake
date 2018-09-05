@@ -154,7 +154,7 @@ class ReelController:
                 tension_n -= self._T_DEADBAND_N # Prevent "step" up when exiting deadband
                 tension_limited_speed = self._KT_MPS_PER_N * tension_n
                 # speed_limit = min(self._MAX_MPS, length_limited_speed, tension_limited_speed)
-                speed_limit = tension_limited_speed # For now, just do tension
+                speed_limit = min(self._MAX_MPS, tension_limited_speed)
                 mv = 't' if speed_limit == tension_limited_speed else ('l' if speed_limit == length_limited_speed else '-')
                 dir = "->"
                 actual_max_mps = self._setMaxTetherSpeedMps(speed_limit, reeling_out=True)
