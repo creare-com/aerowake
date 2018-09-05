@@ -72,6 +72,9 @@ class ReelController:
         if self._REEL_MAX_VEL_RPM == None:
             self._REEL_MAX_VEL_RPM = self.computeMaxTetherSpeedRpm()
         self._mc.setMaxVelocity(self._REEL_MAX_VEL_RPM)
+        logging.info("getMaxAccelDecel() = %f"%self._mc.getMaxAccelDecel())
+        logging.info("_REELING_OUT_DECEL_RPMS = %f"%self._REELING_OUT_DECEL_RPMS)
+        logging.info("_REEL_MAX_VEL_RPM = %f"%self._REEL_MAX_VEL_RPM)
         
         
         # Initialize tether system
@@ -151,7 +154,7 @@ class ReelController:
                 tension_n -= self._T_DEADBAND_N # Prevent "step" up when exiting deadband
                 tension_limited_speed = self._KT_MPS_PER_N * tension_n
                 # speed_limit = min(self._MAX_MPS, length_limited_speed, tension_limited_speed)
-                speed_limit = tension_limited_speed # For now, just do tension
+                speed_limit = min(self._MAX_MPS, tension_limited_speed)
                 mv = 't' if speed_limit == tension_limited_speed else ('l' if speed_limit == length_limited_speed else '-')
                 dir = "->"
                 actual_max_mps = self._setMaxTetherSpeedMps(speed_limit, reeling_out=True)
