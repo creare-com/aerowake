@@ -72,6 +72,9 @@ class ReelController:
         if self._REEL_MAX_VEL_RPM == None:
             self._REEL_MAX_VEL_RPM = self.computeMaxTetherSpeedRpm()
         self._mc.setMaxVelocity(self._REEL_MAX_VEL_RPM)
+        logging.info("getMaxAccelDecel() = %f"%self._mc.getMaxAccelDecel())
+        logging.info("_REELING_OUT_DECEL_RPMS = %f"%self._REELING_OUT_DECEL_RPMS)
+        logging.info("_REEL_MAX_VEL_RPM = %f"%self._REEL_MAX_VEL_RPM)
         
         
         # Initialize tether system
