@@ -172,7 +172,7 @@ class DroneCommanderNode(object):
 				if command == 359 and not uav.armed:
 					logger.info('Arming')
 					arm_vehicle(uav,'UAV')
-					bearing = uav.attitude.yaw*180/np.pi
+					bearing = uav.attitude.yaw*180/np.pi - 180
 					# Yaw is reported from -pi to pi with zero pointing North, so we need to convert to 0 to 360 and keep zero pointing North
 					if bearing < 0:
 						bearing = 360 + bearing
