@@ -112,54 +112,54 @@ if __name__ == '__main__':
 	# Listeners for Logging
 	#------------------------------------
 
-	# @gcs.on_message('SYSTEM_TIME')
-	# def time_callback(self, attr_name, msg):
-	# 	logger.debug('gcsGPSTIME,%s' %msg)
+	@gcs.on_message('SYSTEM_TIME')
+	def time_callback(self, attr_name, msg):
+		logger.debug('gcsGPSTIME,%s' %msg)
 
-	# @gcs.on_message('LOCAL_POSITION_NED')
-	# def local_position_NED_callback(self,attr_name, msg):
-	# 	logger.debug('localPosNED,%s' %msg)
+	@gcs.on_message('LOCAL_POSITION_NED')
+	def local_position_NED_callback(self,attr_name, msg):
+		logger.debug('localPosNED,%s' %msg)
 
 	@gcs.on_message('ATTITUDE')
 	def attitude_callback(self, attr_name, msg):
 		logger.debug('gcsATT,%s' %msg)
 
-	# # ack_param is used as an acknowledge parameter by the UAV.
-	# @gcs.parameters.on_attribute(ack_param)
-	# def UAV_parameter_callback(self, attr_name, UAV_param):
-	# 	if UAV_param == 103:
-	# 		# attempts to end uav main.py
-	# 		logger.info('UAV received command to end its main.py.\n')
-	# 	elif UAV_param == 102:
-	# 		# clear current waypoint
-	# 		logger.info('UAV received command to clear current waypoint.\n')
-	# 	elif UAV_param == 101:
-	# 		# begin listening
-	# 		logger.info('UAV received command to listen.\n')
-	# 	elif UAV_param == 100:
-	# 		# stop listening
-	# 		logger.info('UAV received command to stop listening.\n')
-	# 	elif UAV_param == 359:
-	# 		# arm
-	# 		logger.info('UAV received command to arm.\n')
-	# 	elif UAV_param == 358:
-	# 		# disarm
-	# 		logger.info('UAV received command to disarm.\n')
-	# 	elif UAV_param == 357:
-	# 		# takeoff
-	# 		logger.info('UAV received command to takeoff.\n')
-	# 	elif UAV_param == 356:
-	# 		# land
-	# 		logger.info('UAV receieved command to land.\n')
-	# 	elif UAV_param == 355:
-	# 		#rotate
-	# 		logger.info('UAV received command to rotate.\n')
-	# 	elif UAV_param >= 0 and UAV_param < num_wp:
-	# 		# commanding waypoint
-	# 		logger.info('UAV received command to go to waypoint %d.\n', UAV_param)
-	# 	else:
-	# 		# something went wrong
-	# 		logger.warning('WARNING: UAV acknowledged an unknown command.\n')
+	# ack_param is used as an acknowledge parameter by the UAV.
+	@gcs.parameters.on_attribute(ack_param)
+	def UAV_parameter_callback(self, attr_name, UAV_param):
+		if UAV_param == 103:
+			# attempts to end uav main.py
+			logger.info('UAV received command to end its main.py.\n')
+		elif UAV_param == 102:
+			# clear current waypoint
+			logger.info('UAV received command to clear current waypoint.\n')
+		elif UAV_param == 101:
+			# begin listening
+			logger.info('UAV received command to listen.\n')
+		elif UAV_param == 100:
+			# stop listening
+			logger.info('UAV received command to stop listening.\n')
+		elif UAV_param == 359:
+			# arm
+			logger.info('UAV received command to arm.\n')
+		elif UAV_param == 358:
+			# disarm
+			logger.info('UAV received command to disarm.\n')
+		elif UAV_param == 357:
+			# takeoff
+			logger.info('UAV received command to takeoff.\n')
+		elif UAV_param == 356:
+			# land
+			logger.info('UAV receieved command to land.\n')
+		elif UAV_param == 355:
+			#rotate
+			logger.info('UAV received command to rotate.\n')
+		elif UAV_param >= 0 and UAV_param < num_wp:
+			# commanding waypoint
+			logger.info('UAV received command to go to waypoint %d.\n', UAV_param)
+		else:
+			# something went wrong
+			logger.warning('WARNING: UAV acknowledged an unknown command.\n')
 
 	# @gcs.on_message('*')
 	# def any_message_listener(self, name, message):
