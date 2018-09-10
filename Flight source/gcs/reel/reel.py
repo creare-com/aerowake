@@ -20,9 +20,25 @@ class reel_run (Process):
         self._dt_des =1/200.0
         self._cycles = 0
 
-        # Setup logger
-        # NOTE: Logger is singleton as long as handled by the same Python interpreter. Calling logging.getLogger('logger_name') from multiple scripts on the same computer will use the same file (except in advanced cases not relevant here).
-        self._logger = logging.getLogger('gcs_logger')
+        # Log Setup
+        self._logger = logging.getLogger('reel_logger')
+        self._logger.setLevel(logging.DEBUG)
+        # Create file handler that sends all logger messages (DEBUG and above) to file
+        logfile = '%s/logs/reel-logs/reel-%s.log' %(os.path.expanduser('~'),time.strftime('%Y-%m-%d-%Hh-%Mm-%Ss', time.localtime()))
+        fh = logging.FileHandler(logfile)
+        print 'Logging reel data to %s' %(logfile)
+        fh.setLevel(logging.DEBUG)
+        # Create console handler that sends some messages (INFO and above) to screen
+        ch = logging.StreamHandler(sys.stdout)
+        ch.setLevel(logging.INFO)
+        # Set the log format for each handler
+        form_fh = logging.Formatter('%(created)s,%(relativeCreated)s,%(funcName)s,%(levelname)s: %(message)s')
+        form_ch = logging.Formatter('%(levelname)s: %(message)s')
+        fh.setFormatter(form_fh)
+        ch.setFormatter(form_ch)
+        # Add the handler to the logger
+        self._logger.addHandler(fh)
+        self._logger.addHandler(ch)
 
     def run(self):
         run = True
@@ -71,6 +87,8 @@ class reel_run (Process):
                     pass
                 self._data_out.put({"L": L, "T": T})
                 self._cycles = 0
+                # Log length and tension reading to GCS log
+                self._logger.debug('tetherDATA,(L,T) = (%.01f,%.01f)',L,T)
             else:
                 self._cycles += 1
 

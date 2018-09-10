@@ -26,7 +26,7 @@ import math
 #-------------------------------------------------------------------------------
 
 # Set if you are using the reel and tether length safety factor
-using_reel = False
+using_reel = True
 safety_factor = 1.15
 
 # Set rotate command limits
@@ -82,7 +82,7 @@ if __name__ == '__main__':
 	# Create file handler that sends all logger messages (DEBUG and above) to file
 	logfile = '%s/logs/gcs-logs/gcs-%s.log' %(os.path.expanduser('~'),time.strftime('%Y-%m-%d-%Hh-%Mm-%Ss', time.localtime()))
 	fh = logging.FileHandler(logfile)
-	print 'Logging to %s' %(logfile)
+	print 'Logging GCS data to %s' %(logfile)
 	fh.setLevel(logging.DEBUG)
 	# Create console handler that sends some messages (INFO and above) to screen
 	ch = logging.StreamHandler(sys.stdout)
