@@ -21,24 +21,7 @@ class reel_run (Process):
         self._cycles = 0
 
         # Log Setup
-        self._logger = logging.getLogger('reel_logger')
-        self._logger.setLevel(logging.DEBUG)
-        # Create file handler that sends all logger messages (DEBUG and above) to file
-        logfile = '%s/logs/reel-logs/reel-%s.log' %(os.path.expanduser('~'),time.strftime('%Y-%m-%d-%Hh-%Mm-%Ss', time.localtime()))
-        fh = logging.FileHandler(logfile)
-        print 'Logging reel data to %s' %(logfile)
-        fh.setLevel(logging.DEBUG)
-        # Create console handler that sends some messages (INFO and above) to screen
-        ch = logging.StreamHandler(sys.stdout)
-        ch.setLevel(logging.INFO)
-        # Set the log format for each handler
-        form_fh = logging.Formatter('%(created)s,%(relativeCreated)s,%(funcName)s,%(levelname)s: %(message)s')
-        form_ch = logging.Formatter('%(levelname)s: %(message)s')
-        fh.setFormatter(form_fh)
-        ch.setFormatter(form_ch)
-        # Add the handler to the logger
-        self._logger.addHandler(fh)
-        self._logger.addHandler(ch)
+        self._logger = logging.getLogger('gcs_logger')
 
     def run(self):
         run = True
