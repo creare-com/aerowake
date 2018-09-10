@@ -389,6 +389,10 @@ if __name__ == '__main__':
 	def uav_time_callback(self,attr_name, msg):
 		logger.debug('uavGPSTIME,%s' %msg)
 
+	@uav.on_message('ATTITUDE')
+	def attitude_callback(self, attr_name, msg):
+		logger.debug('uavATT,%s' %msg)
+
 	@uav.on_message('LOCAL_POSITION_NED')
 	def local_position_NED_callback(self,attr_name, msg):
 		logger.debug('localPosNED,%s' %msg)
