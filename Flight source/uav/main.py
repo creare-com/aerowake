@@ -162,6 +162,14 @@ class DroneCommanderNode(object):
 				if param == 101:
 					logger.info('Got start listening command')
 					listening = True
+					# Set arming altitude as the desired reference altitude
+					alt_initial = uav.location.global_frame.alt
+					# Yaw is reported from -pi to pi with zero pointing North, so we need to convert to 0 to 360 and keep zero pointing North
+					bearing = uav.attitude.yaw*180/np.pi - 180
+					if bearing < 0:
+						bearing = 360 + bearing
+					logger.info('Rotating mission by %s degrees' %(bearing))
+					uav_mission = rotate(orig_mission,bearing)
 
 			# Do the action that corresponds to the current value of 'command'
 			if command == 100:
@@ -173,14 +181,6 @@ class DroneCommanderNode(object):
 				if command == 359 and not uav.armed:
 					logger.info('Arming')
 					arm_vehicle(uav,'UAV')
-					# Set arming altitude as the desired reference altitude
-					alt_initial = uav.location.global_frame.alt
-					# Yaw is reported from -pi to pi with zero pointing North, so we need to convert to 0 to 360 and keep zero pointing North
-					bearing = uav.attitude.yaw*180/np.pi - 180
-					if bearing < 0:
-						bearing = 360 + bearing
-					logger.info('Rotating mission by %s degrees at arming' %(bearing))
-					uav_mission = rotate(orig_mission,bearing)
 				elif command == 358 and uav.armed:
 					logger.info('Disarming')
 					disarm_vehicle(uav,'UAV')
@@ -209,6 +209,9 @@ class DroneCommanderNode(object):
 					gcs.parameters[bearing_param] = 0
 				else:
 					if not current_wp is None:
+						#if not uav.mode == VehicleMode("GUIDED"):
+						#	uav.mode == VehicleMode("GUIDED")
+						#	logger.info("Set uav mode to GUIDED")
 						logger.info('Tracking waypoint %d',current_wp)
 						refLoc = gcs.location.global_frame
 						refLoc.alt = alt_initial
