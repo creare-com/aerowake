@@ -295,7 +295,7 @@ if __name__ == '__main__':
 	# Create file handler that sends all logger messages (DEBUG and above) to file
 	logfile = '%s/logs/uav-logs/uav-%s.log' %(os.path.expanduser('~'),time.strftime('%Y-%m-%d-%Hh-%Mm-%Ss', time.localtime()))
 	fh = logging.FileHandler(logfile)
-	print "Logging to %s" %(logfile)
+	print "Logging UAV data to %s" %(logfile)
 	fh.setLevel(logging.DEBUG)
 	# Create console handler that sends some messages (INFO and above) to screen
 	ch = logging.StreamHandler(sys.stdout)
@@ -391,6 +391,10 @@ if __name__ == '__main__':
 	@uav.on_message('SYSTEM_TIME')
 	def uav_time_callback(self,attr_name, msg):
 		logger.debug('uavGPSTIME,%s' %msg)
+
+	@uav.on_message('ATTITUDE')
+	def attitude_callback(self, attr_name, msg):
+		logger.debug('uavATT,%s' %msg)
 
 	@uav.on_message('LOCAL_POSITION_NED')
 	def local_position_NED_callback(self,attr_name, msg):

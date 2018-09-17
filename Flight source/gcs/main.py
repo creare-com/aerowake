@@ -26,7 +26,7 @@ import math
 #-------------------------------------------------------------------------------
 
 # Set if you are using the reel and tether length safety factor
-using_reel = False
+using_reel = True
 safety_factor = 1.15
 
 # Set rotate command limits
@@ -82,7 +82,7 @@ if __name__ == '__main__':
 	# Create file handler that sends all logger messages (DEBUG and above) to file
 	logfile = '%s/logs/gcs-logs/gcs-%s.log' %(os.path.expanduser('~'),time.strftime('%Y-%m-%d-%Hh-%Mm-%Ss', time.localtime()))
 	fh = logging.FileHandler(logfile)
-	print 'Logging to %s' %(logfile)
+	print 'Logging GCS data to %s' %(logfile)
 	fh.setLevel(logging.DEBUG)
 	# Create console handler that sends some messages (INFO and above) to screen
 	ch = logging.StreamHandler(sys.stdout)
@@ -113,12 +113,16 @@ if __name__ == '__main__':
 	#------------------------------------
 
 	@gcs.on_message('SYSTEM_TIME')
-	def time_callback(self,attr_name, msg):
+	def time_callback(self, attr_name, msg):
 		logger.debug('gcsGPSTIME,%s' %msg)
 
 	@gcs.on_message('LOCAL_POSITION_NED')
 	def local_position_NED_callback(self,attr_name, msg):
 		logger.debug('localPosNED,%s' %msg)
+
+	@gcs.on_message('ATTITUDE')
+	def attitude_callback(self, attr_name, msg):
+		logger.debug('gcsATT,%s' %msg)
 
 	# ack_param is used as an acknowledge parameter by the UAV.
 	@gcs.parameters.on_attribute(ack_param)
@@ -156,6 +160,11 @@ if __name__ == '__main__':
 		else:
 			# something went wrong
 			logger.warning('WARNING: UAV acknowledged an unknown command.\n')
+
+	# @gcs.on_message('*')
+	# def any_message_listener(self, name, message):
+	# 	# Comment out this listener before flight or file created will be enormous.
+	# 	logger.info('fromGCS: %s :: %s',name,message)
 
 	logger.info('------------------SYSTEM IS READY!!------------------')
 	logger.info('-----------------------------------------------------\n')
