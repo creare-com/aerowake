@@ -6,7 +6,7 @@ from inspect import getsourcefile
 import os.path as path, sys
 current_dir = path.dirname(path.abspath(getsourcefile(lambda:0)))
 sys.path.insert(0, current_dir[:current_dir.rfind(path.sep)])
-from helper_functions import arm_vehicle, condition_yaw, disarm_vehicle, emergency_stop, get_bearing, get_distance_metres, get_home_location, get_location_metres, goto, goto_position_target_local_ned, goto_reference, land, send_global_velocity, send_ned_velocity, set_roi, takeoff
+from helper_functions import arm_vehicle, condition_yaw, disarm_vehicle, emergency_stop, get_bearing, get_distance_metres, get_home_location, get_location_metres, goto, goto_position_target_local_ned, goto_reference, land, maintain_altitude, send_global_velocity, send_ned_velocity, set_roi, takeoff, takeoff_nogps
 from rotate_mission import rotate
 import base_mission
 sys.path.pop(0)
@@ -102,7 +102,7 @@ class DroneCommanderNode(object):
 		gcs.parameters[bearing_param] = 0
 
 		# Set UAV acceleration limit and groundspeed
-		uav.parameters['WPNAV_ACCEL'] = 75 # 50-500 [cm/s/s]
+		uav.parameters['WPNAV_ACCEL'] = 100 # 50-500 [cm/s/s]
 		uav.parameters['WPNAV_SPEED'] = 250 # 20-2000 by 50 [cm/s]
 		# uav.groundspeed = 5 # [m/s]
 
@@ -112,6 +112,7 @@ class DroneCommanderNode(object):
 		command = 100 # This varibale is an echo for the variable param in order to disallow repeated commands
 		i = 0
 		in_the_air = False
+		alt_initial = None
 		listening = False
 		continue_loop = True
 		while continue_loop and not rospy.is_shutdown():
@@ -168,8 +169,21 @@ class DroneCommanderNode(object):
 					bearing = uav.attitude.yaw*180/np.pi - 180
 					if bearing < 0:
 						bearing = 360 + bearing
-					logger.info('Rotating mission by %s degrees' %(bearing))
+					logger.info('Rotating mission by %s degrees since listening' %(bearing))
 					uav_mission = rotate(orig_mission,bearing)
+
+
+
+			# Determine if UAV is in the air
+			if not alt_initial is None:
+				if not in_the_air and uav.location.global_frame.alt > alt_initial + 3:
+					logger.info('UAV is in the air')
+					in_the_air = True
+				if in_the_air and uav.location.global_frame.alt < alt_initial + 1:
+					logger.info('UAV is not in the air')
+					in_the_air = False
+
+
 
 			# Do the action that corresponds to the current value of 'command'
 			if command == 100:
@@ -186,10 +200,9 @@ class DroneCommanderNode(object):
 					disarm_vehicle(uav,'UAV')
 				elif command == 357 and uav.armed:
 					logger.info('Taking off')
-					takeoff(uav,'UAV',alt_takeoff)
-					goto_reference(uav, uav.location.global_frame, 0, 0, 0)
-					condition_yaw(uav, 0, relative = True)
-					in_the_air = True
+					takeoff_nogps(uav,'UAV',alt_takeoff)
+					# goto_reference(uav, uav.location.global_frame, 0, 0, 0)
+					# condition_yaw(uav, 0, relative = True)
 					current_wp = None
 				elif command == 103 and not uav.armed:
 					continue_loop = False
@@ -198,20 +211,21 @@ class DroneCommanderNode(object):
 					logger.info('Landing')
 					land(uav,'UAV')
 					in_the_air = False
-				if command == 355 and not current_wp is None:
-					# Only allow rotation of mission if already following a waypoint
-					bearing = gcs.parameters[bearing_param]
-					logger.info('Rotating mission by %s degrees after GCS operator command' %(bearing))
-					uav_mission = rotate(uav_mission,bearing)
-					# Tell the UAV to continue following the current waypoint through the standard pipeline
-					gcs.parameters[cmd_param] = current_wp
-					# Reset the bearing parameter to zero to prevent continual rotation
-					gcs.parameters[bearing_param] = 0
-				else:
-					if not current_wp is None:
-						#if not uav.mode == VehicleMode("GUIDED"):
-						#	uav.mode == VehicleMode("GUIDED")
-						#	logger.info("Set uav mode to GUIDED")
+				if not current_wp is None:
+					# We must be tracking a waypoint to enter this conditional block
+					if command == 355:
+						# Only allow rotation of mission if already following a waypoint
+						bearing = gcs.parameters[bearing_param]
+						logger.info('Rotating mission by %s degrees after GCS operator command' %(bearing))
+						uav_mission = rotate(uav_mission,bearing)
+						# Tell the UAV to continue following the current waypoint through the standard pipeline
+						gcs.parameters[cmd_param] = current_wp
+						# Reset the bearing parameter to zero to prevent continual rotation
+						gcs.parameters[bearing_param] = 0
+					else:
+						if not uav.mode == VehicleMode('GUIDED'):
+							logger.info('Setting UAV mode to GUIDED')
+							uav.mode == VehicleMode('GUIDED')
 						logger.info('Tracking waypoint %d',current_wp)
 						refLoc = gcs.location.global_frame
 						refLoc.alt = alt_initial
@@ -231,8 +245,9 @@ class DroneCommanderNode(object):
 							condition_yaw(uav, yaw_rel, relative = True)
 							logger.debug('RELYAW,%s',yaw_rel)
 						i = i + 1
-					else:
-						logger.info('In the air, but not tracking a waypoint')
+				else:
+					logger.info('In the air, but not tracking a waypoint. Maintaining altitude with GUIDED_NOGPS mode.')
+					maintain_altitude(uav)
 
 			print ''
 			gcs.parameters[ack_param] = param # 2nd acknowledge since the first may not have worked
@@ -267,20 +282,20 @@ if __name__ == '__main__':
 	#-----------------------------------------------------------------------------
 
 	# Set connection path to UAV and GCS
-	# uav_connect_path = '127.0.0.1:14552'
-	# uav_baud = 115200
-	# gcs_connect_path = '127.0.0.1:14554'
-	# gcs_baud = 115200
+	uav_connect_path = '127.0.0.1:14552'
+	uav_baud = 115200
+	gcs_connect_path = '127.0.0.1:14554'
+	gcs_baud = 115200
 
 	# uav_connect_path = '/dev/ttyACM0' # Use for odroid through pixhawk usb cord
 	# uav_connect_path = '/dev/ttyUSB0' # Use for odroid through usb to serial converter
 	# uav_connect_path = '/dev/ttySAC0' # Use for odroid through GPIO pins
-	uav_connect_path = '/dev/pixhawk' # Use after configuring symbolic link through udevadm
-	uav_baud = 57600
+	# uav_connect_path = '/dev/pixhawk' # Use after configuring symbolic link through udevadm
+	# uav_baud = 57600
 
 	# gcs_connect_path = '/dev/ttyUSB0' # Use for telemetry radio through usb port
-	gcs_connect_path = '/dev/radioacl33' # Use after configuring symbolic link through udevadm
-	gcs_baud = 57600
+	# gcs_connect_path = '/dev/radioacl33' # Use after configuring symbolic link through udevadm
+	# gcs_baud = 57600
 
 	#-----------------------------------------------------------------------------
 	#
