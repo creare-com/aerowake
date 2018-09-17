@@ -98,6 +98,21 @@ def takeoff(vehicle,name,aTargetAltitude):
 		logger.info(' %s is not armed. Cannot takeoff.\n' %(name))
 
 
+def takeoff_nogps(vehicle,name,duration):
+	'''
+	Takes off and flies to aTargetAltitude.
+	'''
+	logger.info('%s attempting to takeoff with no GPS' %(name))
+	if vehicle.armed:
+		logger.info(' %s taking off with no GPS' %(name))
+		for i in range(0,10):
+			set_attitude(vehicle, 0, 0, 0, 0.6)
+			time.sleep(1)
+		logger.info(' %s reached target altitude.\n' %(name))
+	else: 
+		logger.info(' %s is not armed. Cannot takeoff.\n' %(name))
+
+
 
 #-------------------------------------------------------------------------------
 # GPS Calculations
@@ -429,6 +444,48 @@ def send_global_velocity(vehicle, velocity_north, velocity_east, velocity_down, 
 
 
 #-------------------------------------------------------------------------------
+# Navigation Commands - Attitude Based (for GUIDED_NOGPS mode)
+#-------------------------------------------------------------------------------
+
+def set_attitude(vehicle, roll, pitch, yaw_rate, thrust):
+	"""
+	SETS ATTITUDE TARGET FOR GUIDED_NOGPS MODE. 
+	roll, pitch [deg]
+	yaw_rate [rad/s]
+	thrust [normalized from 0 to 1]
+
+	Note that from AC3.3 the message should be re-sent every second (after about 3 seconds with no message the velocity will drop back to zero). In AC3.2.1 and earlier the specified velocity persists until it is canceled. The code below should work on either version (sending the message multiple times does not cause problems).
+
+	The roll and pitch rate cannot be controlled with rate in radian in AC3.4.4 or earlier, so you must use quaternion to control the pitch and roll for those vehicles.
+	"""
+	
+	# Thrust >  0.5: Ascend
+	# Thrust == 0.5: Hold the altitude
+	# Thrust <  0.5: Descend
+	msg = vehicle.message_factory.set_attitude_target_encode(
+		0,
+		0,                                         # target system
+		0,                                         # target component
+		0b00000000,                                # type mask: bit 1 is LSB
+		to_quaternion(roll, pitch),    # q
+		0,                                         # body roll rate in radian
+		0,                                         # body pitch rate in radian
+		np.radians(yaw_rate),                    # body yaw rate in radian
+		thrust)                                    # thrust
+
+	vehicle.send_mavlink(msg)
+
+
+def maintain_altitude(vehicle):
+	if vehicle.armed:
+		set_attitude(vehicle, 0, 0, 0, 0.5)
+	else: 
+		logger.info(' %s is not armed. Cannot maintain altitude.\n' %(name))
+
+
+
+
+#-------------------------------------------------------------------------------
 # Condition Commands
 #-------------------------------------------------------------------------------
 
@@ -515,3 +572,22 @@ def emergency_stop(vehicle, name):
 
 	while vehicle.armed:
 		pass
+
+
+def to_quaternion(roll = 0.0, pitch = 0.0, yaw = 0.0):
+    """
+    Convert degrees to quaternions
+    """
+    t0 = np.cos(np.radians(yaw * 0.5))
+    t1 = np.sin(np.radians(yaw * 0.5))
+    t2 = np.cos(np.radians(roll * 0.5))
+    t3 = np.sin(np.radians(roll * 0.5))
+    t4 = np.cos(np.radians(pitch * 0.5))
+    t5 = np.sin(np.radians(pitch * 0.5))
+    
+    w = t0 * t2 * t4 + t1 * t3 * t5
+    x = t0 * t3 * t4 - t1 * t2 * t5
+    y = t0 * t2 * t5 + t1 * t3 * t4
+    z = t1 * t2 * t4 - t0 * t3 * t5
+    
+    return [w, x, y, z]
