@@ -71,7 +71,7 @@ class reel_run (Process):
                 self._data_out.put({"L": L, "T": T})
                 self._cycles = 0
                 # Log length and tension reading to GCS log
-                self._logger.debug('tetherDATA,(L,T) = (%.01f,%.01f)',L,T)
+                # self._logger.debug('tetherDATA,(L,T) = (%.01f,%.01f)',L,T)
             else:
                 self._cycles += 1
 
