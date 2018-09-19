@@ -83,3 +83,9 @@ class airprobe_main:
         self._logfile.write(log_str)
         
         return []# At some point it might be useful to report a summary of the airprobe data, but we don't currently.
+
+if __name__ == '__main__':
+    am = airprobe_main(0.05)
+    print ('Initialized.  Will run until interrupted.')
+    while True:
+        am.run()
