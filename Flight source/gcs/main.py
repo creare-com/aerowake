@@ -206,7 +206,7 @@ if __name__ == '__main__':
 						UAV will either follow prev command, or do nothing if no command sent yet
 		101     UAV will begin listening to these commands
 		102     UAV will clear its current waypoint
-		103			UAV will end its main.py if it is disarmed
+		103	UAV will end its main.py if it is disarmed
 		359     UAV will arm
 		358     UAV will disarm
 		357     UAV will takeoff to a pre-programmed height
