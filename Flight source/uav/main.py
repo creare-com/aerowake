@@ -293,7 +293,7 @@ if __name__ == '__main__':
 	logger = logging.getLogger(logger_name)
 	logger.setLevel(logging.DEBUG)
 	# Create file handler that sends all logger messages (DEBUG and above) to file
-	logfile = '/media/odroid/crearedrive/uav-logs/uav-%s.log' %(os.path.expanduser('~'),time.strftime('%Y-%m-%d-%Hh-%Mm-%Ss', time.localtime()))
+	logfile = '/media/odroid/crearedrive/uav-logs/uav-%s.log' %(time.strftime('%Y-%m-%d-%Hh-%Mm-%Ss', time.localtime()))
 	fh = logging.FileHandler(logfile)
 	print "Logging UAV data to %s" %(logfile)
 	fh.setLevel(logging.DEBUG)
