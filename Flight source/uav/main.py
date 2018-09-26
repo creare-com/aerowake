@@ -87,7 +87,8 @@ class DroneCommanderNode(object):
 			358     UAV will disarm
 			357     UAV will takeoff to a pre-programmed height
 			356     UAV will land according to its landing protocol
-			355		  UAV will rotate to bearing given by parameter RNGFND_TURN_ANGL
+			355	UAV will rotate to bearing given by parameter RNGFND_TURN_ANGL
+			300	Reserved for empty resetting ack_param so that all ack's are received
 			0+      UAV will navigate to the waypoint at the index specified
 							The acceptable waypoint indices are 0 through num_wp - 1
 		'''
@@ -235,7 +236,6 @@ class DroneCommanderNode(object):
 						logger.info('In the air, but not tracking a waypoint')
 
 			print ''
-			gcs.parameters[ack_param] = param # 2nd acknowledge since the first may not have worked
 			time.sleep(0.5)
 
 		#------------------------------------
@@ -274,12 +274,12 @@ if __name__ == '__main__':
 
 	# uav_connect_path = '/dev/ttyACM0' # Use for odroid through pixhawk usb cord
 	# uav_connect_path = '/dev/ttyUSB0' # Use for odroid through usb to serial converter
-	# uav_connect_path = '/dev/ttySAC0' # Use for odroid through GPIO pins
-	uav_connect_path = '/dev/pixhawk' # Use after configuring symbolic link through udevadm
+	uav_connect_path = '/dev/ttySAC0' # Use for odroid through GPIO pins
+	# uav_connect_path = '/dev/pixhawk' # Use after configuring symbolic link through udevadm
 	uav_baud = 57600
 
-	# gcs_connect_path = '/dev/ttyUSB0' # Use for telemetry radio through usb port
-	gcs_connect_path = '/dev/radioacl33' # Use after configuring symbolic link through udevadm
+	gcs_connect_path = '/dev/ttyUSB0' # Use for telemetry radio through usb port
+	# gcs_connect_path = '/dev/radioacl33' # Use after configuring symbolic link through udevadm
 	gcs_baud = 57600
 
 	#-----------------------------------------------------------------------------
@@ -293,7 +293,7 @@ if __name__ == '__main__':
 	logger = logging.getLogger(logger_name)
 	logger.setLevel(logging.DEBUG)
 	# Create file handler that sends all logger messages (DEBUG and above) to file
-	logfile = '%s/logs/uav-logs/uav-%s.log' %(os.path.expanduser('~'),time.strftime('%Y-%m-%d-%Hh-%Mm-%Ss', time.localtime()))
+	logfile = '/media/odroid/crearedrive/uav-logs/uav-%s.log' %(time.strftime('%Y-%m-%d-%Hh-%Mm-%Ss', time.localtime()))
 	fh = logging.FileHandler(logfile)
 	print "Logging UAV data to %s" %(logfile)
 	fh.setLevel(logging.DEBUG)
@@ -325,7 +325,9 @@ if __name__ == '__main__':
 	logger.info('Waiting for GCS')
 	while True:
 		try:
-			gcs = connect(gcs_connect_path, baud = gcs_baud, heartbeat_timeout = 60, rate = 20, wait_ready = True)
+			#gcs = connect(gcs_connect_path, baud = gcs_baud, heartbeat_timeout = 60, rate = 20, wait_ready = True)
+			gcs = connect(gcs_connect_path, baud = gcs_baud, wait_ready=False)
+			gcs.wait_ready(True, timeout=300)
 			break
 		except Exception as e:
 			logger.critical('GCS failed to connect with message: %s' %(e.message))
