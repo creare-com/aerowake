@@ -211,7 +211,8 @@ if __name__ == '__main__':
 		358     UAV will disarm
 		357     UAV will takeoff to a pre-programmed height
 		356     UAV will land according to its landing protocol
-		355		  UAV will rotate to bearing given by parameter RNGFND_TURN_ANGL
+		355	UAV will rotate to bearing given by parameter RNGFND_TURN_ANGL
+		300	Reserved for resetting ack_param for repeated commands
 		0+      UAV will navigate to the waypoint at the index specified
 						The acceptable waypoint indices are 0 through num_wp - 1
 
@@ -264,10 +265,12 @@ if __name__ == '__main__':
 					logger.info('rgetdata called when not using reel.')
 			
 			elif user_in == 'reelin':
-				invalid_unput = False
+				invalid_input = False
 				if using_reel:
 					logger.info('Commanding reel to reel in to landing.')
 					commands_to_reel.put({"cmd":"goto", "L":0.25})
+				else:
+					logger.info('reelin called when not using reel.')
 
 			elif user_in == 'arm':
 				invalid_input = False
@@ -327,7 +330,7 @@ if __name__ == '__main__':
 					if bearing < -max_deg or bearing > max_deg:
 						logger.info('Invalid rotation value. Rotation is relative and must be between -%s and %s degrees.' %(max_deg,max_deg))
 					else:
-						logger.info('Commanding UAV to rotate bearing to %s' %(bearing))
+						logger.info('Commanding UAV to rotate mission by %s degrees (CW pos)' %(bearing))
 						gcs.parameters[bearing_param] = bearing
 						gcs.parameters[cmd_param] = 355
 						prev_command = 'Command UAV to rotate bearing by %s degrees' %(bearing)
