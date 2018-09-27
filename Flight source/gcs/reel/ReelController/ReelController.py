@@ -26,8 +26,8 @@ class ReelController:
         self._REELING_IN_DECEL_RPMS  = 100 # Used in the Profile, ramps down speed at this rate
         self._REELING_OUT_DECEL_RPMS = None # Decelerate quicker while reeling out to prevent letting the tether off the pulleys.  Set to None here to read it from the motor controller.
         self._REEL_MAX_VEL_RPM       = None #100 # Set as the max RPM - profile velocity will be limited to this value.  Set to None here to compute it based on the motor.
-        self._MAX_RPM                = 120 # The highest RPM commanded by the tether speed equations
-        self._MIN_RPM                = 12  # The lowest  RPM commanded by the tether speed equations, changed this value from 6 to 24 on 7/31/18 after flight test 1
+        self._MAX_MPS                = 0.8 # The highest RPM commanded by the tether speed equations
+        self._MIN_MPS                = 0.08  # The lowest  RPM commanded by the tether speed equations, changed this value from 6 to 24 on 7/31/18 after flight test 1
         
         # Sensor settings
         self._N_PER_ADC_COUNT        = 0.0045203
@@ -37,12 +37,15 @@ class ReelController:
 
         # Reel system settings
         self._reel_diam_m            = reel_diam_m # Need to set this first so the conversion methods to work
-        self._MAX_MPS                = self.tetherMpsFromReelRpm(self._MAX_RPM) # _MAX_RPM in mps
-        self._MIN_MPS                = self.tetherMpsFromReelRpm(self._MIN_RPM) # _MIN_RPM in mps
+        #self._MAX_MPS                = self.tetherMpsFromReelRpm(self._MAX_RPM) # _MAX_RPM in mps
+        #self._MIN_MPS                = self.tetherMpsFromReelRpm(self._MIN_RPM) # _MIN_RPM in mps
         self._L_MAX_SPEED_M          = 10 # length no longer limits reel speed beyond this range
         self._T_MAX_SPEED_N          = 5  # Above this many newtons of force, don't limit payout rate
+        self._T_THRESHOLD_IN         = 0.1 # Below this many newtons, reel in
+        self._T_THRESHOLD_OUT        = 1 # Above this many newtons, reel out
         self._KT_MPS_PER_N           = 0.2 # 5N at 1 MPS desired #(self._L_MAX_SPEED_M / (self._T_MAX_SPEED_N - self._T_DEADBAND_N)) * (3.6/2.6) # last multiplier is a workaround to keep preious gain, added on 7/31/18 after flight test
         self._KL_MPS_PER_M           = (self._MAX_MPS - self._MIN_MPS) / self._L_MAX_SPEED_M
+        self._REEL_IN_MPS            = self._MIN_MPS # Rate at which to reel in if tension falls below threshold
         self._QC_PER_M               = self._QC_PER_TURN / (math.pi * self._reel_diam_m)
         self._home_pos_m             = 0
         
@@ -135,8 +138,12 @@ class ReelController:
         # care about the tension, since we don't want to let line out until
         # the UAV will take up the slack.  When reeling in, we want the
         # UAV to slow down as it approaches the landing site.
+        
+        # EMD UPDATE - 9/27/18
+        # Added logic to reel in if tension falls beneath a certain level
+        
         length_limited_speed  = self._KL_MPS_PER_M * current_length + self._MIN_MPS
-        tension_n = self.getTetherTensionN()
+        #tension_n = self.getTetherTensionN()
         if current_length > target_length:
             # Reeling in
             speed_limit = min(self._MAX_MPS, length_limited_speed)
@@ -145,14 +152,24 @@ class ReelController:
             actual_max_mps = self._setMaxTetherSpeedMps(speed_limit, reeling_out=False)
             self._recommandMotorPosition() # Causes the motor controller to move at the new speed
         else: # Stationary OR reeling out
-            # Apply tension deadband
-            if tension_n < self._T_DEADBAND_N:
+            # In the noise band between the thresholds. Halt Reel.
+            if tension_n < self._T_THRESHOLD_OUT and tension_n > self._T_THRESHOLD_IN:
                 self._mc.haltMovement()
                 mv = 'x'
                 actual_max_mps = 0
+                
+            # Below the "reel in" threshold. Reel in at MIN_MPS
+            elif tension_n < self._T_THRESHOLD_IN:
+                speed_limit = self._REEL_IN_MPS
+                mv = 'min'
+                dir = "<-"
+                actual_max_mps = self._setMaxTetherSpeedMps(speed_limit, reeling_out=False)
+                self._recommandMotorPosition() # Causes the motor controller to move at the new speed
+                
+            # Above the "reel out" threshold. Reel out 
             else:
-                tension_n -= self._T_DEADBAND_N # Prevent "step" up when exiting deadband
-                tension_limited_speed = self._KT_MPS_PER_N * tension_n
+                #tension_n -= self._T_DEADBAND_N # Prevent "step" up when exiting deadband
+                tension_limited_speed = self._KT_MPS_PER_N * (tension_n - self._T_THRESHOLD_OUT)
                 # speed_limit = min(self._MAX_MPS, length_limited_speed, tension_limited_speed)
                 speed_limit = min(self._MAX_MPS, tension_limited_speed)
                 mv = 't' if speed_limit == tension_limited_speed else ('l' if speed_limit == length_limited_speed else '-')
