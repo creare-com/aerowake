@@ -96,17 +96,17 @@ if __name__ == '__main__':
 	logger.addHandler(fh)
 	logger.addHandler(ch)
 
-	if using_reel:
-		# Start reel controller
-		commands_to_reel = Queue()
-		data_from_reel = Queue()
-		try:
-			reel = reel_run(commands_to_reel, data_from_reel)
-		except Exception as e:
-			logging.critical('Problem connecting to reel. Aborting.')
-			raise e
-		reel.start()
-		# commands_to_reel.put({"cmd":"goto", "L":0})
+	# if using_reel:
+	# 	# Start reel controller
+	# 	commands_to_reel = Queue()
+	# 	data_from_reel = Queue()
+	# 	try:
+	# 		reel = reel_run(commands_to_reel, data_from_reel)
+	# 	except Exception as e:
+	# 		logging.critical('Problem connecting to reel. Aborting.')
+	# 		raise e
+	# 	reel.start()
+	# 	commands_to_reel.put({"cmd":"goto", "L":0})
 
 	# GCS connection
 	logger.info('Waiting for GCS\n')
