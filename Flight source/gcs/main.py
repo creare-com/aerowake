@@ -187,6 +187,7 @@ if __name__ == '__main__':
 			logging.critical('Problem connecting to reel. Aborting.')
 			raise e
 		reel.start()
+		commands_to_reel.put({"cmd":"goto", "L":0})
 
 	# Print the allowed commands
 	print str_allowed_input
