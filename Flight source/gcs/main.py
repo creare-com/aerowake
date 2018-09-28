@@ -183,9 +183,9 @@ if __name__ == '__main__':
 		data_from_reel = Queue()
 		try:
 			reel = reel_run(commands_to_reel, data_from_reel)
-		except Exception:
+		except Exception as e:
 			logging.critical('Problem connecting to reel. Aborting.')
-			raise ConnectionError('Cannot connect to reel.')
+			raise e
 		reel.start()
 
 	# Print the allowed commands
