@@ -47,7 +47,7 @@ num_wp = base_mission.num_wp
 alt_takeoff = base_mission.alt_takeoff
 
 # Define a string that will print to show allowed user input
-str_allowed_input = '\n\nAllowed input:\n listen\n  Tell UAV to start listening to commands\n arm\n  Arm UAV throttle\n disarm\n  Disarm UAV throttle\n takeoff\n  Takeoff\n <Waypoint Number> \n  Navigate to designated waypoint (0 - %d)\n clear\n  Clear current waypoint\n rotate <Degrees>\n  Rotates mission by specified angle (-%s through %s, CW positive)\n rgetdata\n  Report tether info\n reelin\n  Reel in to landing tether length\n land\n  Land\n help\n  Show this list of allowed inputs\n end\n  Ask UAV to end its main.py\n quit\n  End GCS\'s main.py\n\n' %(num_wp - 1, max_deg, max_deg)
+str_allowed_input = '\n\nAllowed input:\n listen\n  Tell UAV to start listening to commands\n arm\n  Arm UAV throttle\n disarm\n  Disarm UAV throttle\n takeoff\n  Takeoff\n <Waypoint Number> \n  Navigate to designated waypoint (0 - %d)\n clear\n  Clear current waypoint\n rotate <Degrees>\n  Rotates mission by specified angle (-%s through %s, CW positive)\n rgetdata\n  Report tether info\n reelin\n  Reel in to landing tether length\n reelreset\n  Reel in to 0 tether length\n land\n  Land\n help\n  Show this list of allowed inputs\n end\n  Ask UAV to end its main.py\n quit\n  End GCS\'s main.py\n\n' %(num_wp - 1, max_deg, max_deg)
 
 # Define parameters to use
 cmd_param = 'PIVOT_TURN_ANGLE'
@@ -268,9 +268,17 @@ if __name__ == '__main__':
 				invalid_input = False
 				if using_reel:
 					logger.info('Commanding reel to reel in to landing.')
-					commands_to_reel.put({"cmd":"goto", "L":0.25})
+					commands_to_reel.put({"cmd":"goto", "L":0.2})
 				else:
 					logger.info('reelin called when not using reel.')
+
+			elif user_in == 'reelreset':
+				invalid_input = False
+				if using_reel:
+					logger.info('Commanding reel to zero tether length.')
+					commands_to_reel.put({"cmd":"goto", "L":0})
+				else:
+					logger.info('reelreset called when not using reel.')
 
 			elif user_in == 'arm':
 				invalid_input = False
