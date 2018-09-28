@@ -46,7 +46,7 @@ class reel_run (Process):
         run = True
         self._rc = ReelController.ReelController()
         while run:
-            logging.Logger.manager.loggerDict
+            print logging.Logger.manager.loggerDict
 
             #check if any new cmds
             try:
