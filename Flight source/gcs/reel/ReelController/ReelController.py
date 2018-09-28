@@ -11,13 +11,18 @@ EposMotorController (in EposMotorController.hpp/cpp)
 
 """
 import time
+import sys
 import math
 import logging
 
 class ReelController:
     def __init__(self, interface='USB0', reel_diam_m=0.127):
         # Logger setup
-        self._logger = logging.getLogger('reel_logger')
+	if 'reel_logger' in logging.Logger.manager.loggerDict:
+	        self._logger = logging.getLogger('reel_logger')
+	else:
+		self._logger = logging.getLogger('reel_logger')
+	        self._logger.setLevel(logging.DEBUG)
 
         # Motor settings
         self._QC_PER_TURN            = -1024*4 # Flip the sign - the motor considers "positive" to be the direction that retracts the tether
