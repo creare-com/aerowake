@@ -58,16 +58,16 @@ class reel_run (Process):
             if cmd != None and cmd.has_key('cmd'):
                 if cmd['cmd'] == 'goto':
                     L = cmd['L']
-                    self._logger.info("Setting tether length to %0.01f m"%L)
+                    self._logger.info("reel.py: Setting tether length to %0.01f m"%L)
                     self._rc.setTetherLengthM(L)
                 elif cmd['cmd'] == 'rehome':
-                    self._logger.info("Homing tether\n")
+                    self._logger.info("reel.py: Homing tether\n")
                     self._rc.youAreHome()
                 elif cmd['cmd'] == 'halt':
-                    self._logger.info("Halting reel\n")
+                    self._logger.info("reel.py: Halting reel via halt\n")
                     self._rc.stopMoving()
                 elif cmd['cmd'] == 'exit':
-                    self._logger.info("Halting reel\n")
+                    self._logger.info("reel.py: Halting reel via exit\n")
                     self._rc.stopMoving()
                     del self._rc
                     run = False
@@ -87,8 +87,6 @@ class reel_run (Process):
                     pass
                 self._data_out.put({"L": L, "T": T})
                 self._cycles = 0
-                # Log length and tension reading to GCS log
-                self._logger.debug('tetherDATA,(L,T) = (%.01f,%.01f)',L,T)
             else:
                 self._cycles += 1
 
