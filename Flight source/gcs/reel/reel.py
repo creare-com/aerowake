@@ -19,11 +19,33 @@ class reel_run (Process):
         self._dt_des =1/200.0
         self._cycles = 0
 
+        # Logger setup
+        self._logger = logging.getLogger('reel_logger')
+        logger.setLevel(logging.DEBUG)
+        # Create file handler that sends all logger messages (DEBUG and above) to file
+        logfile = '%s/logs/reel-logs/reel-%s.log' %(os.path.expanduser('~'),time.strftime('%Y-%m-%d-%Hh-%Mm-%Ss', time.localtime()))
+        fh = logging.FileHandler(logfile)
+        print 'Logging reel data to %s' %(logfile)
+        fh.setLevel(logging.DEBUG)
+        # Create console handler that sends some messages (INFO and above) to screen
+        ch = logging.StreamHandler(sys.stdout)
+        ch.setLevel(logging.INFO)
+        # Set the log format for each handler
+        form_fh = logging.Formatter('%(created)s,%(relativeCreated)s,%(funcName)s,%(levelname)s: %(message)s')
+        form_ch = logging.Formatter('%(levelname)s: %(message)s')
+        fh.setFormatter(form_fh)
+        ch.setFormatter(form_ch)
+        # Add the handler to the logger
+        logger.addHandler(fh)
+        logger.addHandler(ch)
+
+        self._logger.info('reel info log')
+        self._logger.debug('reel debug log')
+
     def run(self):
         run = True
         self._rc = ReelController.ReelController()
         while run:
-            print 'inside reel'
             #check if any new cmds
             try:
                 cmd = self._cmd.get(False)
