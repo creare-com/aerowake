@@ -76,18 +76,6 @@ def get_reel_data():
 
 if __name__ == '__main__':
 
-	if using_reel:
-		# Start reel controller
-		commands_to_reel = Queue()
-		data_from_reel = Queue()
-		try:
-			reel = reel_run(commands_to_reel, data_from_reel)
-		except Exception as e:
-			logging.critical('Problem connecting to reel. Aborting.')
-			raise e
-		reel.start()
-		commands_to_reel.put({"cmd":"goto", "L":0})
-
 	# Log Setup
 	logger = logging.getLogger('gcs_logger')
 	logger.setLevel(logging.DEBUG)
@@ -107,6 +95,18 @@ if __name__ == '__main__':
 	# Add the handler to the logger
 	logger.addHandler(fh)
 	logger.addHandler(ch)
+
+	if using_reel:
+		# Start reel controller
+		commands_to_reel = Queue()
+		data_from_reel = Queue()
+		try:
+			reel = reel_run(commands_to_reel, data_from_reel)
+		except Exception as e:
+			logging.critical('Problem connecting to reel. Aborting.')
+			raise e
+		reel.start()
+		commands_to_reel.put({"cmd":"goto", "L":0})
 
 	# GCS connection
 	logger.info('Waiting for GCS\n')

@@ -20,8 +20,6 @@ class reel_run (Process):
         self._dt_des =1/200.0
         self._cycles = 0
 
-        print '\n\n1'
-
         # Logger setup
         self._logger = logging.getLogger('reel_logger')
         self._logger.setLevel(logging.DEBUG)
