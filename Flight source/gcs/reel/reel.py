@@ -24,9 +24,9 @@ class reel_run (Process):
         self._logger = logging.getLogger('reel_logger')
         self._logger.setLevel(logging.DEBUG)
         # Create file handler that sends all logger messages (DEBUG and above) to file
-        logfile = '%s/logs/gcs-logs/gcs-%s.log' %(os.path.expanduser('~'),time.strftime('%Y-%m-%d-%Hh-%Mm-%Ss', time.localtime()))
+        logfile = '%s/logs/reel-logs/reel-%s.log' %(os.path.expanduser('~'),time.strftime('%Y-%m-%d-%Hh-%Mm-%Ss', time.localtime()))
         fh = logging.FileHandler(logfile)
-        print 'Logging GCS data to %s' %(logfile)
+        print 'Logging reel data to %s' %(logfile)
         fh.setLevel(logging.DEBUG)
         # Create console handler that sends some messages (INFO and above) to screen
         ch = logging.StreamHandler(sys.stdout)
