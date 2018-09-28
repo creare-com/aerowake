@@ -26,7 +26,7 @@ import math
 #-------------------------------------------------------------------------------
 
 # Set if you are using the reel and tether length safety factor
-using_reel = False
+using_reel = True
 safety_factor = 1.15
 
 # Set rotate command limits
@@ -185,7 +185,7 @@ if __name__ == '__main__':
 			reel = reel_run(commands_to_reel, data_from_reel)
 		except Exception:
 			logging.critical('Problem connecting to reel. Aborting.')
-			setup_abort("Reel System Failure")
+			raise ConnectionError('Cannot connect to reel.')
 		reel.start()
 
 	# Print the allowed commands

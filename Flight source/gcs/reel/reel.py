@@ -7,7 +7,6 @@ import logging
 import sys
 import time
 import ReelController
-import logging
 
 SKIP_CYCLES=100 #only send the position every 10 cycles
 # SKIP_CYCLES=0
@@ -19,26 +18,6 @@ class reel_run (Process):
         self._data_out = data_out
         self._dt_des =1/200.0
         self._cycles = 0
-
-        # Log Setup
-        self._logger = logging.getLogger('reel_logger')
-        self._logger.setLevel(logging.DEBUG)
-        # Create file handler that sends all logger messages (DEBUG and above) to file
-        logfile = '%s/logs/reel-logs/reel-%s.log' %(os.path.expanduser('~'),time.strftime('%Y-%m-%d-%Hh-%Mm-%Ss', time.localtime()))
-        fh = logging.FileHandler(logfile)
-        print 'Logging reel data to %s' %(logfile)
-        fh.setLevel(logging.DEBUG)
-        # Create console handler that sends some messages (INFO and above) to screen
-        ch = logging.StreamHandler(sys.stdout)
-        ch.setLevel(logging.INFO)
-        # Set the log format for each handler
-        form_fh = logging.Formatter('%(created)s,%(relativeCreated)s,%(funcName)s,%(levelname)s: %(message)s')
-        form_ch = logging.Formatter('%(levelname)s: %(message)s')
-        fh.setFormatter(form_fh)
-        ch.setFormatter(form_ch)
-        # Add the handler to the logger
-        self._logger.addHandler(fh)
-        self._logger.addHandler(ch)
 
     def run(self):
         run = True
@@ -58,16 +37,16 @@ class reel_run (Process):
             if cmd != None and cmd.has_key('cmd'):
                 if cmd['cmd'] == 'goto':
                     L = cmd['L']
-                    self._logger.info("Setting tether length to %0.01f m"%L)
+                    # self._logger.info("Setting tether length to %0.01f m"%L)
                     self._rc.setTetherLengthM(L)
                 elif cmd['cmd'] == 'rehome':
-                    self._logger.info("Homing tether\n")
+                    # self._logger.info("Homing tether\n")
                     self._rc.youAreHome()
                 elif cmd['cmd'] == 'halt':
-                    self._logger.info("Halting reel\n")
+                    # self._logger.info("Halting reel\n")
                     self._rc.stopMoving()
                 elif cmd['cmd'] == 'exit':
-                    self._logger.info("Halting reel\n")
+                    # self._logger.info("Halting reel\n")
                     self._rc.stopMoving()
                     del self._rc
                     run = False

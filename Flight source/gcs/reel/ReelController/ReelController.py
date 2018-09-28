@@ -16,9 +16,6 @@ import logging
 
 class ReelController:
     def __init__(self, interface='USB0', reel_diam_m=0.127):
-        # Logger setup
-        self._logger = logging.getLogger('reel_logger')
-
         # Motor settings
         self._QC_PER_TURN            = -1024*4 # Flip the sign - the motor considers "positive" to be the direction that retracts the tether
         self._MOTOR_MAX_RPM          = 10000
@@ -54,7 +51,7 @@ class ReelController:
             self._tension_sensor = TensionSensor(adc_per_ct=self._N_PER_ADC_COUNT, adc_baseline=self._SENSOR_BASELINE_COUNTS)
             self._tension_sensor.readTension()
         except:
-            self._logger.warning("Cannot connect to tension sensor!  Will be using mock sensor instead.")
+            # self._logger.warning("Cannot connect to tension sensor!  Will be using mock sensor instead.")
             from MockTensionSensor import MockTensionSensor
             self._tension_sensor = MockTensionSensor()
             self._tension_sensor.setTension(1)
@@ -63,7 +60,7 @@ class ReelController:
             from PyMotorController import PyMotorController, SensorType
             self._mc = PyMotorController(interface)
         except:
-            self._logger.warning("Cannot connect to motor controller!  Will be using mock motor controller instead.")
+            # self._logger.warning("Cannot connect to motor controller!  Will be using mock motor controller instead.")
             from MockPyMotorController import MockPyMotorController
             self._mc = MockPyMotorController()
         
@@ -75,9 +72,9 @@ class ReelController:
         if self._REEL_MAX_VEL_RPM == None:
             self._REEL_MAX_VEL_RPM = self.computeMaxTetherSpeedRpm()
         self._mc.setMaxVelocity(self._REEL_MAX_VEL_RPM)
-        self._logger.info("getMaxAccelDecel() = %f"%self._mc.getMaxAccelDecel())
-        self._logger.info("_REELING_OUT_DECEL_RPMS = %f"%self._REELING_OUT_DECEL_RPMS)
-        self._logger.info("_REEL_MAX_VEL_RPM = %f"%self._REEL_MAX_VEL_RPM)
+        # self._logger.info("getMaxAccelDecel() = %f"%self._mc.getMaxAccelDecel())
+        # self._logger.info("_REELING_OUT_DECEL_RPMS = %f"%self._REELING_OUT_DECEL_RPMS)
+        # self._logger.info("_REEL_MAX_VEL_RPM = %f"%self._REEL_MAX_VEL_RPM)
         
         
         # Initialize tether system
@@ -164,7 +161,7 @@ class ReelController:
                 self._recommandMotorPosition() # Causes the motor controller to move at the new speed
         
         status_str = dir[0] + mv + dir[1] + " %3.3fm->%3.3f @%3.8fmps %03.8fN "%(current_length, target_length, actual_max_mps, tension_n)
-        self._logger.info(status_str)
+        # self._logger.info(status_str)
 
     def stopMoving(self):
         self._mc.haltMovement()
@@ -196,7 +193,7 @@ class ReelController:
         # Tone it down if necessary 
         max_tether_rpm = min(max_tether_rpm, self._REEL_MAX_VEL_RPM)
         if max_tether_rpm < 1:
-            self._logger.debug("Cannot set max tether speed to %fRPM because it's <1."%max_tether_rpm)
+            # self._logger.debug("Cannot set max tether speed to %fRPM because it's <1."%max_tether_rpm)
             return 0
         else:
             self._mc.setPositionProfile(velocity=max_tether_rpm,
