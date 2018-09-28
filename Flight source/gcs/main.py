@@ -105,11 +105,8 @@ if __name__ == '__main__':
 		except Exception as e:
 			logging.critical('Problem connecting to reel. Aborting.')
 			raise e
-		print '11'
 		reel.start()
-		print '22'
-		commands_to_reel.put({"cmd":"goto", "L":0})
-		print '33'
+		# commands_to_reel.put({"cmd":"goto", "L":0})
 
 	# GCS connection
 	logger.info('Waiting for GCS\n')
