@@ -19,6 +19,8 @@ class reel_run (Process):
         self._dt_des =1/200.0
         self._cycles = 0
 
+        logging.Logger.manager.loggerDict
+
         # # Logger setup
         # self._logger = logging.getLogger('reel_logger')
         # logger.setLevel(logging.DEBUG)
