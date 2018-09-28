@@ -4,6 +4,7 @@ import datetime
 from multiprocessing import Process, Queue
 from Queue import Empty
 import logging
+import os
 import sys
 import time
 import ReelController
