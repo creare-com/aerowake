@@ -106,7 +106,7 @@ if __name__ == '__main__':
 			logging.critical('Problem connecting to reel. Aborting.')
 			raise e
 		reel.start()
-		commands_to_reel.put({"cmd":"goto", "L":0})
+		# commands_to_reel.put({"cmd":"goto", "L":0})
 
 	# GCS connection
 	logger.info('Waiting for GCS\n')
