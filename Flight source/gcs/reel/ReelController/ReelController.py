@@ -124,6 +124,8 @@ class ReelController:
         Call this method frequently in your main loop.
         """
         
+        print 'inside ReelController.update'
+        
         current_length = self.getTetherLengthM()
         target_length  = self.getTargetTetherLengthM()
         

@@ -23,6 +23,7 @@ class reel_run (Process):
         run = True
         self._rc = ReelController.ReelController()
         while run:
+            print 'inside reel'
             #check if any new cmds
             try:
                 cmd = self._cmd.get(False)
