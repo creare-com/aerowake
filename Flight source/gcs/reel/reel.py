@@ -20,6 +20,8 @@ class reel_run (Process):
         self._dt_des =1/200.0
         self._cycles = 0
 
+        print '\n\n1'
+
         # Logger setup
         self._logger = logging.getLogger('reel_logger')
         self._logger.setLevel(logging.DEBUG)
@@ -39,12 +41,17 @@ class reel_run (Process):
         # Add the handler to the logger
         self._logger.addHandler(fh)
         self._logger.addHandler(ch)
+        print '\n\n2'
+
 
     def run(self):
         run = True
         self._rc = ReelController.ReelController()
+        print '\n\n3'
         try:
+            print '\n\n4'
             while run:
+                print '\n\n5'
                 #check if any new cmds
                 try:
                     cmd = self._cmd.get(False)
