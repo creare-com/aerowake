@@ -172,6 +172,9 @@ if load_mission == 3:
 
 
 if not load_mission == 0:
+  # Offset as desired
+  wp_N = [val + 1.6 for val in wp_N]
+
   # Write mission to base_mission.py
   filename = 'base_mission.py'
   coords = (wp_N,wp_E,wp_D)
