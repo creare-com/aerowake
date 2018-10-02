@@ -55,6 +55,7 @@ class reel_run (Process):
                 # {"cmd":"goto", "L":<length in meters, an int}
                 # {"cmd":"halt"}    # holds the reel where it is
                 # {"cmd":"rehome"}  # consider the current tether length to be 0m
+                # {"cmd":"clearfault"}  # clear any fault
                 # {"cmd":"exit"}    # exit the subprocess
                 if cmd != None and cmd.has_key('cmd'):
                     if cmd['cmd'] == 'goto':
@@ -67,6 +68,9 @@ class reel_run (Process):
                     elif cmd['cmd'] == 'halt':
                         self._logger.info("reel.py: Halting reel via halt\n")
                         self._rc.stopMoving()
+                    elif cmd['cmd'] == 'clearfault':
+                        self._logger.info("reel.py: Clearing fault\n")
+                        self._rc.clearFault()
                     elif cmd['cmd'] == 'exit':
                         self._logger.info("reel.py: Halting reel via exit\n")
                         self._rc.stopMoving()
@@ -81,12 +85,13 @@ class reel_run (Process):
                 if(self._cycles >= SKIP_CYCLES):
                     L = self._rc.getTetherLengthM()
                     T = self._rc.getTetherTensionN()
+                    faulted = self._rc.isFaulted()
                     try:
                         self._data_out.get(False)
                     except Empty:
                         # GCS main code will occasionally pull out this data, so we need to protect against an empty Queue
                         pass
-                    self._data_out.put({"L": L, "T": T})
+                    self._data_out.put({"L": L, "T": T, "F": faulted})
                     self._cycles = 0
                 else:
                     self._cycles += 1

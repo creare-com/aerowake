@@ -73,6 +73,8 @@ Allowed input:
   Reel in to landing tether length
  reelreset
   Reel in to 0 tether length
+ clearfault
+  Clear a faulted motor controller in the reel
  land
   Land
  help
@@ -315,6 +317,14 @@ if __name__ == '__main__':
 				if using_reel:
 					logger.info('Commanding reel to zero tether length.')
 					commands_to_reel.put({"cmd":"goto", "L":0})
+				else:
+					logger.info('reelreset called when not using reel.')
+
+			elif user_in == 'clearfault':
+				invalid_input = False
+				if using_reel:
+					logger.info('Commanding reel to clear fault.')
+					commands_to_reel.put({"cmd":"clearfault"})
 				else:
 					logger.info('reelreset called when not using reel.')
 
