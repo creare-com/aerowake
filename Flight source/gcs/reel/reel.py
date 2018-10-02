@@ -13,7 +13,7 @@ SKIP_CYCLES=100 #only send the position every 10 cycles
 # SKIP_CYCLES=0
 
 class reel_run (Process):
-    def __init__(self, cmd, data_out):
+    def __init__(self, cmd, data_out, filename):
         Process.__init__(self)
         self._cmd = cmd
         self._data_out = data_out
@@ -24,7 +24,7 @@ class reel_run (Process):
         self._logger = logging.getLogger('reel_logger')
         self._logger.setLevel(logging.DEBUG)
         # Create file handler that sends all logger messages (DEBUG and above) to file
-        logfile = '%s/logs/reel-logs/reel-%s.log' %(os.path.expanduser('~'),time.strftime('%Y-%m-%d-%Hh-%Mm-%Ss', time.localtime()))
+        logfile = '%s/logs/reel-logs/reel-%s-%s.log' %(os.path.expanduser('~'),filename,time.strftime('%Y-%m-%d-%Hh-%Mm-%Ss', time.localtime()))
         fh = logging.FileHandler(logfile)
         print 'Logging reel data to %s' %(logfile)
         fh.setLevel(logging.DEBUG)
