@@ -31,7 +31,7 @@ class MockPyMotorController:
     def isEnabled(self):
         return self._enabled
     def isFaulted(self):
-        return self._mc.isFaulted() 
+        return False
         
     # Configuration (throw an  exception on failure)
     def setSensorType(self, st):
