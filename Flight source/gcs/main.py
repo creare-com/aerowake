@@ -26,7 +26,7 @@ import math
 #-------------------------------------------------------------------------------
 
 # Set if you are using the reel and tether length safety factor
-using_reel = False
+using_reel = True
 safety_factor = 1.15
 
 # Set rotate command limits
@@ -50,7 +50,41 @@ num_wp = base_mission.num_wp
 alt_takeoff = base_mission.alt_takeoff
 
 # Define a string that will print to show allowed user input
-str_allowed_input = '\n\nAllowed input:\n listen\n  Tell UAV to start listening to commands\n arm\n  Arm UAV throttle\n disarm\n  Disarm UAV throttle\n takeoff\n  Takeoff\n <Waypoint Number> \n  Navigate to designated waypoint (0 - %d)\n clear\n  Clear current waypoint\n rotate <Degrees>\n  Rotates mission by specified angle (-%s through %s, CW positive)\n rgetdata\n  Report tether info\n reelin\n  Reel in to landing tether length\n reelreset\n  Reel in to 0 tether length\n land\n  Land\n help\n  Show this list of allowed inputs\n end\n  Ask UAV to end its main.py\n quit\n  End GCS\'s main.py\n\n' %(num_wp - 1, max_deg, max_deg)
+str_allowed_input = """
+
+Allowed input:
+ listen
+  Tell UAV to start listening to commands
+ arm
+  Arm UAV throttle
+ disarm
+  Disarm UAV throttle
+ takeoff
+  Takeoff
+ <Waypoint Number> 
+  Navigate to designated waypoint (0 - %d)
+ clear
+  Clear current waypoint
+ rotate <Degrees>
+  Rotates mission by specified angle (-%s through %s, CW positive)
+ rgetdata
+  Report tether info
+ reelin
+  Reel in to landing tether length
+ reelreset
+  Reel in to 0 tether length
+ clearfault
+  Clear a faulted motor controller in the reel
+ land
+  Land
+ help
+  Show this list of allowed inputs
+ end
+  Ask UAV to end its main.py
+ quit
+  End GCS\'s main.py
+
+""" %(num_wp - 1, max_deg, max_deg)
 
 # Define parameters to use
 cmd_param = 'PIVOT_TURN_ANGLE'
@@ -285,6 +319,14 @@ if __name__ == '__main__':
 					commands_to_reel.put({"cmd":"goto", "L":0})
 				else:
 					logger.info('reelreset called when not using reel.')
+
+			elif user_in == 'clearfault':
+				invalid_input = False
+				if using_reel:
+					logger.info('Commanding reel to clear fault.')
+					commands_to_reel.put({"cmd":"clearfault"})
+				else:
+					logger.info('clearfault called when not using reel.')
 
 			elif user_in == 'arm':
 				invalid_input = False

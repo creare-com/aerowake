@@ -213,3 +213,9 @@ class ReelController:
 
     def getTetherTensionN(self):
         return self._tension_sensor.readTension()
+
+    def isFaulted(self):
+        return self._mc.isFaulted()
+
+    def clearFault(self):
+        return self._mc.clearFault()
