@@ -26,7 +26,7 @@ import math
 #-------------------------------------------------------------------------------
 
 # Set if you are using the reel and tether length safety factor
-using_reel = False
+using_reel = True
 safety_factor = 1.15
 
 # Set rotate command limits
@@ -326,7 +326,7 @@ if __name__ == '__main__':
 					logger.info('Commanding reel to clear fault.')
 					commands_to_reel.put({"cmd":"clearfault"})
 				else:
-					logger.info('reelreset called when not using reel.')
+					logger.info('clearfault called when not using reel.')
 
 			elif user_in == 'arm':
 				invalid_input = False
