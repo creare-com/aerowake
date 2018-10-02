@@ -8,7 +8,7 @@ class TemperatureSensor(I2cSensor):
     """
     Specifically the Microchip MCP9808 digital temperature sensor.
     """
-    def __init__(self, addr, desc='Temperature Sensor'):
+    def __init__(self, addr, desc='Temperature Sensor', busnum=None):
         """
         
         Parameters
@@ -18,7 +18,7 @@ class TemperatureSensor(I2cSensor):
         desc : string
             Human-readable description to identify this sensor
         """
-        super(TemperatureSensor, self).__init__(addr=addr, desc=desc)
+        super(TemperatureSensor, self).__init__(addr=addr, desc=desc, busnum=busnum)
     
     def read_temp_c(self):
         """

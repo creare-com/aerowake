@@ -4,7 +4,7 @@ import Adafruit_GPIO.I2C as I2C
 
 
 class I2cSensor(object):
-    def __init__(self, addr, desc='I2C Sensor'):
+    def __init__(self, addr, desc='I2C Sensor', busnum=None):
         """
         Parameters
         -----------
@@ -12,12 +12,17 @@ class I2cSensor(object):
             i2c sensor address. Can be specified as (for example) 0x10
         desc : string
             Human-readable description to identify this sensor
+        busnum : int or None 
+            The number of the I2C device to connect to.  For example,
+            to connect to /dev/i2c-0, put 0.  To connect to the default
+            bus, put None.
         """
         self._address = addr
         self._description = desc
         
         # Open the bus
-        busnum = I2C.get_default_bus()
+        if busnum == None:
+            busnum = I2C.get_default_bus()
         self._bus = smbus.SMBus(busnum)
     
     def get_desc(self):

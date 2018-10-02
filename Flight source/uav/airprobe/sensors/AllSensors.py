@@ -10,7 +10,7 @@ class PressureSensor(I2cSensor):
     """
     This class handles math and interactions common among All Sensors pressure sensors.
     """
-    def __init__(self, addr, FSS=0.5, OSdig=1638, desc='Pressure Sensor'):
+    def __init__(self, addr, FSS=0.5, OSdig=1638, desc='Pressure Sensor', busnum=None):
         """
         
         Parameters
@@ -24,7 +24,7 @@ class PressureSensor(I2cSensor):
         desc : string
             Human-readable description to identify this sensor
         """
-        super(PressureSensor, self).__init__(addr=addr, desc=desc)
+        super(PressureSensor, self).__init__(addr=addr, desc=desc, busnum=busnum)
         # Save attributes
         self.FSS = FSS
         self.OSdig = OSdig
@@ -108,17 +108,17 @@ class DlvrPressureSensor(PressureSensor):
     """
     This class reads from the DLVR Series Pressure Sensor from All Sensors.
     """
-    def __init__(self, addr, FSP=0.5, differential=True, desc='DLVR Series Pressure Sensor'):#If this is a differential pressure sensor (True) or a gage pressure sensor (False)
+    def __init__(self, addr, FSP=0.5, differential=True, desc='DLVR Series Pressure Sensor', busnum=None):#If this is a differential pressure sensor (True) or a gage pressure sensor (False)
         if differential:
             OSdig=8192
         else:
             OSdig=1638
         FSS = FSP * (differential + 1)
-        super(DlvrPressureSensor, self).__init__(OSdig=OSdig, addr=addr, FSS=FSS, desc=desc)
+        super(DlvrPressureSensor, self).__init__(OSdig=OSdig, addr=addr, FSS=FSS, desc=desc, busnum=busnum)
 
 class DlvPressureSensor(PressureSensor):
     """
     This class reads from the DLV Series Pressure Sensor from All Sensors.
     """
-    def __init__(self, addr, FSP=0.5, desc='DLV Series Pressure Sensor'):
-        super(DlvPressureSensor, self).__init__(OSdig=1638, addr=addr, FSS=FSP, desc=desc)
+    def __init__(self, addr, FSP=0.5, desc='DLV Series Pressure Sensor', busnum=None):
+        super(DlvPressureSensor, self).__init__(OSdig=1638, addr=addr, FSS=FSP, desc=desc, busnum=busnum)
