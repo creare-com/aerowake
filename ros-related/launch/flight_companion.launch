@@ -2,7 +2,7 @@
 <launch>
 
   <!-- Start the node that commands the uav -->
-  <node pkg="aerowake" name="flight_companion" type="main.py" output="screen">
-  </node>
+  <arg name="filename"/>
+  <node pkg="aerowake" name="flight_companion" type="main.py" output="screen" args="$(arg filename)"/>
 
 </launch>

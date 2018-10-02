@@ -267,20 +267,20 @@ if __name__ == '__main__':
 	#-----------------------------------------------------------------------------
 
 	# Set connection path to UAV and GCS
-	# uav_connect_path = '127.0.0.1:14552'
-	# uav_baud = 115200
-	# gcs_connect_path = '127.0.0.1:14554'
-	# gcs_baud = 115200
+	uav_connect_path = '127.0.0.1:14552'
+	uav_baud = 115200
+	gcs_connect_path = '127.0.0.1:14554'
+	gcs_baud = 115200
 
 	# uav_connect_path = '/dev/ttyACM0' # Use for odroid through pixhawk usb cord
 	# uav_connect_path = '/dev/ttyUSB0' # Use for odroid through usb to serial converter
 	# uav_connect_path = '/dev/ttySAC0' # Use for odroid through GPIO pins
-	uav_connect_path = '/dev/pixhawk' # Use after configuring symbolic link through udevadm
-	uav_baud = 57600
+	# uav_connect_path = '/dev/pixhawk' # Use after configuring symbolic link through udevadm
+	# uav_baud = 57600
 
-	gcs_connect_path = '/dev/ttyUSB0' # Use for telemetry radio through usb port
+	# gcs_connect_path = '/dev/ttyUSB0' # Use for telemetry radio through usb port
 	# gcs_connect_path = '/dev/radioacl33' # Use after configuring symbolic link through udevadm
-	gcs_baud = 57600
+	# gcs_baud = 57600
 
 	#-----------------------------------------------------------------------------
 	#
@@ -289,11 +289,12 @@ if __name__ == '__main__':
 	#-----------------------------------------------------------------------------
 
 	# Log Setup
+	filename = sys.argv[1]
 	logger_name = 'uav_logger'
 	logger = logging.getLogger(logger_name)
 	logger.setLevel(logging.DEBUG)
 	# Create file handler that sends all logger messages (DEBUG and above) to file
-	logfile = '/home/odroid/logs/uav-logs/uav-%s.log' %(time.strftime('%Y-%m-%d-%Hh-%Mm-%Ss', time.localtime()))
+	logfile = '%s/logs/uav-logs/%s-%s.log' %(os.path.expanduser('~'),filename,time.strftime('%Y-%m-%d-%Hh-%Mm-%Ss', time.localtime()))
 	fh = logging.FileHandler(logfile)
 	print "Logging UAV data to %s" %(logfile)
 	fh.setLevel(logging.DEBUG)

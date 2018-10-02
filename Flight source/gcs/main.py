@@ -32,8 +32,11 @@ safety_factor = 1.15
 # Set rotate command limits
 max_deg = 20
 
+# Set filename
+filename = sys.argv[1]
+
 # Set connection path to GCS
-if len(sys.argv) > 1 and sys.argv[1] == 'sim':
+if len(sys.argv) > 2 and sys.argv[2] == 'sim':
 	gcs_connect_path = '127.0.0.1:14556'
 	gcs_baud = 115200
 else:
@@ -80,7 +83,7 @@ if __name__ == '__main__':
 	logger = logging.getLogger('gcs_logger')
 	logger.setLevel(logging.DEBUG)
 	# Create file handler that sends all logger messages (DEBUG and above) to file
-	logfile = '%s/logs/gcs-logs/gcs-%s.log' %(os.path.expanduser('~'),time.strftime('%Y-%m-%d-%Hh-%Mm-%Ss', time.localtime()))
+	logfile = '%s/logs/gcs-logs/%s-%s.log' %(os.path.expanduser('~'),filename,time.strftime('%Y-%m-%d-%Hh-%Mm-%Ss', time.localtime()))
 	fh = logging.FileHandler(logfile)
 	print 'Logging GCS data to %s' %(logfile)
 	fh.setLevel(logging.DEBUG)
