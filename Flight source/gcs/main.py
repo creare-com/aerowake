@@ -138,7 +138,7 @@ if __name__ == '__main__':
 		commands_to_reel = Queue()
 		data_from_reel = Queue()
 		try:
-			reel = reel_run(commands_to_reel, data_from_reel)
+			reel = reel_run(commands_to_reel, data_from_reel, filename)
 		except Exception as e:
 			logging.critical('Problem connecting to reel. Aborting.')
 			raise e
