@@ -24,7 +24,7 @@ class reel_run (Process):
         self._logger = logging.getLogger('reel_logger')
         self._logger.setLevel(logging.DEBUG)
         # Create file handler that sends all logger messages (DEBUG and above) to file
-        logfile = '%s/logs/reel-logs/reel-%s-%s.log' %(os.path.expanduser('~'),filename,time.strftime('%Y-%m-%d-%Hh-%Mm-%Ss', time.localtime()))
+        logfile = '%s/logs/reel-logs/%s-reel-%s.log' %(os.path.expanduser('~'),filename,time.strftime('%Y-%m-%d-%Hh-%Mm-%Ss', time.localtime()))
         fh = logging.FileHandler(logfile)
         print 'Logging reel data to %s' %(logfile)
         fh.setLevel(logging.DEBUG)
