@@ -4,7 +4,7 @@ See non-mock versions of classes for proper documentation.
 """
 
 class I2cSensor(object):
-    def __init__(self, addr, desc='I2C Sensor'):
+    def __init__(self, addr, desc='I2C Sensor', busnum=None):
         self._description = desc
     def get_desc(self):
         return self._description
@@ -13,7 +13,7 @@ class I2cSensor(object):
 
 class TemperatureSensor(I2cSensor):
     def __init__(self, addr, desc='Temperature Sensor'):
-        super(TemperatureSensor, self).__init__(addr=addr, desc=desc)
+        super(TemperatureSensor, self).__init__(addr=addr, desc=desc, busnum=None)
     def read_temp_c(self):
         return 0
     def read_temp_f(self):
@@ -23,7 +23,7 @@ class TemperatureSensor(I2cSensor):
 
 class PressureSensor(I2cSensor):
     def __init__(self, addr, FSS=0.5, OSdig=1638, desc='Pressure Sensor'):
-        super(PressureSensor, self).__init__(addr=addr, desc=desc)
+        super(PressureSensor, self).__init__(addr=addr, desc=desc, busnum=None)
     def retrieve_p(self):
         pass
     def retrieve_t(self):
@@ -39,8 +39,8 @@ class PressureSensor(I2cSensor):
 
 class DlvrPressureSensor(PressureSensor):
     def __init__(self, addr, FSP=0.5, differential=True, desc='DLVR Series Pressure Sensor'):#If this is a differential pressure sensor (True) or a gage pressure sensor (False)
-        super(DlvrPressureSensor, self).__init__(addr=addr, desc=desc)
+        super(DlvrPressureSensor, self).__init__(addr=addr, desc=desc, busnum=None)
 
 class DlvPressureSensor(PressureSensor):
     def __init__(self, addr, FSP=0.5, desc='DLV Series Pressure Sensor'):
-        super(DlvPressureSensor, self).__init__(addr=addr, desc=desc)
+        super(DlvPressureSensor, self).__init__(addr=addr, desc=desc, busnum=None)

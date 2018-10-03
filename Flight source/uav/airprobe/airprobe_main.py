@@ -36,8 +36,8 @@ class airprobe_main:
             {'desc':'Ch11 lo (inH2O)', 'addr':0x2b, 'FSP':FSP_lo, 'busnum':I2C_BUS_NUM}, {'desc':'Ch11 hi (inH2O)', 'addr':0x3b, 'FSP':FSP_hi, 'busnum':I2C_BUS_NUM}, 
         ]
         self._probe_sensors = [DlvrPressureSensor(**set) for set in probe_sensor_settings]
-        self._absolute_sensor = DlvPressureSensor(desc='Absolute pressure (PSIA)', addr=0x40, FSP=30)
-        self._temp_sensor = TemperatureSensor(desc='Ambient temperature (C)', addr=0x18)
+        self._absolute_sensor = DlvPressureSensor(desc='Absolute pressure (PSIA)', addr=0x40, FSP=30, busnum=I2C_BUS_NUM)
+        self._temp_sensor = TemperatureSensor(desc='Ambient temperature (C)', addr=0x18, busnum=I2C_BUS_NUM)
         csv_column_names=['System time (s)', 'Time since previous line (ms)'] \
             + [sensor.get_desc() for sensor in self._probe_sensors] + [self._absolute_sensor.get_desc(), self._temp_sensor.get_desc()]
         self._temp_read_interval_s = 1.0 # Read temperature and absolute pressure every second
