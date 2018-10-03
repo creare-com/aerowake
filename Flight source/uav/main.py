@@ -278,8 +278,8 @@ if __name__ == '__main__':
 	uav_connect_path = '/dev/pixhawk' # Use after configuring symbolic link through udevadm
 	uav_baud = 57600
 
-	gcs_connect_path = '/dev/ttyUSB0' # Use for telemetry radio through usb port
-	# gcs_connect_path = '/dev/radioacl33' # Use after configuring symbolic link through udevadm
+	# gcs_connect_path = '/dev/ttyUSB0' # Use for telemetry radio through usb port
+	gcs_connect_path = '/dev/radio' # Use after configuring symbolic link through udevadm
 	gcs_baud = 57600
 
 	#-----------------------------------------------------------------------------
