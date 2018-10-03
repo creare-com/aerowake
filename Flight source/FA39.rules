@@ -8,8 +8,8 @@
 # Finally, reload the rules:
 # 	sudo udevadm control --reload-rules && sudo udevadm trigger
 
-# Telem Radio ACL33 in USB 2.0 Port
-KERNELS=="2-1:1.0", DRIVERS=="cp210x", SYMLINK+="radioacl33"
+# Telem Radio on USB Hub in USB 2.0 Port
+SUBSYSTEMS=="usb", ATTRS{interface}=="CP2102 USB to UART Bridge Controller", DRIVERS=="cp210x", SYMLINK+="radio"
 
 # Pixhawk via GPIO Pins
 KERNELS=="12c00000.serial", SYMLINK+="pixhawk"
