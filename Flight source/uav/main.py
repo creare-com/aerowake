@@ -321,8 +321,6 @@ if __name__ == '__main__':
 			logger.critical('UAV failed to connect with message: %s' %(e.message))
 			raise e
 
-	logger.info('UAV pixhawk connected to UAV')
-
 	# GCS connection
 	logger.info('Waiting for GCS')
 	while True:
@@ -335,10 +333,11 @@ if __name__ == '__main__':
 			raise e
 
 	# Wait for parameter downloads
-	gcs.wait_ready(True, timeout=300)
 	uav.wait_ready(True, timeout=300)
-
+	logger.info('UAV pixhawk connected to UAV')
+	gcs.wait_ready(True, timeout=300)
 	logger.info('GCS pixhawk connected to UAV')
+
 
 	#------------------------------------
 	# Listeners for Logging
