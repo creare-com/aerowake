@@ -4,8 +4,9 @@
 import sys
 sys.path.append('../')
 
-# Required for messaging the drone
+# Required for messaging pixhawks
 from dronekit import connect
+from helper_functions import arm_vehicle
 import base_mission
 
 # Required for logging
@@ -26,7 +27,7 @@ import math
 #-------------------------------------------------------------------------------
 
 # Set if you are using the reel and tether length safety factor
-using_reel = False
+using_reel = True
 safety_factor = 1.15
 
 # Set rotate command limits
@@ -114,7 +115,7 @@ def get_reel_data():
 if __name__ == '__main__':
 
 	# Log Setup
-	logger = logging.getLogger('gcs_logger')
+	logger = logging.getLogger('pixhawk_logger')
 	logger.setLevel(logging.DEBUG)
 	# Create file handler that sends all logger messages (DEBUG and above) to file
 	logfile = '%s/logs/gcs-logs/%s-gcs-%s.log' %(os.path.expanduser('~'),filename,time.strftime('%Y-%m-%d-%Hh-%Mm-%Ss', time.localtime()))
@@ -158,6 +159,9 @@ if __name__ == '__main__':
 			raise e
 
 	logger.info('GCS pixhawk connected to GCS\n')
+
+	# Arm the GCS so that dataflash logging occurs
+	arm_vehicle(gcs,'GCS')
 
 	#------------------------------------
 	# Listeners for Logging

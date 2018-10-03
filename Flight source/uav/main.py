@@ -290,7 +290,7 @@ if __name__ == '__main__':
 
 	# Log Setup
 	filename = sys.argv[1]
-	logger_name = 'uav_logger'
+	logger_name = 'pixhawk_logger'
 	logger = logging.getLogger(logger_name)
 	logger.setLevel(logging.DEBUG)
 	# Create file handler that sends all logger messages (DEBUG and above) to file

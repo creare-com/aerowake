@@ -12,7 +12,7 @@ This file provides helper functions to both .../gcs/main.py and .../uav/main.py.
 
 # Setup logger
 # NOTE: Logger is singleton as long as handled by the same Python interpreter. Calling logging.getLogger('logger_name') from multiple scripts on the same computer will use the same file (except in advanced cases not relevant here).
-logger = logging.getLogger('uav_logger')
+logger = logging.getLogger('pixhawk_logger')
 
 #-------------------------------------------------------------------------------
 # Arming, Disarming, Takeoffs, and Landings
