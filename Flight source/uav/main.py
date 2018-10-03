@@ -316,7 +316,6 @@ if __name__ == '__main__':
 		try:
 			#uav = connect(uav_connect_path, baud = uav_baud, heartbeat_timeout = 60, rate = 20, wait_ready = True)
 			uav = connect(uav_connect_path, baud = uav_baud, wait_ready=False)
-			uav.wait_ready(True, timeout=300)
 			break
 		except Exception as e:
 			logger.critical('UAV failed to connect with message: %s' %(e.message))
@@ -330,11 +329,14 @@ if __name__ == '__main__':
 		try:
 			#gcs = connect(gcs_connect_path, baud = gcs_baud, heartbeat_timeout = 60, rate = 20, wait_ready = True)
 			gcs = connect(gcs_connect_path, baud = gcs_baud, wait_ready=False)
-			gcs.wait_ready(True, timeout=300)
 			break
 		except Exception as e:
 			logger.critical('GCS failed to connect with message: %s' %(e.message))
 			raise e
+
+	# Wait for parameter downloads
+	gcs.wait_ready(True, timeout=300)
+	uav.wait_ready(True, timeout=300)
 
 	logger.info('GCS pixhawk connected to UAV')
 
