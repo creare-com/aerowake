@@ -6,7 +6,7 @@ sys.path.append('../')
 
 # Required for messaging pixhawks
 from dronekit import connect
-from helper_functions import arm_vehicle
+from helper_functions import arm_vehicle, disarm_vehicle
 import base_mission
 
 # Required for logging
@@ -435,6 +435,7 @@ if __name__ == '__main__':
 	gcs.parameters[cmd_param] = 100
 
 	# Close GCS object before exiting script
+	disarm_vehicle(gcs,'GCS')
 	gcs.close()
 
 	if using_reel:
