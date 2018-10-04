@@ -203,6 +203,7 @@ class ReelController:
             cur_motor_position = self._mc.getPosition()
         except RuntimeError as err:
             self._logger.error("Error in _mc.getPosition: " + str(err))
+            cur_motor_position = 0
         return self.tetherLengthFromMotorPosition(cur_motor_position)
         
     def getTargetTetherLengthM(self):
@@ -247,6 +248,13 @@ class ReelController:
     def getTetherTensionN(self):
         return self._tension_sensor.readTension()
 
+    def isEnabled(self):
+        try:
+            return self._mc.isEnabled()
+        except RuntimeError as err:
+            self._logger.error("Error in _mc.isEnabled: " + str(err))
+            return False
+
     def isFaulted(self):
         try:
             return self._mc.isFaulted()
@@ -259,3 +267,9 @@ class ReelController:
             self._mc.clearFault()
         except RuntimeError as err:
             self._logger.error("Error in _mc.clearFault: " + str(err))
+
+    def enable(self):
+        try:
+            self._mc.clearFaultAndEnable()
+        except RuntimeError as err:
+            self._logger.error("Error in _mc.clearFaultAndEnable: " + str(err))

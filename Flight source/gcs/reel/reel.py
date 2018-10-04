@@ -86,12 +86,13 @@ class reel_run (Process):
                     L = self._rc.getTetherLengthM()
                     T = self._rc.getTetherTensionN()
                     faulted = self._rc.isFaulted()
+                    enabled = self._rc.isEnabled()
                     try:
                         self._data_out.get(False)
                     except Empty:
                         # GCS main code will occasionally pull out this data, so we need to protect against an empty Queue
                         pass
-                    self._data_out.put({"L": L, "T": T, "F": faulted})
+                    self._data_out.put({"L": L, "T": T, "Faulted": faulted, "Enabled":enabled})
                     self._cycles = 0
                 else:
                     self._cycles += 1
