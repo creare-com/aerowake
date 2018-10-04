@@ -21,5 +21,5 @@ screen -S flight-cmd -p 0 -X stuff "roslaunch aerowake flight_companion.launch f
 screen -S airprobe -p 0 -X stuff "nice -n -10 python ~/creare_ws/src/aerowake/aerowake_git/Flight\ source/uav/airprobe/airprobe_main.py^M"
 
 # Preload commands in these screens, but do not issue them
-screen -S bags -p 0 -X stuff "rosbag record --split --size=3000 --lz4 -a -x /camera/image_raw -o /crearedrive/$FILENAME"
+screen -S bags -p 0 -X stuff "rosbag record --split --size=3000 --lz4 -a -x /camera/image_raw -o /crearedrive/rosbags/$FILENAME"
 screen -S probe-check -p 0 -X stuff "tail -f /crearedrive/airprobe-logs/pressure"
