@@ -1,6 +1,6 @@
 # start all screens and processes
 
-# TODO: alias startpreflight='sh ~/creare_ws/src/aerowake/aerowake_git/startpreflight.sh'
+alias preflight.sh='sh ~/creare_ws/src/aerowake/aerowake_git/preflight.sh'
 
 # copy camera calib to appropriate locations
 
@@ -36,6 +36,6 @@ alias ssa='screen -S airprobe'
 alias sda='screen -d airprobe'
 alias sra='screen -r airprobe'
 
-alias ssal='screen -S probe-log-check'
-alias sdal='screen -d probe-log-check'
-alias sral='screen -r probe-log-check'
+alias ssal='screen -S probe-check'
+alias sdal='screen -d probe-check'
+alias sral='screen -r probe-check'
