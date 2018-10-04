@@ -1,9 +1,10 @@
 import datetime
+import sys
 import time
 from settings import I2C_BUS_NUM
 
 class airprobe_main:
-    def __init__(self,dt):
+    def __init__(self,dt,filename):
 
         # For easier testing, create mock objects if the real ones fail.
         try:
@@ -41,7 +42,8 @@ class airprobe_main:
         csv_column_names=['System time (s)', 'Time since previous line (ms)'] \
             + [sensor.get_desc() for sensor in self._probe_sensors] + [self._absolute_sensor.get_desc(), self._temp_sensor.get_desc()]
         self._temp_read_interval_s = 1.0 # Read temperature and absolute pressure every second
-        logfile_name = time.strftime('/crearedrive/airprobe-logs/pressure_log_%Y-%m-%d_%H%M%S.csv',time.localtime())
+        logfile_name = '/crearedrive/airprobe-logs/%s-pressure_log-%s.log' %(filename,time.strftime('%Y-%m-%d-%Hh-%Mm-%Ss', time.localtime()))
+        print 'Logging airprobe data to %s' %(logfile_name)
         self._logfile = open(logfile_name, 'wc')
         self._logfile.write('"'+'","'.join(csv_column_names)+'"\n')
         self._logfile.flush()
@@ -86,7 +88,8 @@ class airprobe_main:
         return []# At some point it might be useful to report a summary of the airprobe data, but we don't currently.
 
 if __name__ == '__main__':
-    am = airprobe_main(0.05)
+    filename = sys.argv[1]
+    am = airprobe_main(0.05,filename)
     print ('Initialized.  Will run until interrupted.')
     while True:
         am.run()
