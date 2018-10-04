@@ -124,3 +124,6 @@ export LD_PRELOAD="/usr/lib/libtcmalloc_minimal.so.4"
 
 # added for mavproxy
 export PATH=$PATH:$HOME/.local/bin
+
+# added for workflow improvements
+source $HOME/creare_ws/src/aerowake/aerowake_git/.bash_aliases
