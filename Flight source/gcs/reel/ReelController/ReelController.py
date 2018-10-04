@@ -64,22 +64,14 @@ class ReelController:
             self._tension_sensor = MockTensionSensor()
             self._tension_sensor.setTension(1)
 
-        try:
-            from PyMotorController import PyMotorController, SensorType
-            self._mc = PyMotorController(interface)
-        except:
-            self._logger.warning("Cannot connect to motor controller!  Will be using mock motor controller instead.")
-            from MockPyMotorController import MockPyMotorController
-            self._mc = MockPyMotorController()
+        self._initMotorController(interface)
         
         # Configure motor controller
-        self._mc.setOperatingMode('PROFILE_POSITION')
         self._gear_ratio = self._mc.getGearRatioNumerator() / self._mc.getGearRatioDenominator()
         if self._REELING_OUT_DECEL_RPMS == None:
             self._REELING_OUT_DECEL_RPMS = self._mc.getMaxAccelDecel()
         if self._REEL_MAX_VEL_RPM == None:
             self._REEL_MAX_VEL_RPM = self.computeMaxTetherSpeedRpm()
-        self._mc.setMaxVelocity(self._REEL_MAX_VEL_RPM)
         self._logger.debug("getMaxAccelDecel() = %f"%self._mc.getMaxAccelDecel())
         self._logger.debug("_REELING_OUT_DECEL_RPMS = %f"%self._REELING_OUT_DECEL_RPMS)
         self._logger.debug("_REEL_MAX_VEL_RPM = %f"%self._REEL_MAX_VEL_RPM)
@@ -89,6 +81,25 @@ class ReelController:
         self.youAreHome()
         self._mc.clearFaultAndEnable() # movement may occur after this point
 
+    def _initMotorController(self, interface):
+        """
+        Attempt to connect to the motor controller on the specified interface.
+        Upon success, self._mc will be set to an instance of PyMotorController.
+        Upon failure, self._mc will be set to an instance of MockPyMotorController.
+        """
+        try:
+            from PyMotorController import PyMotorController, SensorType
+            self._mc = PyMotorController(interface)
+            
+            self._mc.setOperatingMode('PROFILE_POSITION')
+            self._mc.setMaxVelocity(self._REEL_MAX_VEL_RPM)
+        except Exception as err:
+            self._logger.error("Error while connecting to motor controller: " + str(err))
+            self._logger.warning("Cannot connect to motor controller!  Will be using mock motor controller instead.")
+            from MockPyMotorController import MockPyMotorController
+            self._mc = MockPyMotorController()
+        
+        
     # Conversion functions
     def motorPositionFromTetherLength(self, tether_length_m):
         """ tether_length_m is considered to be relative to the home position """
@@ -155,7 +166,7 @@ class ReelController:
         else: # Stationary OR reeling out
             # Apply tension deadband
             if tension_n < self._T_DEADBAND_N:
-                self._mc.haltMovement()
+                self.stopMoving()
                 mv = 'x'
                 actual_max_mps = 0
             else:
@@ -172,19 +183,32 @@ class ReelController:
         self._logger.debug(status_str)
 
     def stopMoving(self):
-        self._mc.haltMovement()
+        try:
+            self._mc.haltMovement()
+        except RuntimeError as err:
+            self._logger.error("Error in _mc.haltMovement: " + str(err))
     
     def setTetherLengthM(self, tether_length_m):
         desired_motor_position = self.motorPositionFromTetherLength(tether_length_m)
-        self._mc.moveToPosition(desired_motor_position)
+        try:
+            self._mc.moveToPosition(desired_motor_position)
+        except RuntimeError as err:
+            self._logger.error("Error in _mc.moveToPosition: " + str(err))
         self.update()
         
     def getTetherLengthM(self):
-        cur_motor_position = self._mc.getPosition()
+        try:
+            cur_motor_position = self._mc.getPosition()
+        except RuntimeError as err:
+            self._logger.error("Error in _mc.getPosition: " + str(err))
         return self.tetherLengthFromMotorPosition(cur_motor_position)
         
     def getTargetTetherLengthM(self):
-        tgt_motor_position = self._mc.getTargetPosition()
+        try:
+            tgt_motor_position = self._mc.getTargetPosition()
+        except RuntimeError as err:
+            self._logger.error("Error in _mc.getTargetPosition: " + str(err))
+            tgt_motor_position = 0
         return self.tetherLengthFromMotorPosition(tgt_motor_position)
         
     def computeMaxTetherSpeedRpm(self):
@@ -204,18 +228,32 @@ class ReelController:
             self._logger.debug("Cannot set max tether speed to %fRPM because it's <1."%max_tether_rpm)
             return 0
         else:
-            self._mc.setPositionProfile(velocity=max_tether_rpm,
-                acceleration=self._REEL_ACCEL_RPMS, deceleration=decel)
+            try:
+                self._mc.setPositionProfile(velocity=max_tether_rpm,
+                    acceleration=self._REEL_ACCEL_RPMS, deceleration=decel)
+            except RuntimeError as err:
+                self._logger.error("Error in _mc.setPositionProfile: " + str(err))
             return self.tetherMpsFromReelRpm(max_tether_rpm)
 
     def getMaxTetherSpeedMps(self):
-        return self.tetherMpsFromReelRpm(self._mc.getPositionProfile()['velocity']);
+        try:
+            return self.tetherMpsFromReelRpm(self._mc.getPositionProfile()['velocity']);
+        except RuntimeError as err:
+            self._logger.error("Error in _mc.getPositionProfile: " + str(err))
+            return 0
 
     def getTetherTensionN(self):
         return self._tension_sensor.readTension()
 
     def isFaulted(self):
-        return self._mc.isFaulted()
+        try:
+            return self._mc.isFaulted()
+        except RuntimeError as err:
+            self._logger.error("Error in _mc.isFaulted: " + str(err))
+            return False
 
     def clearFault(self):
-        return self._mc.clearFault()
+        try:
+            self._mc.clearFault()
+        except RuntimeError as err:
+            self._logger.error("Error in _mc.clearFault: " + str(err))
