@@ -41,7 +41,7 @@ class airprobe_main:
         csv_column_names=['System time (s)', 'Time since previous line (ms)'] \
             + [sensor.get_desc() for sensor in self._probe_sensors] + [self._absolute_sensor.get_desc(), self._temp_sensor.get_desc()]
         self._temp_read_interval_s = 1.0 # Read temperature and absolute pressure every second
-        logfile_name = time.strftime('pressure_log_%Y-%m-%d_%H%M%S.csv',time.localtime())
+        logfile_name = time.strftime('/crearedrive/airprobe-logs/pressure_log_%Y-%m-%d_%H%M%S.csv',time.localtime())
         self._logfile = open(logfile_name, 'wc')
         self._logfile.write('"'+'","'.join(csv_column_names)+'"\n')
         self._logfile.flush()
