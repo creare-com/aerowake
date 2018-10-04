@@ -290,7 +290,7 @@ if __name__ == '__main__':
 
 	# Log Setup
 	filename = sys.argv[1]
-	logger_name = 'uav_logger'
+	logger_name = 'pixhawk_logger'
 	logger = logging.getLogger(logger_name)
 	logger.setLevel(logging.DEBUG)
 	# Create file handler that sends all logger messages (DEBUG and above) to file
@@ -316,13 +316,10 @@ if __name__ == '__main__':
 		try:
 			#uav = connect(uav_connect_path, baud = uav_baud, heartbeat_timeout = 60, rate = 20, wait_ready = True)
 			uav = connect(uav_connect_path, baud = uav_baud, wait_ready=False)
-			uav.wait_ready(True, timeout=300)
 			break
 		except Exception as e:
 			logger.critical('UAV failed to connect with message: %s' %(e.message))
 			raise e
-
-	logger.info('UAV pixhawk connected to UAV')
 
 	# GCS connection
 	logger.info('Waiting for GCS')
@@ -330,13 +327,17 @@ if __name__ == '__main__':
 		try:
 			#gcs = connect(gcs_connect_path, baud = gcs_baud, heartbeat_timeout = 60, rate = 20, wait_ready = True)
 			gcs = connect(gcs_connect_path, baud = gcs_baud, wait_ready=False)
-			gcs.wait_ready(True, timeout=300)
 			break
 		except Exception as e:
 			logger.critical('GCS failed to connect with message: %s' %(e.message))
 			raise e
 
+	# Wait for parameter downloads
+	uav.wait_ready(True, timeout=300)
+	logger.info('UAV pixhawk connected to UAV')
+	gcs.wait_ready(True, timeout=300)
 	logger.info('GCS pixhawk connected to UAV')
+
 
 	#------------------------------------
 	# Listeners for Logging
