@@ -11,6 +11,10 @@ from rotate_mission import rotate
 import base_mission
 sys.path.pop(0)
 
+# Required for starting the rosbag in a really ugly way
+import shlex
+import subprocess
+
 # Required for the vision-based yaw system
 import rospy
 from std_msgs.msg import Int16
@@ -39,9 +43,10 @@ class DroneCommanderNode(object):
 	The UAV also obtains commands from the /yaw_deg ROS topic. This topic contains an integer (Int16) value in degrees corresponding to the desired yaw of the UAV. A positive value indicates CCW yaw of the specified magnitude, while a negative value indicates CW yaw.
 	'''
 
-	def __init__(self,uav_handle,gcs_handle,logger_name):
+	def __init__(self,uav_handle,gcs_handle,logger_name,bagfile):
 		# Initialize private variables
 		self.__yaw_cmd = 0 # [deg]
+		self.__bagfile = bagfile
 
 		# Initialize other variables
 		uav = uav_handle
@@ -115,6 +120,7 @@ class DroneCommanderNode(object):
 		in_the_air = False
 		listening = False
 		continue_loop = True
+		bagging = False
 		while continue_loop and not rospy.is_shutdown():
 			param = gcs.parameters[cmd_param]
 			gcs.parameters[ack_param] = param # Acknowledge
@@ -182,9 +188,21 @@ class DroneCommanderNode(object):
 				if command == 359 and not uav.armed:
 					logger.info('Arming')
 					arm_vehicle(uav,'UAV')
+					if not bagging:
+						# Start rosbag recording in a really ugly way
+						bagging = True
+						command = 'rosbag record --split --size=3000 --lz4 -a -x /camera/image -O %s' %(bagfile)
+						command = shlex.split(command)
+						rosbag_proc = subprocess.Popen(command)
+						logger.info('Began rosbag in %s' % (bagfile))
 				elif command == 358 and uav.armed:
 					logger.info('Disarming')
 					disarm_vehicle(uav,'UAV')
+					# End rosbag recording
+					if bagging:
+						bagging = False
+						rosbag_proc.send_signal(subprocess.signal.SIGINT)
+						logger.info('Stopped rosbagging.')
 				elif command == 357 and uav.armed:
 					logger.info('Taking off')
 					takeoff(uav,'UAV',alt_takeoff)
@@ -244,7 +262,9 @@ class DroneCommanderNode(object):
 
 		if rospy.is_shutdown():
 			logger.info('Terminating program since ROS is shutdown. Not changing UAV status.\n')
+
 		else:
+
 			# The example is completing. LAND at current location.
 			land(uav,'UAV')
 
@@ -252,6 +272,12 @@ class DroneCommanderNode(object):
 			disarm_vehicle(uav,'UAV')
 
 		uav.close()
+
+		# End rosbag recording
+		if bagging:
+			bagging = False
+			rosbag_proc.send_signal(subprocess.signal.SIGINT)
+			logger.info('Stopped rosbagging.')
 
 		logger.info('UAV program completed.\n')
 
@@ -418,7 +444,8 @@ if __name__ == '__main__':
 	rospy.init_node('flight_companion_node')
 
 	# Create the node
-	node = DroneCommanderNode(uav,gcs,logger_name)
+	bagfile = logfile.replace('uav-logs','rosbags').replace('uav','bag')
+	node = DroneCommanderNode(uav,gcs,logger_name,bagfile)
 
 	# Spin
 	rospy.spin()
