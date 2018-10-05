@@ -110,7 +110,7 @@ class DroneCommanderNode(object):
 
 		# Set UAV acceleration limit and groundspeed
 		uav.parameters['WPNAV_ACCEL'] = 150 # 50-500 [cm/s/s]
-		uav.parameters['WPNAV_SPEED'] = 500 # 20-2000 by 50 [cm/s]
+		uav.parameters['WPNAV_SPEED'] = 300 # 20-2000 by 50 [cm/s]
 		# uav.groundspeed = 5 # [m/s]
 
 		logger.debug('WPNAV_ACCEL,%s' %(uav.parameters['WPNAV_ACCEL']))
