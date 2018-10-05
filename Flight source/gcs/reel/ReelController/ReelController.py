@@ -20,11 +20,11 @@ class ReelController:
         # Logger setup
 	if 'reel_logger' in logging.Logger.manager.loggerDict:
 	        self._logger = logging.getLogger('reel_logger')
-		print 'using reel.py logger'
+		print 'ReelController.py is using reel.py logger'
 	else:
 		self._logger = logging.getLogger('reel_logger')
 	        self._logger.setLevel(logging.DEBUG)
-		print 'created own reel_logger'
+		print 'ReelController.py created its own reel_logger'
 
         # Motor settings
         self._QC_PER_TURN            = -1024*4 # Flip the sign - the motor considers "positive" to be the direction that retracts the tether
@@ -182,7 +182,7 @@ class ReelController:
                 self._recommandMotorPosition() # Causes the motor controller to move at the new speed
         
         status_str = dir[0] + mv + dir[1] + " %3.3fm->%3.3f @%3.8fmps %03.8fN "%(current_length, target_length, actual_max_mps, tension_n)
-        #self._logger.debug(status_str)
+        self._logger.debug(status_str)
 
     def stopMoving(self):
         try:
