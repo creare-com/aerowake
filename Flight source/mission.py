@@ -182,4 +182,4 @@ if not load_mission == 0:
 
   # Print the calculated mission
   print '\nFind the mission in %s' %(filename)
-  print '\nYour mission:\n  Takeoff to %s meters\n  wp_N %s\n  wp_E %s\n  wp_D %s\n  num_wp %s' %(alt_takeoff,wp_N,wp_E,wp_D,num_wp)
+  print '\nYour mission:\n  Takeoff to %s meters\n  Offset North by %s meters\n  wp_N %s\n  wp_E %s\n  wp_D %s\n  num_wp %s' %(alt_takeoff,wp_offset,wp_N,wp_E,wp_D,num_wp)
