@@ -1,6 +1,7 @@
-# start all screens and processes
+# start/stop all screens and processes
 
 alias preflight.sh='sh ~/creare_ws/src/aerowake/aerowake_git/preflight.sh'
+alias postflight.sh='sh ~/creare_ws/src/aerowake/aerowake_git/postflight.sh'
 
 # copy camera calib to appropriate locations
 
