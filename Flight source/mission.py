@@ -173,12 +173,12 @@ if load_mission == 3:
 
 if not load_mission == 0:
   # Offset as desired
-  wp_N = [val + 1.6 for val in wp_N]
+  wp_offset = 3 # [m] Top view distance between GCS GPS and tether vertex
 
   # Write mission to base_mission.py
   filename = 'base_mission.py'
   coords = (wp_N,wp_E,wp_D)
-  write2py(alt_takeoff, coords, filename)
+  write2py(alt_takeoff, wp_offset, coords, filename)
 
   # Print the calculated mission
   print '\nFind the mission in %s' %(filename)

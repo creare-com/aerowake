@@ -60,6 +60,7 @@ class DroneCommanderNode(object):
 		orig_mission = [base_mission.wp_N, base_mission.wp_E, base_mission.wp_D]
 		num_wp = base_mission.num_wp
 		alt_takeoff = base_mission.alt_takeoff
+		wp_offset = base_mission.wp_offset
 
 		# Define parameters to use
 		cmd_param = 'PIVOT_TURN_ANGLE'
@@ -235,7 +236,7 @@ class DroneCommanderNode(object):
 						refLoc = gcs.location.global_frame
 						refLoc.alt = alt_initial
 						logger.debug('refLocNav,%s',refLoc)
-						dNorth = uav_mission[0][current_wp]
+						dNorth = uav_mission[0][current_wp] + wp_offset
 						dEast = uav_mission[1][current_wp]
 						dDown = uav_mission[2][current_wp]
 						# Calculate desired location for logging purposes only. Actual desired location is calculated within the goto_reference function.
