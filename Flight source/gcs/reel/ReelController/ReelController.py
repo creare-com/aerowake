@@ -143,7 +143,7 @@ class ReelController:
         # Added logic to reel in if tension falls beneath a certain level
         
         length_limited_speed  = self._KL_MPS_PER_M * current_length + self._MIN_MPS
-        #tension_n = self.getTetherTensionN()
+        tension_n = self.getTetherTensionN()
         if current_length > target_length:
             # Reeling in
             speed_limit = min(self._MAX_MPS, length_limited_speed)
