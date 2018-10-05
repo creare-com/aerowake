@@ -1,3 +1,7 @@
+# print useful commands to screen
+
+alias useful.txt='cat ~/creare_ws/src/aerowake/aerowake_git/.useful.txt'
+
 # start/stop all screens and processes
 
 alias preflight.sh='sh ~/creare_ws/src/aerowake/aerowake_git/preflight.sh'

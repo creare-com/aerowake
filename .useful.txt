@@ -1,9 +1,8 @@
 # These commands are often used and often forgotten in the Wake Swarm project
 
+sudo date --set="$(ssh draper@192.168.1.2 date)"
 rosrun image_view image_view image:=/camera/image_raw
-rosbag record --split --size=3000 -o crearefield1 --chunksize=8192 --lz4 -a -x "/camera/image"
-rosbag record --split --duration=15 -o crearefield1 --chunksize=8192 --lz4 -a -x "/camera/image"
-mavproxy.py --master=/dev/ttyUSB0,57600
-git branch --set-upstream-to=origin/master master
+rosbag record --split --size=3000 -o crearefield1 --chunksize=8192 --lz4 -a -x /camera/image
+rosbag record --split --duration=15 -o crearefield1 --chunksize=8192 --lz4 -a -x /camera/image
 
-alias copy-calib-to-aerowake.sh='sh ~/creare_ws/src/creare/scripts/copy-calib-to-aerowake.sh
+copy-calib-to-aerowake.sh
