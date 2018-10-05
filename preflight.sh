@@ -28,4 +28,7 @@ else
 	sleep 1 # airprobe needs time to initialize
 	screen -S probe-check -p 0 -X stuff "tail -f /crearedrive/airprobe-logs/$FILENAME*^M"
 
+	# Reattach to flight-cmd as that is most-likely desired screen
+	screen -r flight-cmd
+
 fi
