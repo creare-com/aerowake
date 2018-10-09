@@ -22,10 +22,14 @@ else
 		read confirm
 		if [ "$confirm" = "y" ]
 		then
+			# Delete logs after backing up to /tmp, which is autocleaned periodically
+			cp /crearedrive/uav-logs/$FILENAME*
+			cp /crearedrive/airprobe-logs/$FILENAME*
+			cp /crearedrive/rosbags/$FILENAME* 
 			rm /crearedrive/uav-logs/$FILENAME*
 			rm /crearedrive/airprobe-logs/$FILENAME*
 			rm /crearedrive/rosbags/$FILENAME*
-			echo "Files deleted."
+			echo "Files deleted. Deleted files are temporarily available in /tmp"
 		else
 			echo "Cancelling operation"
 		fi
