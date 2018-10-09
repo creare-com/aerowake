@@ -27,7 +27,7 @@ import math
 #-------------------------------------------------------------------------------
 
 # Set if you are using the reel and tether length safety factor
-using_reel = True
+using_reel = False
 safety_factor = 1.15
 
 # Set rotate command limits
@@ -51,7 +51,8 @@ num_wp = base_mission.num_wp
 alt_takeoff = base_mission.alt_takeoff
 
 # Define help strings
-str_allowed_input_all = """
+str_allowed_input_all = '''
+
 Allowed input 1/2:
  listen
   Tell UAV to start listening to commands
@@ -85,11 +86,11 @@ Allowed input 1/2:
   Ask UAV to end its main.py
  quit
   End GCS\'s main.py
-""" %(num_wp - 1, max_deg, max_deg)
+''' %(num_wp - 1, max_deg, max_deg)
 
 idx_1 = str_allowed_input_all.find('disarm')
 str_allowed_input_1 = str_allowed_input_all[:idx_1]
-str_allowed_input_2 = "\nAllowed input 2/2:\n" + str_allowed_input_all[idx_1 - 1:]
+str_allowed_input_2 = "\n\nAllowed input 2/2:\n" + str_allowed_input_all[idx_1 - 1:]
 
 # Define parameters to use
 cmd_param = 'PIVOT_TURN_ANGLE'
