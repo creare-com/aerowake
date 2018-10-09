@@ -305,9 +305,9 @@ class DroneCommanderNode(object):
 							yaw_rel = self.__yaw_cmd
 							condition_yaw(uav, yaw_rel, relative = True)
 							logger.debug('RELYAW,%s',yaw_rel)
-						i = i + 1
-					else:
-						logger.info('In the air, but not tracking a waypoint')
+							i = i + 1
+						else:
+							logger.info('In the air, but not tracking a waypoint')
 
 			print ''
 			time.sleep(0.5)
