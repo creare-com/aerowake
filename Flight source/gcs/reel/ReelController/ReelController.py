@@ -41,8 +41,8 @@ class ReelController:
         #self._MIN_MPS                = self.tetherMpsFromReelRpm(self._MIN_RPM) # _MIN_RPM in mps
         self._L_MAX_SPEED_M          = 10 # length no longer limits reel speed beyond this range
         self._T_MAX_SPEED_N          = 5  # Above this many newtons of force, don't limit payout rate
-        self._T_THRESHOLD_IN         = 0.1 # Below this many newtons, reel in
-        self._T_THRESHOLD_OUT        = 1 # Above this many newtons, reel out
+        self._T_THRESHOLD_IN         = 0.5 # Below this many newtons, reel in
+        self._T_THRESHOLD_OUT        = 1.5 # Above this many newtons, reel out
         self._KT_MPS_PER_N           = 0.2 # 5N at 1 MPS desired #(self._L_MAX_SPEED_M / (self._T_MAX_SPEED_N - self._T_DEADBAND_N)) * (3.6/2.6) # last multiplier is a workaround to keep preious gain, added on 7/31/18 after flight test
         self._KL_MPS_PER_M           = (self._MAX_MPS - self._MIN_MPS) / self._L_MAX_SPEED_M
         self._REEL_IN_MPS            = self._MIN_MPS # Rate at which to reel in if tension falls below threshold
