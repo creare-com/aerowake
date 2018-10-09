@@ -108,7 +108,7 @@ class DroneCommanderNode(object):
 		gcs.parameters[bearing_param] = 0
 
 		# Set UAV acceleration limit and groundspeed
-		uav.parameters['WPNAV_ACCEL'] = 150 # 50-500 [cm/s/s]
+		uav.parameters['WPNAV_ACCEL'] = 150 # 50-500 by 10 [cm/s/s]
 		uav.parameters['WPNAV_SPEED'] = 300 # 20-2000 by 50 [cm/s]
 		# uav.groundspeed = 5 # [m/s]
 
@@ -145,19 +145,42 @@ class DroneCommanderNode(object):
 					logger.info('Got stop listening command')
 					listening = False
 				else:
-					command = param
 					if param == 102 and not command == param:
 						logger.info('Got clear waypoint command')
+						command = param
 					elif param == 359 and not command == param:
 						logger.info('Got arm command')
+						command = param
 					elif param == 358 and not command == param:
 						logger.info('Got disarm command')
+						command = param
 					elif param == 357 and not command == param:
 						logger.info('Got takeoff command')
+						command = param
 					elif param == 356 and not command == param:
 						logger.info('Got land command')
+						command = param
 					elif param == 355 and not command == param:
 						logger.info('Got rotate command')
+						command = param
+					elif param == 200 and not command == param:
+						logger.info('Got increase alt command')
+						command = param
+					elif param == 201 and not command == param:
+						logger.info('Got decrease alt command')
+						command = param
+					elif param == 202 and not command == param:
+						logger.info('Got increase WPNAV_SPEED command')
+						command = param
+					elif param == 203 and not command == param:
+						logger.info('Got decrease WPNAV_SPEED command')
+						command = param
+					elif param == 204 and not command == param:
+						logger.info('Got increase WPNAV_ACCEL command')
+						command = param
+					elif param == 205 and not command == param:
+						logger.info('Got decrease WPNAV_ACCEL command')
+						command = param
 					elif param >= 0 and param < num_wp:
 						# NOTE: GCS will not allow a non-existent index to be passed. The handling of negative indices is included in the conditional above for comprehension.
 						logger.info('Got navigate to waypoint %d command',param)
@@ -189,9 +212,9 @@ class DroneCommanderNode(object):
 					if not bagging:
 						# Start rosbag recording in a really ugly way
 						bagging = True
-						command = 'rosbag record --split --size=3000 --lz4 -a -x /camera/image -O %s' %(bagfile)
-						command = shlex.split(command)
-						rosbag_proc = subprocess.Popen(command)
+						cmd = 'rosbag record --split --size=3000 --lz4 -a -x /camera/image -O %s' %(bagfile)
+						cmd = shlex.split(cmd)
+						rosbag_proc = subprocess.Popen(cmd)
 						logger.info('Began rosbag in %s' % (bagfile))
 				elif command == 358 and uav.armed:
 					logger.info('Disarming')
@@ -213,20 +236,57 @@ class DroneCommanderNode(object):
 					logger.info('Landing')
 					land(uav,'UAV')
 					in_the_air = False
-				if command == 355 and not current_wp is None:
-					# Only allow rotation of mission if already following a waypoint
-					bearing = gcs.parameters[bearing_param]
-					logger.info('Rotating mission by %s degrees after GCS operator command' %(bearing))
-					uav_mission = rotate(uav_mission,bearing)
-					# Tell the UAV to continue following the current waypoint through the standard pipeline
-					gcs.parameters[cmd_param] = current_wp
-					# Reset the bearing parameter to zero to prevent continual rotation
-					gcs.parameters[bearing_param] = 0
-				else:
-					if not current_wp is None:
-						#if not uav.mode == VehicleMode("GUIDED"):
-						#	uav.mode == VehicleMode("GUIDED")
-						#	logger.info("Set uav mode to GUIDED")
+				elif not current_wp is None:
+					if command == 355:
+						# Allow rotation of mission only if already following a waypoint
+						bearing = gcs.parameters[bearing_param]
+						logger.info('Rotating mission by %s degrees after GCS operator command' %(bearing))
+						uav_mission = rotate(uav_mission,bearing)
+						# Tell the UAV to continue following the current waypoint through the standard pipeline
+						gcs.parameters[cmd_param] = current_wp
+						# Reset the bearing parameter to zero to prevent continual rotation
+						gcs.parameters[bearing_param] = 0
+					elif command == 200:
+						logger.info('Increasing altitude by 1 meter')
+						# NOTE: subtracting since coordinate system is NED (i.e. negative values for altitude)
+						uav_mission[2] = [uav_mission[2][i]-1 for i in range(0,len(uav_mission[2]))]
+						# Tell the UAV to continue following the current waypoint through the standard pipeline
+						gcs.parameters[cmd_param] = current_wp
+					elif command == 201:
+						logger.info('Decreasing altitude by 1 meter')
+						# NOTE: adding since coordinate system is NED (i.e. negative values for altitude)
+						uav_mission[2] = [uav_mission[2][i]+1 for i in range(0,len(uav_mission[2]))]
+						# Tell the UAV to continue following the current waypoint through the standard pipeline
+						gcs.parameters[cmd_param] = current_wp
+					elif command == 202:
+						logger.info('Increasing WPNAV_SPEED by 0.5 m/s to %s' %(new_speed))
+						new_speed = uav.parameters['WPNAV_SPEED'] + 50
+						if new_speed < 2000:
+							uav.parameters['WPNAV_SPEED'] = new_speed # 20-2000 by 50 [cm/s]
+						# Tell the UAV to continue following the current waypoint through the standard pipeline
+						gcs.parameters[cmd_param] = current_wp
+					elif command == 203:
+						logger.info('Increasing WPNAV_SPEED by 0.5 m/s to %s' %(new_speed))
+						new_speed = uav.parameters['WPNAV_SPEED'] - 50
+						if new_speed > 20:
+							uav.parameters['WPNAV_SPEED'] = new_speed # 20-2000 by 50 [cm/s]
+						# Tell the UAV to continue following the current waypoint through the standard pipeline
+						gcs.parameters[cmd_param] = current_wp
+					elif command == 204:
+						logger.info('Increasing WPNAV_ACCEL by 0.3 m/s/s to %s' %(new_accel))
+						new_accel = uav.parameters['WPNAV_ACCEL'] + 30
+						if new_accel < 500:
+							uav.parameters['WPNAV_ACCEL'] = new_accel # 50-500 by 10 [cm/s/s]
+						# Tell the UAV to continue following the current waypoint through the standard pipeline
+						gcs.parameters[cmd_param] = current_wp
+					elif command == 205:
+						new_accel = uav.parameters['WPNAV_ACCEL'] - 30
+						if new_accel < 50:
+							logger.info('Decreasing WPNAV_ACCEL by 0.3 m/s/s to %s' %(new_accel))
+							uav.parameters['WPNAV_ACCEL'] = new_accel # 50-500 by 10 [cm/s/s]
+						# Tell the UAV to continue following the current waypoint through the standard pipeline
+						gcs.parameters[cmd_param] = current_wp
+					else:
 						logger.info('Tracking waypoint %d',current_wp)
 						refLoc = gcs.location.global_frame
 						refLoc.alt = alt_initial

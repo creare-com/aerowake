@@ -51,13 +51,12 @@ num_wp = base_mission.num_wp
 alt_takeoff = base_mission.alt_takeoff
 
 # Define help strings
-str_help = '''
- help
+str_help = ''' help
   Show page 1 of allowed inputs
  help2
   Show page 2 of allowed inputs
  help3
- 	Show page 3 of allowed inputs
+  Show page 3 of allowed inputs
 
 '''
 
@@ -84,11 +83,11 @@ Allowed input 2/3:
  alt[./,]
   Increases/Decreases mission altitude by 1 meter
  reel[./,]
- 	Increases/Decreases tether length by 1 meter
+  Increases/Decreases tether length by 0.5 meters
  wpspeed[./,]
- 	Increases/Decreases WPNAV_SPEED by 0.5 m/s
+  Increases/Decreases WPNAV_SPEED by 0.5 m/s
  wpaccel[./,]
- 	Increases/Decreases WPNAV_ACCEL by 0.25 m/s/s
+  Increases/Decreases WPNAV_ACCEL by 0.25 m/s/s
 '''  %(max_deg, max_deg) + str_help
 
 str_allowed_input_3 = '''
@@ -270,6 +269,12 @@ if __name__ == '__main__':
 						UAV will either follow prev command, or do nothing if no command sent yet
 		101     UAV will begin listening to these commands
 		102     UAV will clear its current waypoint
+		200     UAV will increase its mission altitude by 1 meter
+		201     UAV will decrease its mission altitude by 1 meter
+		202     UAV will increase its WPNAV_SPEED by 0.5 m/s
+		203     UAV will decrease its WPNAV_SPEED by 0.5 m/s
+		204     UAV will increase its WPNAV_ACCEL altitude by 0.25 m/s/s
+		205     UAV will decrease its WPNAV_ACCEL altitude by 0.25 m/s/s
 		359     UAV will arm
 		358     UAV will disarm
 		357     UAV will takeoff to a pre-programmed height
@@ -353,6 +358,26 @@ if __name__ == '__main__':
 				else:
 					logger.info('reelreset called when not using reel.')
 
+			elif user_in[0:4] == 'reel':
+				invalid_input = False
+				increase_tether = False
+				decrease_tether = False
+				reel_data = get_reel_data()
+				print "PARSE REEL DATA"
+				if user_in[4] == '.':
+					increase_tether = True
+				elif user_in[4] == ',':
+					decrease_tether = True
+				else:
+						logger.info('Invalid input. To increase tether length, enter \'reel.\'. To decrease tether length, enter \'reel,\'.')
+				if increase_tether:
+					logger.info('Commanding reel to increase tether length by 0.5 meters')
+					new_length = 1
+				if decrease_tether:
+					logger.info('Commanding reel to decrease tether length by 0.5 meters')
+					new_length = 2
+				commands_to_reel.put({"cmd":"goto", "L":new_length})
+
 			elif user_in == 'clearfault':
 				invalid_input = False
 				if using_reel:
@@ -416,6 +441,57 @@ if __name__ == '__main__':
 						gcs.parameters[bearing_param] = bearing
 						gcs.parameters[cmd_param] = 355
 						prev_command = 'Command UAV to rotate bearing by %s degrees' %(bearing)
+
+			elif user_in[0:3] == 'alt':
+				invalid_input = False
+				increase_alt = False
+				decrease_alt = False
+				if user_in[3] == '.':
+					increase_alt = True
+				elif user_in[3] == ',':
+					decrease_alt = True
+				else:
+					logger.info('Invalid input. To increase altitude, enter \'alt.\'. To decrease, enter \'alt,\'.')
+				if increase_alt:
+					logger.info('Commanding UAV to increase mission altitude by 1 meter')
+					gcs.parameters[cmd_param] = 200
+				if decrease_alt:
+					logger.info('Commanding UAV to decrease mission altitude by 1 meter')
+					gcs.parameters[cmd_param] = 201
+
+			elif user_in[0:7] == 'wpspeed':
+				invalid_input = False
+				increase_nav_speed = False
+				decrease_nav_speed = False
+				if user_in[7] == '.':
+					increase_nav_speed = True
+				elif user_in[7] == ',':
+					decrease_nav_speed = True
+				else:
+					logger.info('Invalid input. To increase waypoint navigation speed, enter \'wpspeed.\'. To decrease, enter \'wpspeed,\'.')
+				if increase_nav_speed:
+					logger.info('Commanding UAV to increase WPNAV_SPEED by 0.5 m/s')
+					gcs.parameters[cmd_param] = 202
+				if decrease_nav_speed:
+					logger.info('Commanding UAV to decrease WPNAV_SPEED by 0.5 m/s')
+					gcs.parameters[cmd_param] = 203
+
+			elif user_in[0:7] == 'wpaccel':
+				invalid_input = False
+				increase_nav_accel = False
+				decrease_nav_accel = False
+				if user_in[7] == '.':
+					increase_nav_accel = True
+				elif user_in[7] == ',':
+					decrease_nav_accel = True
+				else:
+					logger.info('Invalid input. To increase waypoint navigation acceleration, enter \'wpaccel.\'. To decrease, enter \'wpspeed,\'.')
+				if increase_nav_accel:
+					logger.info('Commanding UAV to increase WPNAV_ACCEL by 0.25 m/s/s')
+					gcs.parameters[cmd_param] = 204
+				if decrease_nav_accel:
+					logger.info('Commanding UAV to decrease WPNAV_ACCEL by 0.25 m/s/s')
+					gcs.parameters[cmd_param] = 205
 
 			else:
 				try:
