@@ -23,9 +23,9 @@ else
 		if [ "$confirm" = "y" ]
 		then
 			# Delete logs after backing up to /tmp, which is autocleaned periodically
-			cp /crearedrive/uav-logs/$FILENAME*
-			cp /crearedrive/airprobe-logs/$FILENAME*
-			cp /crearedrive/rosbags/$FILENAME* 
+			cp /crearedrive/uav-logs/$FILENAME* /tmp
+			cp /crearedrive/airprobe-logs/$FILENAME* /tmp
+			cp /crearedrive/rosbags/$FILENAME* /tmp
 			rm /crearedrive/uav-logs/$FILENAME*
 			rm /crearedrive/airprobe-logs/$FILENAME*
 			rm /crearedrive/rosbags/$FILENAME*
