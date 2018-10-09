@@ -27,7 +27,7 @@ import math
 #-------------------------------------------------------------------------------
 
 # Set if you are using the reel and tether length safety factor
-using_reel = False
+using_reel = True
 safety_factor = 1.15
 
 # Set rotate command limits
@@ -362,21 +362,23 @@ if __name__ == '__main__':
 				invalid_input = False
 				increase_tether = False
 				decrease_tether = False
-				reel_data = get_reel_data()
-				print "PARSE REEL DATA"
-				if user_in[4] == '.':
-					increase_tether = True
-				elif user_in[4] == ',':
-					decrease_tether = True
-				else:
+				curr_length = get_reel_data()['L']
+				try:
+					if user_in[4] == '.':
+						increase_tether = True
+					elif user_in[4] == ',':
+						decrease_tether = True
+					else:
 						logger.info('Invalid input. To increase tether length, enter \'reel.\'. To decrease tether length, enter \'reel,\'.')
-				if increase_tether:
-					logger.info('Commanding reel to increase tether length by 0.5 meters')
-					new_length = 1
-				if decrease_tether:
-					logger.info('Commanding reel to decrease tether length by 0.5 meters')
-					new_length = 2
-				commands_to_reel.put({"cmd":"goto", "L":new_length})
+					if increase_tether:
+						logger.info('Commanding reel to increase tether length by 0.5 meters')
+						new_length = curr_length + 0.5
+					if decrease_tether:
+						logger.info('Commanding reel to decrease tether length by 0.5 meters')
+						new_length = curr_length - 0.5
+					commands_to_reel.put({"cmd":"goto", "L":new_length})
+				except TypeError as e:
+					logger.info('Failed to get data from reel. Try again.')
 
 			elif user_in == 'clearfault':
 				invalid_input = False
