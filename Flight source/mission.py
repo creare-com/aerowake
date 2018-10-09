@@ -32,6 +32,11 @@ try:
     print "You must enter a valid mission number."
     load_mission = input("What mission do you want to fly? ")
 
+  offset = input("What is the offset? [m] ")
+  while offset < 0:
+    print "You must enter an offset >= 0."
+    offset = input("What is the offset? [m] ")
+
   if load_mission == 1:
     radius = input("What distance away? [m] ")
     while radius < 5:
@@ -173,7 +178,7 @@ if load_mission == 3:
 
 if not load_mission == 0:
   # Offset as desired
-  wp_offset = 3 # [m] Top view distance between GCS GPS and tether vertex
+  wp_offset = offset # [m] Top view distance between GCS GPS and tether vertex
 
   # Write mission to base_mission.py
   filename = 'base_mission.py'
