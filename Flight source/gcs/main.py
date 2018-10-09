@@ -51,9 +51,19 @@ num_wp = base_mission.num_wp
 alt_takeoff = base_mission.alt_takeoff
 
 # Define help strings
-str_allowed_input_all = '''
+str_help = '''
+ help
+  Show page 1 of allowed inputs
+ help2
+  Show page 2 of allowed inputs
+ help3
+ 	Show page 3 of allowed inputs
 
-Allowed input 1/2:
+'''
+
+str_allowed_input_1 = '''
+
+Allowed input 1/3:
  listen
   Tell UAV to start listening to commands
  arm
@@ -62,14 +72,28 @@ Allowed input 1/2:
   Takeoff
  <Waypoint Number> 
   Navigate to designated waypoint (0 - %d)
+ reelin
+  Reel tether in to landing length
+'''  %(num_wp - 1) + str_help
+
+str_allowed_input_2 = '''
+
+Allowed input 2/3:
  rotate <Degrees>
   Rotates mission by specified angle (-%s through %s, CW positive)
- reelin
-  Reel in to landing tether length
- help
-  Show page 1 of allowed inputs
- help2
-  Show page 2 of allowed inputs
+ alt[./,]
+  Increases/Decreases mission altitude by 1 meter
+ reel[./,]
+ 	Increases/Decreases tether length by 1 meter
+ wpspeed[./,]
+ 	Increases/Decreases WPNAV_SPEED by 0.5 m/s
+ wpaccel[./,]
+ 	Increases/Decreases WPNAV_ACCEL by 0.25 m/s/s
+'''  %(max_deg, max_deg) + str_help
+
+str_allowed_input_3 = '''
+
+Allowed input 3/3:
  disarm
   Disarm UAV throttle
  clear
@@ -82,15 +106,9 @@ Allowed input 1/2:
   Clear a faulted motor controller in the reel
  land
   Land
- end
-  Ask UAV to end its main.py
  quit
   End GCS\'s main.py
-''' %(num_wp - 1, max_deg, max_deg)
-
-idx_1 = str_allowed_input_all.find('disarm')
-str_allowed_input_1 = str_allowed_input_all[:idx_1]
-str_allowed_input_2 = "\n\nAllowed input 2/2:\n" + str_allowed_input_all[idx_1 - 1:]
+''' + str_help
 
 # Define parameters to use
 cmd_param = 'PIVOT_TURN_ANGLE'
@@ -187,10 +205,7 @@ if __name__ == '__main__':
 	# ack_param is used as an acknowledge parameter by the UAV.
 	@gcs.parameters.on_attribute(ack_param)
 	def UAV_parameter_callback(self, attr_name, UAV_param):
-		if UAV_param == 103:
-			# attempts to end uav main.py
-			logger.info('UAV received command to end its main.py.\n')
-		elif UAV_param == 102:
+		if UAV_param == 102:
 			# clear current waypoint
 			logger.info('UAV received command to clear current waypoint.\n')
 		elif UAV_param == 101:
@@ -255,7 +270,6 @@ if __name__ == '__main__':
 						UAV will either follow prev command, or do nothing if no command sent yet
 		101     UAV will begin listening to these commands
 		102     UAV will clear its current waypoint
-		103	UAV will end its main.py if it is disarmed
 		359     UAV will arm
 		358     UAV will disarm
 		357     UAV will takeoff to a pre-programmed height
@@ -290,9 +304,14 @@ if __name__ == '__main__':
 				logger.info(str_allowed_input_1)
 				continue
 
-			if user_in == 'help2':
+			elif user_in == 'help2':
 				invalid_input = False
 				logger.info(str_allowed_input_2)
+				continue
+
+			elif user_in == 'help3':
+				invalid_input = False
+				logger.info(str_allowed_input_3)
 				continue
 
 			elif user_in == 'quit':
@@ -372,13 +391,6 @@ if __name__ == '__main__':
 				gcs.parameters[cmd_param] = 356
 				logger.info('Commanding UAV to Land')
 				prev_command = 'Command UAV to Land'
-
-			elif user_in == 'end':
-				invalid_input = False
-				# UAV knows that 103 means attempt to stop UAV main.py
-				gcs.parameters[cmd_param] = 103
-				logger.info('Commanding UAV to stop its main.py')
-				prev_command = 'Command UAV to stop its main.py'
 
 			elif user_in == 'clear':
 				invalid_input = False

@@ -88,7 +88,6 @@ class DroneCommanderNode(object):
 							UAV will either follow prev command, or do nothing if no command sent yet
 			101     UAV will begin listening to these commands
 			102     UAV will clear its current waypoint
-			103			UAV will end its main.py if it is disarmed
 			359     UAV will arm
 			358     UAV will disarm
 			357     UAV will takeoff to a pre-programmed height
@@ -149,8 +148,6 @@ class DroneCommanderNode(object):
 					command = param
 					if param == 102 and not command == param:
 						logger.info('Got clear waypoint command')
-					elif param == 103 and not command == param:
-						logger.info('Got end UAV main.py command')
 					elif param == 359 and not command == param:
 						logger.info('Got arm command')
 					elif param == 358 and not command == param:
@@ -211,8 +208,6 @@ class DroneCommanderNode(object):
 					condition_yaw(uav, 0, relative = True)
 					in_the_air = True
 					current_wp = None
-				elif command == 103 and not uav.armed:
-					continue_loop = False
 			elif in_the_air: # Explicit for comprehension
 				if command == 356:
 					logger.info('Landing')
