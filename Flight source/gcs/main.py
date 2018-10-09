@@ -50,42 +50,46 @@ else:
 num_wp = base_mission.num_wp
 alt_takeoff = base_mission.alt_takeoff
 
-# Define a string that will print to show allowed user input
-str_allowed_input = """
-
-Allowed input:
+# Define help strings
+str_allowed_input_all = """
+Allowed input 1/2:
  listen
   Tell UAV to start listening to commands
  arm
   Arm UAV throttle
- disarm
-  Disarm UAV throttle
  takeoff
   Takeoff
  <Waypoint Number> 
   Navigate to designated waypoint (0 - %d)
- clear
-  Clear current waypoint
  rotate <Degrees>
   Rotates mission by specified angle (-%s through %s, CW positive)
- rgetdata
-  Report tether info
  reelin
   Reel in to landing tether length
+ help
+  Show page 1 of allowed inputs
+ help2
+  Show page 2 of allowed inputs
+ disarm
+  Disarm UAV throttle
+ clear
+  Clear current waypoint
+ rgetdata
+  Report tether info
  reelreset
   Reel in to 0 tether length
  clearfault
   Clear a faulted motor controller in the reel
  land
   Land
- help
-  Show this list of allowed inputs
  end
   Ask UAV to end its main.py
  quit
   End GCS\'s main.py
-
 """ %(num_wp - 1, max_deg, max_deg)
+
+idx_1 = str_allowed_input_all.find('disarm')
+str_allowed_input_1 = str_allowed_input_all[:idx_1]
+str_allowed_input_2 = "\nAllowed input 2/2:\n" + str_allowed_input_all[idx_1 - 1:]
 
 # Define parameters to use
 cmd_param = 'PIVOT_TURN_ANGLE'
@@ -233,7 +237,7 @@ if __name__ == '__main__':
 	#-----------------------------------------------------------------------------
 
 	# Print the allowed commands
-	print str_allowed_input
+	print str_allowed_input_1
 
 	# Set initial GCS value. For safety, the GCS should start and end on this value. This value tells the UAV to follow the previous command. If no previous command exists, then this value tells the UAV to do nothing.
 	gcs.parameters[cmd_param] = 100
@@ -282,7 +286,12 @@ if __name__ == '__main__':
 			invalid_input = True
 			if user_in == 'help':
 				invalid_input = False
-				logger.info(str_allowed_input)
+				logger.info(str_allowed_input_1)
+				continue
+
+			if user_in == 'help2':
+				invalid_input = False
+				logger.info(str_allowed_input_2)
 				continue
 
 			elif user_in == 'quit':
