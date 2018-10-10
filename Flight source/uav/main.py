@@ -233,7 +233,7 @@ class DroneCommanderNode(object):
 					goto_reference(uav, uav.location.global_frame, 0, 0, 0)
 					condition_yaw(uav, 0, relative = True)
 					# Set WPNAV_SPEED after takeoff due to arducopter bug https://github.com/ArduPilot/ardupilot/issues/6711
-					uav.parameters['WPNAV_SPEED'] = 250 # 20-2000 by 50 [cm/s]
+					uav.parameters['WPNAV_SPEED'] = 500 # 20-2000 by 50 [cm/s]
 					in_the_air = True
 					current_wp = None
 			elif in_the_air: # Explicit for comprehension
