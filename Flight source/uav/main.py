@@ -111,7 +111,7 @@ class DroneCommanderNode(object):
 		# NOTE: An arducopter bug does not let WPNAV_SPEED increase beyond its initial setting. However, it can decrease below its initial setting. For this reason, we initially set WPNAV_SPEED to the max we ever expect to desire. We then change it to a reasonable value after taking off. https://github.com/ArduPilot/ardupilot/issues/6711
 		wpnav_speed_max = 1000
 		uav.parameters['WPNAV_RADIUS'] = 100 # 10-1000 by 1 [cm]
-		uav.parameters['WPNAV_ACCEL'] = 150 # 50-500 by 10 [cm/s/s]
+		uav.parameters['WPNAV_ACCEL'] = 300 # 50-500 by 10 [cm/s/s]
 		uav.parameters['WPNAV_SPEED'] = wpnav_speed_max # 20-2000 by 50 [cm/s]
 		# uav.groundspeed = 5 # [m/s]
 
