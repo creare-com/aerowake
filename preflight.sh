@@ -13,7 +13,11 @@ else
 		echo "Insert crearedrive"
 	else
 		# Ensure filename has not been used yet
-		FILENAMETEST="$(ls /crearedrive/uav-logs/)"
+		UAVFILES="$(ls /crearedrive/uav-logs/)"
+		AIRPROBEFILES="$(ls /crearedrive/airprobe-logs/)"
+		ROSBAGFILES="$(ls /crearedrive/rosbags/)"
+		FILENAMETEST="$UAVFILES$AIRPROBEFILES$ROSBAGFILES"
+		echo "$FILENAMETEST"
 		if echo "$FILENAMETEST" | grep -q "$FILENAME"
 		then
 		  echo "Pick a different filename (already used)"
