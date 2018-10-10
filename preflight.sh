@@ -17,7 +17,6 @@ else
 		AIRPROBEFILES="$(ls /crearedrive/airprobe-logs/)"
 		ROSBAGFILES="$(ls /crearedrive/rosbags/)"
 		FILENAMETEST="$UAVFILES$AIRPROBEFILES$ROSBAGFILES"
-		echo "$FILENAMETEST"
 		if echo "$FILENAMETEST" | grep -q "$FILENAME"
 		then
 		  echo "Pick a different filename (already used)"
