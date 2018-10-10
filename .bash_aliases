@@ -6,7 +6,7 @@ alias useful='cat ~/creare_ws/src/aerowake/aerowake_git/.useful.txt'
 
 alias preflight.sh='sh ~/creare_ws/src/aerowake/aerowake_git/preflight.sh'
 alias postflight.sh='sh ~/creare_ws/src/aerowake/aerowake_git/postflight.sh'
-alias log-deleter.sh='sh ~/creare_ws/src/aerowake/aerowake_git/log-deleter.sh'
+alias rmlogs.sh='sh ~/creare_ws/src/aerowake/aerowake_git/rmlogs.sh'
 
 # copy camera calib to appropriate locations
 
