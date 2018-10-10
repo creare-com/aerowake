@@ -260,6 +260,7 @@ class DroneCommanderNode(object):
 						gcs.parameters[cmd_param] = current_wp
 					elif command == 202:
 						logger.info('Increasing WPNAV_SPEED by 0.5 m/s to %s' %(new_speed))
+						logger.debug('WPNAV_SPEED,%s' %(uav.parameters['WPNAV_SPEED']))
 						new_speed = uav.parameters['WPNAV_SPEED'] + 50
 						if new_speed < 2000:
 							uav.parameters['WPNAV_SPEED'] = new_speed # 20-2000 by 50 [cm/s]
@@ -267,6 +268,7 @@ class DroneCommanderNode(object):
 						gcs.parameters[cmd_param] = current_wp
 					elif command == 203:
 						logger.info('Increasing WPNAV_SPEED by 0.5 m/s to %s' %(new_speed))
+						logger.debug('WPNAV_SPEED,%s' %(uav.parameters['WPNAV_SPEED']))
 						new_speed = uav.parameters['WPNAV_SPEED'] - 50
 						if new_speed > 20:
 							uav.parameters['WPNAV_SPEED'] = new_speed # 20-2000 by 50 [cm/s]
@@ -274,6 +276,7 @@ class DroneCommanderNode(object):
 						gcs.parameters[cmd_param] = current_wp
 					elif command == 204:
 						logger.info('Increasing WPNAV_ACCEL by 0.3 m/s/s to %s' %(new_accel))
+						logger.debug('WPNAV_ACCEL,%s' %(uav.parameters['WPNAV_ACCEL']))
 						new_accel = uav.parameters['WPNAV_ACCEL'] + 30
 						if new_accel < 500:
 							uav.parameters['WPNAV_ACCEL'] = new_accel # 50-500 by 10 [cm/s/s]
@@ -283,12 +286,12 @@ class DroneCommanderNode(object):
 						new_accel = uav.parameters['WPNAV_ACCEL'] - 30
 						if new_accel < 50:
 							logger.info('Decreasing WPNAV_ACCEL by 0.3 m/s/s to %s' %(new_accel))
+						logger.debug('WPNAV_ACCEL,%s' %(uav.parameters['WPNAV_ACCEL']))
 							uav.parameters['WPNAV_ACCEL'] = new_accel # 50-500 by 10 [cm/s/s]
 						# Tell the UAV to continue following the current waypoint through the standard pipeline
 						gcs.parameters[cmd_param] = current_wp
 					else:
 						logger.info('Tracking waypoint %d',current_wp)
-						refLoc = gcs.location.global_frame
 						refLoc.alt = alt_initial
 						logger.debug('refLocNav,%s',refLoc)
 						dNorth = uav_mission[0][current_wp] + wp_offset
