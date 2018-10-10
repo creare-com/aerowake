@@ -250,7 +250,8 @@ class DroneCommanderNode(object):
 						# Tell the UAV to continue following the current waypoint through the standard pipeline
 						gcs.parameters[cmd_param] = current_wp
 						# Reset the bearing parameter to zero to prevent continual rotation
-						gcs.parameters[bearing_param] = 0
+						#gcs.parameters[bearing_param] = 0
+						command = current_wp
 					elif command == 200:
 						logger.info('Increasing altitude by 1 meter')
 						# NOTE: subtracting since coordinate system is NED (i.e. negative values for altitude)
