@@ -18,17 +18,29 @@ else
 		ROSBAGLOGNAMES="$(ls /crearedrive/rosbags/$FILENAME*)"
 		echo "$UAVLOGNAMES"
 		echo "$AIRPROBELOGNAMES"
+		echo "$ROSBAGLOGNAMES"
 		echo "The files above will be removed. Continue? [y/N]: " 
 		read confirm
 		if [ "$confirm" = "y" ]
 		then
 			# Delete logs after backing up to /tmp, which is autocleaned periodically
-			cp /crearedrive/uav-logs/$FILENAME*
-			cp /crearedrive/airprobe-logs/$FILENAME*
-			cp /crearedrive/rosbags/$FILENAME* 
-			rm /crearedrive/uav-logs/$FILENAME*
-			rm /crearedrive/airprobe-logs/$FILENAME*
-			rm /crearedrive/rosbags/$FILENAME*
+			if echo "$UAVLOGNAMES" | grep -q ".log"
+			then
+				cp /crearedrive/uav-logs/$FILENAME* /tmp
+				rm /crearedrive/uav-logs/$FILENAME*
+			fi
+
+			if echo "$AIRPROBELOGNAMES" | grep -q ".log"
+			then
+				cp /crearedrive/airprobe-logs/$FILENAME* /tmp
+				rm /crearedrive/airprobe-logs/$FILENAME*
+				fi
+
+			if echo "$ROSBAGLOGNAMES" | grep -q ".bag"
+			then
+				cp /crearedrive/rosbags/$FILENAME* /tmp 
+				rm /crearedrive/rosbags/$FILENAME*
+			fi
 			echo "Files deleted. Deleted files are temporarily available in /tmp"
 		else
 			echo "Cancelling operation"
