@@ -49,6 +49,7 @@ else:
 # Determine number of waypoints and takeoff altitude
 num_wp = base_mission.num_wp
 alt_takeoff = base_mission.alt_takeoff
+gcs_mission = [base_mission.wp_N, base_mission.wp_E, base_mission.wp_D]
 
 # Define help strings
 str_help = ''' help
@@ -457,9 +458,13 @@ if __name__ == '__main__':
 				if increase_alt:
 					logger.info('Commanding UAV to increase mission altitude by 1 meter')
 					gcs.parameters[cmd_param] = 200
+					# NOTE: subtracting since coordinate system is NED (i.e. negative values for altitude)
+					gcs_mission[2] = [gcs_mission[2][i]-1 for i in range(0,len(gcs_mission[2]))]
 				if decrease_alt:
 					logger.info('Commanding UAV to decrease mission altitude by 1 meter')
 					gcs.parameters[cmd_param] = 201
+					# NOTE: adding since coordinate system is NED (i.e. negative values for altitude)
+					gcs_mission[2] = [gcs_mission[2][i]+1 for i in range(0,len(gcs_mission[2]))]
 
 			elif user_in[0:7] == 'wpspeed':
 				invalid_input = False
@@ -504,9 +509,9 @@ if __name__ == '__main__':
 						logger.info('Commanding UAV to waypoint %s' %(user_in))
 						gcs.parameters[cmd_param] = user_in
 						# Command reel to desired length based on current waypoint
-						d_aft = base_mission.wp_N[user_in]
-						d_port = base_mission.wp_E[user_in]
-						d_down = base_mission.wp_D[user_in]
+						d_aft = gcs_mission[0][user_in]
+						d_port = gcs_mission[1][user_in]
+						d_down = gcs_mission[2][user_in]
 						logger.debug('(d_aft,d_port, d_down) = (%.01f,%.01f,%.01f)'%(d_aft,d_port, d_down))
 						if using_reel:
 							dist = math.sqrt((d_aft**2) + (d_port**2) + (d_down**2))
