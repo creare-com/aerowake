@@ -1,11 +1,12 @@
 # print useful commands to screen
 
-alias useful.txt='cat ~/creare_ws/src/aerowake/aerowake_git/.useful.txt'
+alias useful='cat ~/creare_ws/src/aerowake/aerowake_git/.useful.txt'
 
-# start/stop all screens and processes
+# start/stop all screens and processes and handle log deletion
 
 alias preflight.sh='sh ~/creare_ws/src/aerowake/aerowake_git/preflight.sh'
 alias postflight.sh='sh ~/creare_ws/src/aerowake/aerowake_git/postflight.sh'
+alias log-deleter.sh='sh ~/creare_ws/src/aerowake/aerowake_git/log-deleter.sh'
 
 # copy camera calib to appropriate locations
 
