@@ -107,9 +107,12 @@ class DroneCommanderNode(object):
 		# We start with a 0 rotation on the mission to match what we have on the gcs
 		gcs.parameters[bearing_param] = 0
 
-		# Set UAV acceleration limit and groundspeed
+		# Set UAV WPNAV params
+		# NOTE: An arducopter bug does not let WPNAV_SPEED increase beyond its initial setting. However, it can decrease below its initial setting. For this reason, we initially set WPNAV_SPEED to the max we ever expect to desire. We then change it to a reasonable value after taking off. https://github.com/ArduPilot/ardupilot/issues/6711
+		wpnav_speed_max = 1000
+		uav.parameters['WPNAV_RADIUS'] = 100 # 10-1000 by 1 [cm]
 		uav.parameters['WPNAV_ACCEL'] = 150 # 50-500 by 10 [cm/s/s]
-		uav.parameters['WPNAV_SPEED'] = 300 # 20-2000 by 50 [cm/s]
+		uav.parameters['WPNAV_SPEED'] = wpnav_speed_max # 20-2000 by 50 [cm/s]
 		# uav.groundspeed = 5 # [m/s]
 
 		logger.debug('WPNAV_ACCEL,%s' %(uav.parameters['WPNAV_ACCEL']))
@@ -229,6 +232,8 @@ class DroneCommanderNode(object):
 					takeoff(uav,'UAV',alt_takeoff)
 					goto_reference(uav, uav.location.global_frame, 0, 0, 0)
 					condition_yaw(uav, 0, relative = True)
+					# Set WPNAV_SPEED after takeoff due to arducopter bug https://github.com/ArduPilot/ardupilot/issues/6711
+					uav.parameters['WPNAV_SPEED'] = 250 # 20-2000 by 50 [cm/s]
 					in_the_air = True
 					current_wp = None
 			elif in_the_air: # Explicit for comprehension
@@ -252,12 +257,14 @@ class DroneCommanderNode(object):
 						uav_mission[2] = [uav_mission[2][i]-1 for i in range(0,len(uav_mission[2]))]
 						# Tell the UAV to continue following the current waypoint through the standard pipeline
 						gcs.parameters[cmd_param] = current_wp
+						command = current_wp
 					elif command == 201:
 						logger.info('Decreasing altitude by 1 meter')
 						# NOTE: adding since coordinate system is NED (i.e. negative values for altitude)
 						uav_mission[2] = [uav_mission[2][i]+1 for i in range(0,len(uav_mission[2]))]
 						# Tell the UAV to continue following the current waypoint through the standard pipeline
 						gcs.parameters[cmd_param] = current_wp
+						command = current_wp
 					elif command == 202:
 						new_speed = uav.parameters['WPNAV_SPEED'] + 50
 						if new_speed < 2000:
@@ -266,6 +273,7 @@ class DroneCommanderNode(object):
 							uav.parameters['WPNAV_SPEED'] = new_speed # 20-2000 by 50 [cm/s]
 						# Tell the UAV to continue following the current waypoint through the standard pipeline
 						gcs.parameters[cmd_param] = current_wp
+						command = current_wp
 					elif command == 203:
 						new_speed = uav.parameters['WPNAV_SPEED'] - 50
 						if new_speed > 20:
@@ -274,6 +282,7 @@ class DroneCommanderNode(object):
 							uav.parameters['WPNAV_SPEED'] = new_speed # 20-2000 by 50 [cm/s]
 						# Tell the UAV to continue following the current waypoint through the standard pipeline
 						gcs.parameters[cmd_param] = current_wp
+						command = current_wp
 					elif command == 204:
 						new_accel = uav.parameters['WPNAV_ACCEL'] + 30
 						if new_accel < 500:
@@ -282,6 +291,7 @@ class DroneCommanderNode(object):
 							uav.parameters['WPNAV_ACCEL'] = new_accel # 50-500 by 10 [cm/s/s]
 						# Tell the UAV to continue following the current waypoint through the standard pipeline
 						gcs.parameters[cmd_param] = current_wp
+						command = current_wp
 					elif command == 205:
 						new_accel = uav.parameters['WPNAV_ACCEL'] - 30
 						if new_accel < 50:
@@ -290,6 +300,7 @@ class DroneCommanderNode(object):
 							uav.parameters['WPNAV_ACCEL'] = new_accel # 50-500 by 10 [cm/s/s]
 						# Tell the UAV to continue following the current waypoint through the standard pipeline
 						gcs.parameters[cmd_param] = current_wp
+						command = current_wp
 					else:
 						logger.info('Tracking waypoint %d',current_wp)
 						refLoc = gcs.location.global_frame
@@ -310,8 +321,8 @@ class DroneCommanderNode(object):
 							condition_yaw(uav, yaw_rel, relative = True)
 							logger.debug('RELYAW,%s',yaw_rel)
 							i = i + 1
-						else:
-							logger.info('In the air, but not tracking a waypoint')
+				else:
+					logger.info('In the air, but not tracking a waypoint')
 
 			print ''
 			time.sleep(0.5)
