@@ -96,7 +96,7 @@ class ReelController:
             
             self._mc.setOperatingMode('PROFILE_POSITION')
         except Exception as err:
-        self._logger.error("Error while connecting to motor controller: " + str(err))
+            self._logger.error("Error while connecting to motor controller: " + str(err))
             self._logger.warning("Cannot connect to motor controller!  Will be using mock motor controller instead.")
             from MockPyMotorController import MockPyMotorController
             self._mc = MockPyMotorController()
