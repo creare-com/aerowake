@@ -292,6 +292,7 @@ class DroneCommanderNode(object):
 						gcs.parameters[cmd_param] = current_wp
 					else:
 						logger.info('Tracking waypoint %d',current_wp)
+						refLoc = gcs.location.global_frame
 						refLoc.alt = alt_initial
 						logger.debug('refLocNav,%s',refLoc)
 						dNorth = uav_mission[0][current_wp] + wp_offset
@@ -352,20 +353,20 @@ if __name__ == '__main__':
 	#-----------------------------------------------------------------------------
 
 	# Set connection path to UAV and GCS
-	# uav_connect_path = '127.0.0.1:14552'
-	# uav_baud = 115200
-	# gcs_connect_path = '127.0.0.1:14554'
-	# gcs_baud = 115200
+	uav_connect_path = '127.0.0.1:14552'
+	uav_baud = 115200
+	gcs_connect_path = '127.0.0.1:14554'
+	gcs_baud = 115200
 
 	# uav_connect_path = '/dev/ttyACM0' # Use for odroid through pixhawk usb cord
 	# uav_connect_path = '/dev/ttyUSB0' # Use for odroid through usb to serial converter
 	# uav_connect_path = '/dev/ttySAC0' # Use for odroid through GPIO pins
-	uav_connect_path = '/dev/pixhawk' # Use after configuring symbolic link through udevadm
-	uav_baud = 57600
+	# uav_connect_path = '/dev/pixhawk' # Use after configuring symbolic link through udevadm
+	# uav_baud = 57600
 
 	# gcs_connect_path = '/dev/ttyUSB0' # Use for telemetry radio through usb port
-	gcs_connect_path = '/dev/radio' # Use after configuring symbolic link through udevadm
-	gcs_baud = 57600
+	# gcs_connect_path = '/dev/radio' # Use after configuring symbolic link through udevadm
+	# gcs_baud = 57600
 
 	#-----------------------------------------------------------------------------
 	#
