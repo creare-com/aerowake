@@ -517,7 +517,7 @@ if __name__ == '__main__':
 						d_down = gcs_mission[2][user_in]
 						logger.debug('(d_aft,d_port, d_down) = (%.01f,%.01f,%.01f)'%(d_aft,d_port, d_down))
 						if using_reel:
-							dist = math.sqrt((d_aft**2) + (d_port**2) + (d_down**2)) + tether_offset
+							dist = math.sqrt((d_aft**2) + (d_port**2) + (d_down**2))# + tether_offset
 							logger.info('Commanding reel to %s meters', dist*safety_factor)
 							commands_to_reel.put({"cmd":"goto", "L":dist*safety_factor})
 						prev_command = 'Command UAV to waypoint %s' %(user_in)
