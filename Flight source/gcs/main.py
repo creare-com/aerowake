@@ -291,7 +291,6 @@ if __name__ == '__main__':
 	'''
 
 	user_in = None
-	tether_offset = 0
 	prev_command = 'No previous command.'
 
 	try:
@@ -375,11 +374,9 @@ if __name__ == '__main__':
 					if increase_tether:
 						logger.info('Commanding reel to increase tether length by 0.5 meters')
 						new_length = curr_length + 0.5
-						tether_offset = tether_offset + 0.5
 					if decrease_tether:
 						logger.info('Commanding reel to decrease tether length by 0.5 meters')
 						new_length = curr_length - 0.5
-						tether_offset = tether_offset - 0.5
 					commands_to_reel.put({"cmd":"goto", "L":new_length})
 				except TypeError as e:
 					logger.info('Failed to get data from reel. Try again.')
@@ -517,7 +514,7 @@ if __name__ == '__main__':
 						d_down = gcs_mission[2][user_in]
 						logger.debug('(d_aft,d_port, d_down) = (%.01f,%.01f,%.01f)'%(d_aft,d_port, d_down))
 						if using_reel:
-							dist = math.sqrt((d_aft**2) + (d_port**2) + (d_down**2))# + tether_offset
+							dist = math.sqrt((d_aft**2) + (d_port**2) + (d_down**2))
 							logger.info('Commanding reel to %s meters', dist*safety_factor)
 							commands_to_reel.put({"cmd":"goto", "L":dist*safety_factor})
 						prev_command = 'Command UAV to waypoint %s' %(user_in)
