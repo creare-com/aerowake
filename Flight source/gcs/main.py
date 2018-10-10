@@ -88,7 +88,7 @@ Allowed input 2/3:
  wpspeed[./,]
   Increases/Decreases WPNAV_SPEED by 0.5 m/s
  wpaccel[./,]
-  Increases/Decreases WPNAV_ACCEL by 0.25 m/s/s
+  Increases/Decreases WPNAV_ACCEL by 0.3 m/s/s
 '''  %(max_deg, max_deg) + str_help
 
 str_allowed_input_3 = '''
@@ -229,6 +229,24 @@ if __name__ == '__main__':
 		elif UAV_param == 355:
 			#rotate
 			logger.info('UAV received command to rotate.\n')
+		elif UAV_param == 200:
+			# increase altitude by 1 meter
+			logger.info('UAV received command to increase altitude.\n')
+		elif UAV_param == 201:
+			# decrease altitude by 1 meter
+			logger.info('UAV received command to decrease altitude.\n')
+		elif UAV_param == 202:
+			# increase wpnav_speed by 0.5 m/s
+			logger.info('UAV received command to increase wpnav_speed.\n')
+		elif UAV_param == 203:
+			# decrease wpnav_speed by 0.5 m/s
+			logger.info('UAV received command to decrease wpnav_speed.\n')
+		elif UAV_param == 204:
+			# increase wpnav_accel by 0.3 m/s
+			logger.info('UAV received command to increase wpnav_accel.\n')
+		elif UAV_param == 205:
+			# decrease wpnav_accel by 0.3 m/s
+			logger.info('UAV received command to decrease wpnav_accel.\n')
 		elif UAV_param >= 0 and UAV_param < num_wp:
 			# commanding waypoint
 			logger.info('UAV received command to go to waypoint %d.\n', UAV_param)
@@ -274,8 +292,8 @@ if __name__ == '__main__':
 		201     UAV will decrease its mission altitude by 1 meter
 		202     UAV will increase its WPNAV_SPEED by 0.5 m/s
 		203     UAV will decrease its WPNAV_SPEED by 0.5 m/s
-		204     UAV will increase its WPNAV_ACCEL altitude by 0.25 m/s/s
-		205     UAV will decrease its WPNAV_ACCEL altitude by 0.25 m/s/s
+		204     UAV will increase its WPNAV_ACCEL altitude by 0.3 m/s/s
+		205     UAV will decrease its WPNAV_ACCEL altitude by 0.3 m/s/s
 		359     UAV will arm
 		358     UAV will disarm
 		357     UAV will takeoff to a pre-programmed height
@@ -494,10 +512,10 @@ if __name__ == '__main__':
 				else:
 					logger.info('Invalid input. To increase waypoint navigation acceleration, enter \'wpaccel.\'. To decrease, enter \'wpspeed,\'.')
 				if increase_nav_accel:
-					logger.info('Commanding UAV to increase WPNAV_ACCEL by 0.25 m/s/s')
+					logger.info('Commanding UAV to increase WPNAV_ACCEL by 0.3 m/s/s')
 					gcs.parameters[cmd_param] = 204
 				if decrease_nav_accel:
-					logger.info('Commanding UAV to decrease WPNAV_ACCEL by 0.25 m/s/s')
+					logger.info('Commanding UAV to decrease WPNAV_ACCEL by 0.3 m/s/s')
 					gcs.parameters[cmd_param] = 205
 
 			else:
