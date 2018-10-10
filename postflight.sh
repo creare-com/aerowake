@@ -9,7 +9,7 @@ screen -S probe-check -p 0 -X stuff "^C"
 
 # Unmount crearedrive
 sleep 2 # Allow ^C to process
-umount /crearedrive
+#umount /crearedrive
 
 FLAGUNMOUNTED="$(lsblk)"
 if ! echo "$FLAGUNMOUNTED" | grep -q "crearedrive"
