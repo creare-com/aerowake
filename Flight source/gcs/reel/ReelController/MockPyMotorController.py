@@ -3,6 +3,14 @@ import logging
 
 class MockPyMotorController:
     def __init__(self):
+        # Logger setup
+        if 'reel_logger' in logging.Logger.manager.loggerDict:
+            self._logger = logging.getLogger('reel_logger')
+            print 'ReelController.py is using reel.py logger'
+        else:
+            self._logger = logging.getLogger('reel_logger')
+            self._logger.setLevel(logging.DEBUG)
+            print 'ReelController.py created its own reel_logger'
         self._opened = False
         self._enabled = False
         self._pos = 0;
@@ -22,11 +30,11 @@ class MockPyMotorController:
     # Enable/disable movement. (throw an  exception on failure)
     def clearFaultAndEnable(self):
         self._enabled = True
-        logging.info("Enabled mock motor controller")
+        self._logger.info("Enabled mock motor controller")
     def clearFault(self):
         pass
     def disable(self):
-        logging.info("Disabled mock motor controller")
+        self._logger.info("Disabled mock motor controller")
         self._enabled = False
     def isEnabled(self):
         return self._enabled
@@ -47,7 +55,7 @@ class MockPyMotorController:
         
     # Movement (throw an  exception on failure)
     def moveToPosition(self, position):
-        logging.info("Setting mock motor to %dQC"%position)
+        self._logger.info("Setting mock motor to %dQC"%position)
         self._target_pos = position
         self.setActualPosition(position)
     def getPosition(self):
@@ -74,5 +82,5 @@ class MockPyMotorController:
         return self._profile
     def haltMovement(self):
          pass
-#        logging.info("Stopping movement in mock motor controller")
+#        self._logger.info("Stopping movement in mock motor controller")
 
