@@ -128,6 +128,7 @@ cdef class PyMotorController:
     def getObjectUint16(self, unsigned int idx, unsigned int sub_idx):
         cdef unsigned short ret_val = 0;
         self._mc.getObject(idx, sub_idx, &ret_val, sizeof(ret_val))
+        return ret_val
     def setObjectUint16(self, unsigned int idx, unsigned int sub_idx, unsigned short val):
         self._mc.setObject(idx, sub_idx, &val, sizeof(val))
     def setOperatingMode(self, string om):
