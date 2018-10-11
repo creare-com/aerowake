@@ -19,7 +19,6 @@ class EposMotorController {
 
         std::string lookupError(unsigned int error);
         std::string lookupDeviceError(unsigned int error);
-        void enable(); // To avoid confusion, force them to clear the fault too
         void failWithCode(std::string message, int error_code, bool disable_motor = true); // The method called when an error is detected
         void fail(std::string message, bool disable_motor = true); // The method called when an error is detected
         
@@ -41,6 +40,7 @@ class EposMotorController {
         void clearFaultAndEnable();
         void clearFault();
         void disable();
+        void enable();
         bool isEnabled();
         bool isFaulted();
         unsigned char getDeviceErrorCount();

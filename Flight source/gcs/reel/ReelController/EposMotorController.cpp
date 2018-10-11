@@ -148,7 +148,7 @@ namespace gcs {
     void EposMotorController::getObject(unsigned short obj_idx, unsigned char obj_sub_idx, void * out_data, unsigned int bytes_to_read) {
         unsigned int error_code = 0;
         unsigned int bytes_read = 0;
-        if(VCS_GetObject(deviceHandle, NODE_ID, obj_idx, obj_sub_idx, bytes_to_read, out_data, &bytes_read, &error_code) != 0)
+        if(VCS_GetObject(deviceHandle, NODE_ID, obj_idx, obj_sub_idx, out_data, bytes_to_read, &bytes_read, &error_code) != 0)
         {
             // No further action required
         } else { failWithCode("Failed to read object", error_code); }
@@ -156,7 +156,7 @@ namespace gcs {
     void EposMotorController::setObject(unsigned short obj_idx, unsigned char obj_sub_idx, void * in_data, unsigned int bytes_to_write) {
         unsigned int error_code = 0;
         unsigned int bytes_written = 0;
-        if(VCS_SetObject(deviceHandle, NODE_ID, obj_idx, obj_sub_idx, bytes_to_write, in_data, &bytes_written, &error_code) != 0)
+        if(VCS_SetObject(deviceHandle, NODE_ID, obj_idx, obj_sub_idx, in_data, bytes_to_write, &bytes_written, &error_code) != 0)
         {
             // No further action required
         } else { failWithCode("Failed to write object", error_code); }
