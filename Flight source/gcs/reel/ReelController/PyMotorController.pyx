@@ -35,6 +35,7 @@ cdef extern from "EposMotorController.hpp" namespace "gcs":
         void clearFaultAndEnable() except +
         void clearFault() except +
         void disable() except +
+        void enable() except +
         bool isEnabled() except +
         bool isFaulted() except +
         
@@ -108,6 +109,8 @@ cdef class PyMotorController:
         return self._mc.clearFault() 
     def disable(self):
         return self._mc.disable() 
+    def enable(self):
+        return self._mc.enable() 
     def isEnabled(self):
         return self._mc.isEnabled() 
     def isFaulted(self):
