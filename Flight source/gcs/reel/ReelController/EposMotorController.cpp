@@ -102,7 +102,40 @@ namespace gcs {
             else        { return false; }
         } else { failWithCode("Failed to read fault state", error_code); return false; }
     }
+    
+    
+    /**
+     * Gets the number of device errors.  These describe errors (if any)
+     * within the motor controller device, rather than errors in the communications
+     * library.  Communications library errors are thrown as std::runtime_error.
+     * This is a prerequisite for calling getDeviceError() correctly.
+     */
+    unsigned char EposMotorController::getDeviceErrorCount() {
+        unsigned int error_code = 0; // Communications library error code
+        unsigned char device_error_count = 0;
+        if(VCS_GetNbOfDeviceError(deviceHandle, NODE_ID, &device_error_count, &error_code) != 0)
+        {
+            return device_error_count;
+        } else { failWithCode("Failed to read controller error count", error_code); return 0; }
+    }
 
+    /**
+     * Gets a device error string.  These describe errors (if any)
+     * within the motor controller device, rather than errors in the communications
+     * library.  Communications library errors are thrown as std::runtime_error.
+     * The device can report multiple errors, so you should call
+     * getDeviceErrorCount() before calling this function.
+     * You must call this function with 0 <= error_num < getDeviceErrorCount().
+     */
+    std::string EposMotorController::getDeviceError(unsigned char device_error_num) {
+        unsigned int error_code = 0; // Communications library error code
+        unsigned int device_error_code = 0;
+        if(VCS_GetDeviceErrorCode(deviceHandle, NODE_ID, device_error_num, &device_error_code, &error_code) != 0)
+        {
+            return lookupDeviceError(device_error_code);
+        } else { failWithCode("Failed to read controller error", error_code); return ""; }
+    }
+    
     /************************************
                  Configuration
     ************************************/
@@ -322,6 +355,12 @@ namespace gcs {
         fail(ss.str(), disable_motor);
     }
 
+    /**
+     * Looks up an error from the communications library.
+     * This is not to be confused with errors in the motor controller itself.
+     * Returns a human-readable string.
+     * From section 8.1 (page 8-117) in the EPOS Command Library document.
+     */
     std::string EposMotorController::lookupError(unsigned int error) {
         switch(error) {
             case 0x00000000: return "Function was successful"; break;
@@ -396,6 +435,60 @@ namespace gcs {
             case 0x34000005: return "Bad USB data size written"; break;
             case 0x34000006: return "Failed writing USB data"; break;
             case 0x34000007: return "Failed reading USB data"; break;
+            default:
+            {
+                std::stringstream ss;
+                ss << "Unknown error: 0x" << std::hex << error;
+                return ss.str();
+            }
+        }
+    }    
+    
+    /**
+     * Looks up an error from the motor controller.
+     * This is not to be confused with errors in the communications library.
+     * Returns a human-readable string.
+     * From section 4.3 (page 4-19) in the EPOS2 Firmware Specification document.
+     */
+    std::string EposMotorController::lookupDeviceError(unsigned int error) {
+        switch(error) {
+            case 0x0000: return "No Error "; break;
+            case 0x1000: return "Generic Error"; break;
+            case 0x2310: return "Overcurrent Error"; break;
+            case 0x3210: return "Overvoltage Error"; break;
+            case 0x3220: return "Undervoltage Error"; break;
+            case 0x4210: return "Overtemperature Error"; break;
+            case 0x5113: return "Logic Supply Voltage Too Low Error"; break;
+            case 0x5114: return "Supply Voltage Output Stage Too Low Error"; break;
+            case 0x6100: return "Internal Software Error"; break;
+            case 0x6320: return "Software Parameter Error"; break;
+            case 0x7320: return "Position Sensor Error"; break;
+            case 0x8110: return "CAN Overrun Error (Objects lost)"; break;
+            case 0x8111: return "CAN Overrun Error"; break;
+            case 0x8120: return "CAN Passive Mode Error"; break;
+            case 0x8130: return "CAN Life Guarding Error or Heartbeat Error"; break;
+            case 0x8150: return "CAN Transmit COB-ID Collision Error"; break;
+            case 0x81FD: return "CAN Bus Off Error"; break;
+            case 0x81FE: return "CAN Rx Queue Overflow Error"; break;
+            case 0x81FF: return "CAN Tx Queue Overflow Error"; break;
+            case 0x8210: return "CAN PDO Length Error"; break;
+            case 0x8611: return "Following Error"; break;
+            case 0xFF01: return "Hall Sensor Error"; break;
+            case 0xFF02: return "Index Processing Error"; break;
+            case 0xFF03: return "Encoder Resolution Error"; break;
+            case 0xFF04: return "Hall Sensor not found Error"; break;
+            case 0xFF06: return "Negative Limit Switch Error"; break;
+            case 0xFF07: return "Positive Limit Switch Error"; break;
+            case 0xFF08: return "Hall Angle Detection Error"; break;
+            case 0xFF09: return "Software Position Limit Error"; break;
+            case 0xFF0A: return "Position Sensor Breach Error"; break;
+            case 0xFF0B: return "System Overloaded Error"; break;
+            case 0xFF0C: return "Interpolated Position Mode Error"; break;
+            case 0xFF0D: return "Auto Tuning Identification Error"; break;
+            case 0xFF0F: return "Gear Scaling Factor Error"; break;
+            case 0xFF10: return "Controller Gain Error"; break;
+            case 0xFF11: return "Main Sensor Direction Error"; break;
+            case 0xFF12: return "Auxiliary Sensor Direction Error"; break;
             default:
             {
                 std::stringstream ss;

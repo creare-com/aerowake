@@ -38,6 +38,8 @@ cdef extern from "EposMotorController.hpp" namespace "gcs":
         void enable() except +
         bool isEnabled() except +
         bool isFaulted() except +
+        unsigned char getDeviceErrorCount() except +
+        string getDeviceError(unsigned char) except +
         
         # Configuration (throw an  exception on failure)
         void setOperatingMode(signed char) except + # Must be one of the "OPM_..." values from Definitions.h
@@ -115,6 +117,10 @@ cdef class PyMotorController:
         return self._mc.isEnabled() 
     def isFaulted(self):
         return self._mc.isFaulted() 
+    def getDeviceErrors(self):
+        num_errs = self._mc.getDeviceErrorCount()
+        errors = [self._mc.getDeviceError(i) for i in range(0, num_errs)]
+        return errors
         
     # Configuration (throw an  exception on failure)
     def setOperatingMode(self, string om):

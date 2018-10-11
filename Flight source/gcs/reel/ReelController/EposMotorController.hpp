@@ -18,6 +18,7 @@ class EposMotorController {
         signed char curOpMode;
 
         std::string lookupError(unsigned int error);
+        std::string lookupDeviceError(unsigned int error);
         void enable(); // To avoid confusion, force them to clear the fault too
         void failWithCode(std::string message, int error_code, bool disable_motor = true); // The method called when an error is detected
         void fail(std::string message, bool disable_motor = true); // The method called when an error is detected
@@ -42,6 +43,8 @@ class EposMotorController {
         void disable();
         bool isEnabled();
         bool isFaulted();
+        unsigned char getDeviceErrorCount();
+        std::string getDeviceError(unsigned char device_error_num);
         
         // Configuration (throw an exception on failure)
         void setOperatingMode(signed char mode); // Must be one of the "OPM_..." values from Definitions.h
