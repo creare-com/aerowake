@@ -49,6 +49,7 @@ class EposMotorController {
         // Configuration (throw an exception on failure)
         void getObject(unsigned short obj_idx, unsigned char obj_sub_idx,void * out_data, unsigned int bytes_to_read);
         void setObject(unsigned short obj_idx, unsigned char obj_sub_idx,void * in_data, unsigned int bytes_to_write);
+        void storeAllObjects();
         void setOperatingMode(signed char mode); // Must be one of the "OPM_..." values from Definitions.h
         void setSensorType(unsigned short type); // Must be one of the "ST_..."  values from Definitions.h
         void setEncoderSettings(unsigned int pulses_per_turn=1024, bool invert_polarity=false);

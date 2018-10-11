@@ -161,7 +161,17 @@ namespace gcs {
             // No further action required
         } else { failWithCode("Failed to write object", error_code); }
     }
-    
+    /**
+     * Writes the object dictionary to nonvolatile memory
+     *
+     */
+    void EposMotorController::storeAllObjects() {
+        unsigned int error_code = 0;
+        if(VCS_Store(deviceHandle, NODE_ID, &error_code) != 0)
+        {
+            // No further action required
+        } else { failWithCode("Failed to store object dictionary to nonvolatile memory", error_code); }
+    }
     void EposMotorController::setOperatingMode(signed char mode) {
         unsigned int error_code = 0;
         switch(mode) {
