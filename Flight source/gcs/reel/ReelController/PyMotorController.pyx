@@ -32,6 +32,8 @@ cdef extern from "EposMotorController.hpp" namespace "gcs":
         bool isOpen() except +
 
         # Enable/disable movement. (throw an  exception on failure)
+        void getObject(unsigned short obj_idx, unsigned char obj_sub_idx,void * out_data, unsigned int bytes_to_read) except +
+        void setObject(unsigned short obj_idx, unsigned char obj_sub_idx,void * in_data, unsigned int bytes_to_write) except +
         void clearFaultAndEnable() except +
         void clearFault() except +
         void disable() except +
@@ -123,6 +125,11 @@ cdef class PyMotorController:
         return errors
         
     # Configuration (throw an  exception on failure)
+    def getObjectUint16(self, unsigned int idx, unsigned int sub_idx):
+        cdef unsigned short ret_val = 0;
+        self._mc.getObject(idx, sub_idx, &ret_val, sizeof(ret_val))
+    def setObjectUint16(self, unsigned int idx, unsigned int sub_idx, unsigned short val):
+        self._mc.setObject(idx, sub_idx, &val, sizeof(val))
     def setOperatingMode(self, string om):
         try:
             return self._mc.setOperatingMode(OperatingMode[om])

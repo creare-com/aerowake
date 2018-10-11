@@ -139,6 +139,29 @@ namespace gcs {
     /************************************
                  Configuration
     ************************************/
+    /**
+     * Reads an "object" from the "object dictionary", which is used to configure the motor
+     * controller.  Will write up to bytes_to_read bytes to *out_data.
+     *
+     *
+     */
+    void EposMotorController::getObject(unsigned short obj_idx, unsigned char obj_sub_idx, void * out_data, unsigned int bytes_to_read) {
+        unsigned int error_code = 0;
+        unsigned int bytes_read = 0;
+        if(VCS_GetObject(deviceHandle, NODE_ID, obj_idx, obj_sub_idx, bytes_to_read, out_data, &bytes_read, &error_code) != 0)
+        {
+            // No further action required
+        } else { failWithCode("Failed to read object", error_code); }
+    }
+    void EposMotorController::setObject(unsigned short obj_idx, unsigned char obj_sub_idx, void * in_data, unsigned int bytes_to_write) {
+        unsigned int error_code = 0;
+        unsigned int bytes_written = 0;
+        if(VCS_SetObject(deviceHandle, NODE_ID, obj_idx, obj_sub_idx, bytes_to_write, in_data, &bytes_written, &error_code) != 0)
+        {
+            // No further action required
+        } else { failWithCode("Failed to write object", error_code); }
+    }
+    
     void EposMotorController::setOperatingMode(signed char mode) {
         unsigned int error_code = 0;
         switch(mode) {
