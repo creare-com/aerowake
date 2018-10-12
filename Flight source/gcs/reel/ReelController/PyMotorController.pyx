@@ -32,11 +32,17 @@ cdef extern from "EposMotorController.hpp" namespace "gcs":
         bool isOpen() except +
 
         # Enable/disable movement. (throw an  exception on failure)
+        void getObject(unsigned short obj_idx, unsigned char obj_sub_idx,void * out_data, unsigned int bytes_to_read) except +
+        void setObject(unsigned short obj_idx, unsigned char obj_sub_idx,void * in_data, unsigned int bytes_to_write) except +
+        void storeAllObjects() except +
         void clearFaultAndEnable() except +
         void clearFault() except +
         void disable() except +
+        void enable() except +
         bool isEnabled() except +
         bool isFaulted() except +
+        unsigned char getDeviceErrorCount() except +
+        string getDeviceError(unsigned char) except +
         
         # Configuration (throw an  exception on failure)
         void setOperatingMode(signed char) except + # Must be one of the "OPM_..." values from Definitions.h
@@ -108,12 +114,26 @@ cdef class PyMotorController:
         return self._mc.clearFault() 
     def disable(self):
         return self._mc.disable() 
+    def enable(self):
+        return self._mc.enable() 
     def isEnabled(self):
         return self._mc.isEnabled() 
     def isFaulted(self):
         return self._mc.isFaulted() 
+    def getDeviceErrors(self):
+        num_errs = self._mc.getDeviceErrorCount()
+        errors = [self._mc.getDeviceError(i) for i in range(0, num_errs)]
+        return errors
         
     # Configuration (throw an  exception on failure)
+    def getObjectUint16(self, unsigned int idx, unsigned int sub_idx):
+        cdef unsigned short ret_val = 0;
+        self._mc.getObject(idx, sub_idx, &ret_val, sizeof(ret_val))
+        return ret_val
+    def setObjectUint16(self, unsigned int idx, unsigned int sub_idx, unsigned short val):
+        self._mc.setObject(idx, sub_idx, &val, sizeof(val))
+        # Commit to nonvolatile memory immediatelt
+        self._mc.storeAllObjects()
     def setOperatingMode(self, string om):
         try:
             return self._mc.setOperatingMode(OperatingMode[om])

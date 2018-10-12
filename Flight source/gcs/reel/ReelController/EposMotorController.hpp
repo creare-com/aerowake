@@ -18,7 +18,7 @@ class EposMotorController {
         signed char curOpMode;
 
         std::string lookupError(unsigned int error);
-        void enable(); // To avoid confusion, force them to clear the fault too
+        std::string lookupDeviceError(unsigned int error);
         void failWithCode(std::string message, int error_code, bool disable_motor = true); // The method called when an error is detected
         void fail(std::string message, bool disable_motor = true); // The method called when an error is detected
         
@@ -40,10 +40,16 @@ class EposMotorController {
         void clearFaultAndEnable();
         void clearFault();
         void disable();
+        void enable();
         bool isEnabled();
         bool isFaulted();
+        unsigned char getDeviceErrorCount();
+        std::string getDeviceError(unsigned char device_error_num);
         
         // Configuration (throw an exception on failure)
+        void getObject(unsigned short obj_idx, unsigned char obj_sub_idx,void * out_data, unsigned int bytes_to_read);
+        void setObject(unsigned short obj_idx, unsigned char obj_sub_idx,void * in_data, unsigned int bytes_to_write);
+        void storeAllObjects();
         void setOperatingMode(signed char mode); // Must be one of the "OPM_..." values from Definitions.h
         void setSensorType(unsigned short type); // Must be one of the "ST_..."  values from Definitions.h
         void setEncoderSettings(unsigned int pulses_per_turn=1024, bool invert_polarity=false);
