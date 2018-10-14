@@ -53,11 +53,11 @@ gcs_mission = [base_mission.wp_N, base_mission.wp_E, base_mission.wp_D]
 
 # Define help strings
 str_help = ''' help
-  Show page 1 of allowed inputs
+	Show page 1 of allowed inputs
  help2
-  Show page 2 of allowed inputs
+	Show page 2 of allowed inputs
  help3
-  Show page 3 of allowed inputs
+	Show page 3 of allowed inputs
 
 '''
 
@@ -65,49 +65,49 @@ str_allowed_input_1 = '''
 
 Allowed input 1/3:
  listen
-  Tell UAV to start listening to commands
+	Tell UAV to start listening to commands
  arm
-  Arm UAV throttle
+	Arm UAV throttle
  takeoff
-  Takeoff
+	Takeoff
  <Waypoint Number> 
-  Navigate to designated waypoint (0 - %d)
+	Navigate to designated waypoint (0 - %d)
  reelin
-  Reel tether in to landing length
+	Reel tether in to landing length
 '''  %(num_wp - 1) + str_help
 
 str_allowed_input_2 = '''
 
 Allowed input 2/3:
  rotate <Degrees>
-  Rotates mission by specified angle (-%s through %s, CW positive)
+	Rotates mission by specified angle (-%s through %s, CW positive)
  alt[./,]
-  Increases/Decreases mission altitude by 1 meter
+	Increases/Decreases mission altitude by 1 meter
  reel[./,]
-  Increases/Decreases tether length by 0.5 meters
+	Increases/Decreases tether length by 0.5 meters
  wpspeed[./,]
-  Increases/Decreases WPNAV_SPEED by 0.5 m/s
+	Increases/Decreases WPNAV_SPEED by 0.5 m/s
  wpaccel[./,]
-  Increases/Decreases WPNAV_ACCEL by 0.3 m/s/s
+	Increases/Decreases WPNAV_ACCEL by 0.3 m/s/s
 '''  %(max_deg, max_deg) + str_help
 
 str_allowed_input_3 = '''
 
 Allowed input 3/3:
  disarm
-  Disarm UAV throttle
+	Disarm UAV throttle
  clear
-  Clear current waypoint
+	Clear current waypoint
  rgetdata
-  Report tether info
+	Report tether info
  reelreset
-  Reel in to 0 tether length
+	Reel in to 0 tether length
  clearfault
-  Clear a faulted motor controller in the reel
+	Clear a faulted motor controller in the reel
  land
-  Land
+	Land
  quit
-  End GCS\'s main.py
+	End GCS\'s main.py
 ''' + str_help
 
 # Define parameters to use
@@ -413,21 +413,21 @@ if __name__ == '__main__':
 				else:
 					logger.info('clearfault called when not using reel.')
 
-      elif user_in == 'clearfaultandenable':
-              invalid_input = False
-              if using_reel:
-                      logger.info('Commanding reel to clear fault and enable.')
-                      commands_to_reel.put({"cmd":"clearfaultandenable"})
-              else:   
-                      logger.info('clearfaultandenable called when not using reel.')
+			elif user_in == 'clearfaultandenable':
+							invalid_input = False
+							if using_reel:
+											logger.info('Commanding reel to clear fault and enable.')
+											commands_to_reel.put({"cmd":"clearfaultandenable"})
+							else:   
+											logger.info('clearfaultandenable called when not using reel.')
 
-      elif user_in == 'geterror':
-              invalid_input = False
-              if using_reel:
-                      logger.info('Commanding reel to report errors.')
-                      commands_to_reel.put({"cmd":"geterror"})
-              else:
-                      logger.info('geterror called when not using reel.')
+			elif user_in == 'geterror':
+							invalid_input = False
+							if using_reel:
+											logger.info('Commanding reel to report errors.')
+											commands_to_reel.put({"cmd":"geterror"})
+							else:
+											logger.info('geterror called when not using reel.')
 
 			elif user_in == 'arm':
 				invalid_input = False
