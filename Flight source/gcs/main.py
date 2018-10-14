@@ -415,6 +415,14 @@ if __name__ == '__main__':
                                 else:   
                                         logger.info('clearfaultandenable called when not using reel.')
 
+                        elif user_in == 'geterror':
+                                invalid_input = False
+                                if using_reel:
+                                        logger.info('Commanding reel to report errors.')
+                                        commands_to_reel.put({"cmd":"geterror"})
+                                else:
+                                        logger.info('geterror called when not using reel.')
+
 			elif user_in == 'arm':
 				invalid_input = False
 				# UAV knows that 359 means arm
