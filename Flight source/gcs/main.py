@@ -379,23 +379,29 @@ if __name__ == '__main__':
 
 			elif user_in[0:4] == 'reel':
 				invalid_input = False
-				increase_tether = False
-				decrease_tether = False
 				curr_length = get_reel_data()['L']
 				try:
-					if user_in[4] == '.':
-						increase_tether = True
-					elif user_in[4] == ',':
-						decrease_tether = True
+					reel_change = 0
+					flag_change_length = True
+					for char in user_in[4:]:
+						if char == '.':
+							reel_change = reel_change + 0.5
+						elif char == ',':
+							reel_change = reel_change - 0.5
+						else:
+							flag_change_length = False
+					if flag_change_length:
+						if reel_change > 0:
+							logger.info('Commanding reel to increase tether length by %s meters' %(reel_change))
+							new_length = curr_length + reel_change
+						elif reel_change < 0:
+							logger.info('Commanding reel to decrease tether length by %s meters' %(reel_change))
+							new_length = curr_length + reel_change
+						else:
+							new_length = curr_length
+						commands_to_reel.put({"cmd":"goto", "L":new_length})
 					else:
 						logger.info('Invalid input. To increase tether length, enter \'reel.\'. To decrease tether length, enter \'reel,\'.')
-					if increase_tether:
-						logger.info('Commanding reel to increase tether length by 0.5 meters')
-						new_length = curr_length + 0.5
-					if decrease_tether:
-						logger.info('Commanding reel to decrease tether length by 0.5 meters')
-						new_length = curr_length - 0.5
-					commands_to_reel.put({"cmd":"goto", "L":new_length})
 				except TypeError as e:
 					logger.info('Failed to get data from reel. Try again.')
 
@@ -407,21 +413,21 @@ if __name__ == '__main__':
 				else:
 					logger.info('clearfault called when not using reel.')
 
-                        elif user_in == 'clearfaultandenable':
-                                invalid_input = False
-                                if using_reel:
-                                        logger.info('Commanding reel to clear fault and enable.')
-                                        commands_to_reel.put({"cmd":"clearfaultandenable"})
-                                else:   
-                                        logger.info('clearfaultandenable called when not using reel.')
+      elif user_in == 'clearfaultandenable':
+              invalid_input = False
+              if using_reel:
+                      logger.info('Commanding reel to clear fault and enable.')
+                      commands_to_reel.put({"cmd":"clearfaultandenable"})
+              else:   
+                      logger.info('clearfaultandenable called when not using reel.')
 
-                        elif user_in == 'geterror':
-                                invalid_input = False
-                                if using_reel:
-                                        logger.info('Commanding reel to report errors.')
-                                        commands_to_reel.put({"cmd":"geterror"})
-                                else:
-                                        logger.info('geterror called when not using reel.')
+      elif user_in == 'geterror':
+              invalid_input = False
+              if using_reel:
+                      logger.info('Commanding reel to report errors.')
+                      commands_to_reel.put({"cmd":"geterror"})
+              else:
+                      logger.info('geterror called when not using reel.')
 
 			elif user_in == 'arm':
 				invalid_input = False
@@ -494,11 +500,13 @@ if __name__ == '__main__':
 					gcs.parameters[cmd_param] = 200
 					# NOTE: subtracting since coordinate system is NED (i.e. negative values for altitude)
 					gcs_mission[2] = [gcs_mission[2][i]-1 for i in range(0,len(gcs_mission[2]))]
+					logger.info('New target altitude: %s' %(gcs_mission[2]))
 				if decrease_alt:
 					logger.info('Commanding UAV to decrease mission altitude by 1 meter')
 					gcs.parameters[cmd_param] = 201
 					# NOTE: adding since coordinate system is NED (i.e. negative values for altitude)
 					gcs_mission[2] = [gcs_mission[2][i]+1 for i in range(0,len(gcs_mission[2]))]
+					logger.info('New target altitude: %s' %(gcs_mission[2]))
 
 			elif user_in[0:7] == 'wpspeed':
 				invalid_input = False
