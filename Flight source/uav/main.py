@@ -444,7 +444,7 @@ if __name__ == '__main__':
 
 	@gcs.on_message('SYSTEM_TIME')
 	def gcs_time_callback(self,attr_name, msg):
-		logger.debug('gcsGPSTIME,%s' %msg)
+		logger.debug('gcsGPSTIME, %s' %msg)
 
 	timed_out_gcs = False
 	@gcs.on_attribute('last_heartbeat')
@@ -491,19 +491,19 @@ if __name__ == '__main__':
 
 	@uav.on_message('NAV_CONTROLLER_OUTPUT')
 	def nav_callback(self,attr_name, msg):
-		logger.debug('NAVCTRLOUT,%s' %msg)
+		logger.debug('NAVCTRLOUT, %s' %msg)
 
 	@uav.on_message('SYSTEM_TIME')
 	def uav_time_callback(self,attr_name, msg):
-		logger.debug('uavGPSTIME,%s' %msg)
+		logger.debug('uavGPSTIME, %s' %msg)
 
 	@uav.on_message('ATTITUDE')
 	def attitude_callback(self, attr_name, msg):
-		logger.debug('uavATT,%s' %msg)
+		logger.debug('uavATT, %s' %msg)
 
 	@uav.on_message('LOCAL_POSITION_NED')
 	def local_position_NED_callback(self,attr_name, msg):
-		logger.debug('localPosNED,%s' %msg)
+		logger.debug('uavLocalPosNED, %s' %msg)
 
 	# @uav.on_message('*')
 	# def any_message_listener(self, name, message):

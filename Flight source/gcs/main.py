@@ -192,15 +192,15 @@ if __name__ == '__main__':
 
 	@gcs.on_message('SYSTEM_TIME')
 	def time_callback(self, attr_name, msg):
-		logger.debug('gcsGPSTIME,%s' %msg)
+		logger.debug('gcsGPSTIME, %s' %msg)
 
 	@gcs.on_message('LOCAL_POSITION_NED')
 	def local_position_NED_callback(self,attr_name, msg):
-		logger.debug('localPosNED,%s' %msg)
+		logger.debug('gcsLocalPosNED, %s' %msg)
 
 	@gcs.on_message('ATTITUDE')
 	def attitude_callback(self, attr_name, msg):
-		logger.debug('gcsATT,%s' %msg)
+		logger.debug('gcsATT, %s' %msg)
 
 	# ack_param is used as an acknowledge parameter by the UAV.
 	@gcs.parameters.on_attribute(ack_param)
