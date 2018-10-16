@@ -503,7 +503,7 @@ if __name__ == '__main__':
 
 	@uav.on_message('LOCAL_POSITION_NED')
 	def local_position_NED_callback(self,attr_name, msg):
-		logger.debug('uavLocalPosNED, %s' %msg)
+		logger.debug('localPosNED, %s' %msg)
 
 	# @uav.on_message('*')
 	# def any_message_listener(self, name, message):
