@@ -13,9 +13,9 @@ else
 		echo "Insert crearedrive"
 	else
 		# Gather logs with given filenames
-		UAVLOGNAMES="$(ls /crearedrive/uav-logs/$FILENAME*)"
-		AIRPROBELOGNAMES="$(ls /crearedrive/airprobe-logs/$FILENAME*)"
-		ROSBAGLOGNAMES="$(ls /crearedrive/rosbags/$FILENAME*)"
+		UAVLOGNAMES="$(ls /crearedrive/uav-logs/ | grep $FILENAME*)"
+		AIRPROBELOGNAMES="$(ls /crearedrive/airprobe-logs/ | grep $FILENAME*)"
+		ROSBAGLOGNAMES="$(ls /crearedrive/rosbags/ | grep $FILENAME*)"
 		echo "$UAVLOGNAMES"
 		echo "$AIRPROBELOGNAMES"
 		echo "$ROSBAGLOGNAMES"
@@ -26,22 +26,24 @@ else
 			# Delete logs after backing up to /tmp, which is autocleaned periodically
 			if echo "$UAVLOGNAMES" | grep -q ".log"
 			then
-				cp /crearedrive/uav-logs/$FILENAME* /tmp
+				cp /crearedrive/uav-logs/$FILENAME* ~/deletedlogs
 				rm /crearedrive/uav-logs/$FILENAME*
 			fi
 
+			echo "$AIRPROBELOGNAMES" | grep -q ".log"
+			
 			if echo "$AIRPROBELOGNAMES" | grep -q ".log"
 			then
-				cp /crearedrive/airprobe-logs/$FILENAME* /tmp
+				cp /crearedrive/airprobe-logs/$FILENAME* ~/deletedlogs
 				rm /crearedrive/airprobe-logs/$FILENAME*
-				fi
+			fi
 
 			if echo "$ROSBAGLOGNAMES" | grep -q ".bag"
 			then
-				cp /crearedrive/rosbags/$FILENAME* /tmp 
+				cp /crearedrive/rosbags/$FILENAME* ~/deletedlogs
 				rm /crearedrive/rosbags/$FILENAME*
 			fi
-			echo "Files deleted. Deleted files are temporarily available in /tmp"
+			echo "Files deleted. Deleted files are available in ~/deletedlogs"
 		else
 			echo "Cancelling operation"
 		fi
