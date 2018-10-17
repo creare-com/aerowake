@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Detach from current screen (if in a screen)
+if test -n "$STY"
+then
+	screen -d
+fi
+
 # Gracefully stop programs
 screen -S roscore -p 0 -X stuff "^C"
 screen -S yaw-cmd -p 0 -X stuff "^C"
