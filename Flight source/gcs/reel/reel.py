@@ -19,6 +19,7 @@ class reel_run (Process):
         self._data_out = data_out
         self._dt_des =1/200.0
         self._cycles = 0
+        self._curr_len = 0
 
         # Logger setup
         self._logger = logging.getLogger('reel_logger')
@@ -56,7 +57,8 @@ class reel_run (Process):
                 # {"cmd":"halt"}    # holds the reel where it is
                 # {"cmd":"rehome"}  # consider the current tether length to be 0m
                 # {"cmd":"clearfault"}  # clear any fault
-                # {"cmd":"exit"}    # exit the subprocess
+                # {"cmd":"clearfaultandenable"}  # clear any fault and re-enable controller
+                # {"cmd":"exit"}    # exit the subprocess and freewheel motor
                 if cmd != None and cmd.has_key('cmd'):
                     if cmd['cmd'] == 'goto':
                         L = cmd['L']
@@ -74,6 +76,7 @@ class reel_run (Process):
                     elif cmd['cmd'] == 'clearfaultandenable':
                         self._logger.info("reel.py: Clearing fault and enabling\n")
                         self._rc.clearFaultAndEnable()
+			self._rc.setTetherLengthM(self._rc.getTetherLengthM())
 		    elif cmd['cmd'] == 'geterror':
                         self._logger.info("reel.py: Printing device errors\n")
 			self._logger.info(self._rc._mc.getDeviceErrors())	
@@ -100,6 +103,7 @@ class reel_run (Process):
                         pass
                     self._data_out.put({"L": L, "T": T, "Faulted": faulted, "Enabled":enabled})
                     self._cycles = 0
+                    self._curr_len = L
                 else:
                     self._cycles += 1
 

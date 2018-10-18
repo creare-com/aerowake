@@ -102,8 +102,8 @@ Allowed input 3/3:
 	Report tether info
  reelreset
 	Reel in to 0 tether length
- clearfault
-	Clear a faulted motor controller in the reel
+ cfae
+	Clear a faulted motor controller and renable the reel
  land
 	Land
  quit
@@ -413,21 +413,21 @@ if __name__ == '__main__':
 				else:
 					logger.info('clearfault called when not using reel.')
 
-			elif user_in == 'clearfaultandenable':
-							invalid_input = False
-							if using_reel:
-											logger.info('Commanding reel to clear fault and enable.')
-											commands_to_reel.put({"cmd":"clearfaultandenable"})
-							else:   
-											logger.info('clearfaultandenable called when not using reel.')
+			elif user_in == 'cfae':
+				invalid_input = False
+				if using_reel:
+					logger.info('Commanding reel to clear fault and enable.')
+					commands_to_reel.put({"cmd":"clearfaultandenable"})
+				else:   
+					logger.info('clearfaultandenable called when not using reel.')
 
 			elif user_in == 'geterror':
-							invalid_input = False
-							if using_reel:
-											logger.info('Commanding reel to report errors.')
-											commands_to_reel.put({"cmd":"geterror"})
-							else:
-											logger.info('geterror called when not using reel.')
+				invalid_input = False
+				if using_reel:
+					logger.info('Commanding reel to report errors.')
+					commands_to_reel.put({"cmd":"geterror"})
+				else:
+					logger.info('geterror called when not using reel.')
 
 			elif user_in == 'arm':
 				invalid_input = False
@@ -449,7 +449,7 @@ if __name__ == '__main__':
 				gcs.parameters[cmd_param] = 357
 				logger.info('Commanding UAV to Takeoff to %s meters' %(alt_takeoff))
 				if using_reel:
-					logger.info('Commanding reel to %s meters', alt_takeoff*safety_factor)
+					logger.info('Commanding reel to %0.1f meters', alt_takeoff*safety_factor)
 					commands_to_reel.put({"cmd":"goto", "L":alt_takeoff*safety_factor})
 				prev_command = 'Command UAV to Takeoff'
 

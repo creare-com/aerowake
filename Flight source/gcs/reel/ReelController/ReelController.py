@@ -120,10 +120,13 @@ class ReelController:
         del self._mc
         del self._tension_sensor
         
-    def youAreHome(self):
+    def youAreHome(self,home_pos_m=None):
         """ Consider the tether's current position to be 0m """
-        self._home_pos_m = 0 # Zero this out because getTetherLengthM() returns a value relative to home
-        self._home_pos_m = self.getTetherLengthM()
+        if home_pos_m is None:
+	    self._home_pos_m = 0 # Zero this out because getTetherLengthM() returns a value relative to home
+            self._home_pos_m = self.getTetherLengthM()
+        else:
+	    self._home_pos_m = home_pos_m
     
     def _recommandMotorPosition(self):
         """
@@ -269,7 +272,12 @@ class ReelController:
             self._logger.error("Error in _mc.clearFault: " + str(err))
 
     def clearFaultAndEnable(self):
-        try:
-            self._mc.clearFaultAndEnable()
-        except RuntimeError as err:
-            self._logger.error("Error in _mc.clearFaultAndEnable: " + str(err))
+        if self.isFaulted():
+            try:
+                curr_pos = self.getTetherLengthM()
+                self._mc.clearFaultAndEnable()
+                self.youAreHome(home_pos_m = -curr_pos) # Reset home so current position = curr_pos
+            except RuntimeError as err:
+                self._logger.error("Error in _mc.clearFaultAndEnable: " + str(err))
+        else:
+            self._logger.info("clearFaultAndEnable called when motor controller is not faulted.")
