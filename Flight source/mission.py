@@ -172,7 +172,7 @@ if load_mission == 3:
   num_wp  = 10
   wp_E    = [i*step_E for i in basic_E]
   wp_N    = get_N(wp_E,r)
-  wp_D    = [1.0*alt_1 if i == 0 else 1.0*alt_2 for i in basic_D]
+  wp_D    = [-1.0*alt_1 if i == 0 else -1.0*alt_2 for i in basic_D]
 
 
 
