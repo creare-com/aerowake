@@ -137,7 +137,7 @@ if load_mission == 2:
   alt = alt_1
 
   # Create mission
-  step_E  = round(r*np.cos(np.pi/4)/2,2) # Horizontal distance between waypoints
+  step_E  = round(r*np.sin(np.pi/6)/2,2) # Horizontal distance between waypoints
   basic_E = [0, 1, 2, 1, 0, -1, -2, -1]
   num_wp  = 8
   wp_E    = [i*step_E for i in basic_E]
@@ -166,7 +166,7 @@ if load_mission == 3:
   alt_2 = alt_2
 
   # Create mission
-  step_E  = round(r*np.cos(np.pi/4)/2,2) # Horizontal distance between waypoints
+  step_E  = round(r*np.sin(np.pi/6)/2,2) # Horizontal distance between waypoints
   basic_E = [0, 1, 2, 2, 1, 0, -1, -2, -2, -1]
   basic_D = [0, 0, 0, 1, 1, 1,  1,  1,  0,  0]
   num_wp  = 10
