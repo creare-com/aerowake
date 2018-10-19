@@ -1,0 +1,230 @@
+SIMPLE EXPLANATION IN ORDER
+
+SSH into each device:
+ssh odroid@192.168.1.3
+ssh pi@192.168.1.6
+
+Calibrate each pixhawk:
+
+ODROID:
+mavproxy.py --master=/dev/pixhawk,57600
+accelcal
+magcal start
+magcal accept
+
+RPi:
+mavproxy.py --master=/dev/ttyAMA0,115200
+accelcal
+magcal start
+magcal accept
+
+Power cycle each pixhawk
+
+Start flight commands:
+
+ODROID:
+sudo chmod a+rwx /dev/i2c-4
+preflight.sh FILENAME
+
+RPi:
+ssg
+ipython aerowake/Flight\ source/gcs/main.py FILENAME
+
+Check on airprobe:
+
+ODROID:
+"CTRL+A,D" to detach from flight-cmd screen
+"sral" to reattach to airprobe listener
+
+Start rosbag (saving video)
+
+ODROID:
+"CTRL+A,D" to detach from airprobe listener
+"ssb" to start bag screen
+"rosbag record -a -x /camera/image --split --size=3000 --lz4 -o FILENAME" to start recording
+
+Stop rosbag
+
+ODROID:
+"CTRL+C" in bag screen
+
+Stop flight commands
+
+ODROID:
+postflight.sh
+
+RPi:
+End main.py with quit or CTRL+C
+
+Playback rosbag
+
+ODROID with monitor attached:
+"CTRL+ALT+T" to start a terminal
+roscore
+"CTRL+SHIFT+O" to start a new terminal below the original
+rosbag play /crearedrive/rosbag/FILENAME*
+"CTRL+SHIFT+E" to start a new terminal next to the rosbag terminal
+rosrun image_view image_view image:=/camera/image_raw
+
+Logfile Storage Locations
+
+airprobe log file: /crearedrive/airprobe-logs/FILENAME-TIME.log
+uav main log file: /crearedrive/uav-logs/FILENAME-uav-TIME.log
+rosbag log file: /crearedrive/rosbags/FILENAME
+gcs main log file: /home/pi/logs/gcs-logs/FILENAME-gcs-TIME.log
+gcs reel log file: /home/pi/logs/reel-logs/FILENAME-reel-TIME.log
+
+
+
+################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
+
+MORE COMPLETE EXPLANATIONS
+
+SSH Connections
+
+If unsure what IP address a device is on, log onto routerlogin.com (username: admin password: password) to see attached devices. IP addresses below are assigned to the WiFi chip itself, not the device. If you change WiFi chips, you will likely have a different IP from what is below.
+
+RPi: 192.168.1.6
+Yellow Hex: 192.168.1.3
+FA39: 192.168.1.5
+
+
+
+Initial Calibration
+
+Need to calibrate camera on the drone. With the monitor attached, start roscore in one terminal, then launch the calibration method in a different terminal. Move the calibration target (extras in big MIT bin inside blue bag inside file box) around in the image until "Calibrate" lights up. Then click calibrate. It will likely take a few minutes until "Save" and "Commit" light up. Click "Save" followed by "Commit". The calibration file is created in ~/creare_ws/src/creare/params/camera_calib.yaml, even if the calibration terminal shows an error. 
+
+roscore
+<new terminal>
+roslaunch creare calibrate.launch
+<move calibration target in image>
+<click calibrate>
+<click save>
+<click commit>
+<CTRL+C launch terminal and roscore terminal>
+
+Need to calibrate accelerometers and magnetometers on both pixhawks. When logged into each device below, issue the following commands to start MAVProxy, and then to begin calibration.
+
+RPi:
+mavproxy.py --master=/dev/ttyAMA0,115200
+
+ODROID:
+mavproxy.py --master=/dev/pixhawk,57600
+
+In MAVProxy:
+
+accelcal
+Start accelcal, then follow prompts. If is hangs (doesn't go through all the prompts) and you try again and it always says calibrated, power cycle the pixhawk and complete accelcal through all of the prompts (end with "on its back"). 
+
+magcal start
+magcal accept
+Start magcal, turn around in circles until it beeps confirmation, then accept once it says finished.
+
+
+
+Pre- and Post-Flight Commands
+
+Need to issue a number of commands in different screens (persistent SSH terminals) on the ODROID and RPi. 
+
+ODROID:
+preflight.sh FILENAME
+<After flight, detach from flight-cmd screen with CTRL+A,D>
+postflight.sh
+
+I wrote shortcuts (stored in ~/creare_ws/src/aerowake/aerowake_git/preflight.sh and postflight.sh) to do so. 
+
+The preflight shortcut will:
+- start roscore in a detached screen
+- start camera in a detached screen
+- start flight companion in a detached screen
+- start airprobe logging in a detached screen
+- start airprobe checking (tail -f) in a detached screen
+- reattach flight companion screen to view uav/main.py status
+
+The postflight shortcut will:
+- issue CTRL+C in all screens
+- terminate all screens
+
+RPi:
+ssg
+cd aerowake/Flight\ source/gcs
+ipython main.py FILENAME
+
+
+
+General Screen Commands
+
+screen -ls
+Lists all active screens.
+screen -S NAME
+Starts a screen with the given name.
+screen -D NAME
+Detaches from screen of given name.
+CTRL+A,D
+Detaches from current screen. Useful when a process is running on a screen and you can't type "screen -D NAME". If you press this combination in a terminal that is not a screen, it will close the terminal. 
+screen -r NAME
+Reattaches to screen of given name. A screen with that name must exist. 
+killall screen
+Terminates all active screens.
+
+I wrote numerous shortcuts on the ODROID and RPi to quickly issue screen commands. See these commands in ~/creare_ws/src/aerowake/aerowake_git/.bash_aliases. The most useful ones are:
+
+sls
+Equivalent to "screen -ls".
+skl
+Equivalent to "killall screen".
+srr
+Equivalent to "screen -r roscore"
+sry
+Equivalent to "screen -r yaw-cmd". yaw-cmd is the camera start screen.
+srf
+Equivalent to "screen -r flight-cmd". flight-cmd is the flight companion screen.
+sra
+Equivalent to "screen -r airprobe". 
+sral
+Equivalent to "screen -r probe-check". probe-check is the "tail -f" screen.
+
+
+
+Each ODROID Preflight Command Separately in Order
+
+ssr (or "screen -S roscore")
+roscore
+CTRL+A,D
+Start the roscore screen, start roscore, detach
+
+ssy (or "screen -S yaw-cmd")
+roslaunch creare yaw_commanding.launch
+CTRL+A,D
+Start the camera screen, start the camera, detach
+
+ssf (or "screen -S flight-cmd")
+roslaunch aerowake flight_companion.launch
+CTRL+A,D
+Start flight companion screen, start flight companion, detach
+
+ssa (or "screen -S airprobe")
+nice -n -10 ipython ~/creare_ws/src/aerowake/aerowake_git/Flight\ source/uav/airprobe/airprobe_main.py FILENAME
+CTRL+A,D
+Start airprobe screen, start airprobe with given filename, detach
+
+ssal (or "screen -S probe-check")
+tail -f /crearedrive/airprobe-logs/FILENAME*
+CTRL+A,D
+Start probe-check screen, echo live update tail of log file to screen, detach
+
+srf (or "screen -r flight-cmd")
+Reattach to flight-cmd screen to view uav/main.py status
+
+
+
+Common Problems
+
+If the airprobe won't start, you may not have set the i2c permissions. 
+sudo chmod a+rwx /dev/i2c-4
+
+Most other problems occur because you don't have the crearedrive plugged in, or the crearedrive you have plugged in doesn't have the correct directories. Each crearedrive automatically mounts to /crearedrive. Each crearedrive needs the following directories:
+/crearedrive/airprobe-logs
+/crearedrive/camera
+/crearedrive/rosbags
+/crearedrive/uav-logs
