@@ -111,7 +111,7 @@ class DroneCommanderNode(object):
 		# NOTE: An arducopter bug does not let WPNAV_SPEED increase beyond its initial setting. However, it can decrease below its initial setting. For this reason, we initially set WPNAV_SPEED to the max we ever expect to desire. We then change it to a reasonable value after taking off. https://github.com/ArduPilot/ardupilot/issues/6711
 		wpnav_speed_max = 1000
 		uav.parameters['WPNAV_RADIUS'] = 100 # 10-1000 by 1 [cm]
-		uav.parameters['WPNAV_ACCEL'] = 300 # 50-500 by 10 [cm/s/s]
+		uav.parameters['WPNAV_ACCEL'] = 200 # 50-500 by 10 [cm/s/s]
 		uav.parameters['WPNAV_SPEED'] = wpnav_speed_max # 20-2000 by 50 [cm/s]
 		# uav.groundspeed = 5 # [m/s]
 
@@ -141,6 +141,8 @@ class DroneCommanderNode(object):
 
 			The parameter for 'stop listening' will be immediately passed through since repeated 'stop listening' commands are also occasionally desired.
 			'''
+
+			print uav.location.global_frame.alt
 
 			if listening:
 				logger.info('Listening')
@@ -233,7 +235,7 @@ class DroneCommanderNode(object):
 					goto_reference(uav, uav.location.global_frame, 0, 0, 0)
 					condition_yaw(uav, 0, relative = True)
 					# Set WPNAV_SPEED after takeoff due to arducopter bug https://github.com/ArduPilot/ardupilot/issues/6711
-					uav.parameters['WPNAV_SPEED'] = 250 # 20-2000 by 50 [cm/s]
+					uav.parameters['WPNAV_SPEED'] = 500 # 20-2000 by 50 [cm/s]
 					in_the_air = True
 					current_wp = None
 			elif in_the_air: # Explicit for comprehension
@@ -365,21 +367,21 @@ if __name__ == '__main__':
 	#-----------------------------------------------------------------------------
 
 	# Set connection path to UAV and GCS
-	print 'USING SITL CONNECTION PATHS'
-	uav_connect_path = '127.0.0.1:14552'
-	uav_baud = 115200
-	gcs_connect_path = '127.0.0.1:14554'
-	gcs_baud = 115200
+	#print 'USING SITL CONNECTION PATHS'
+	#uav_connect_path = '127.0.0.1:14552'
+	#uav_baud = 115200
+	#gcs_connect_path = '127.0.0.1:14554'
+	#gcs_baud = 115200
 
 	# uav_connect_path = '/dev/ttyACM0' # Use for odroid through pixhawk usb cord
 	# uav_connect_path = '/dev/ttyUSB0' # Use for odroid through usb to serial converter
 	# uav_connect_path = '/dev/ttySAC0' # Use for odroid through GPIO pins
-	# uav_connect_path = '/dev/pixhawk' # Use after configuring symbolic link through udevadm
-	# uav_baud = 57600
+	uav_connect_path = '/dev/pixhawk' # Use after configuring symbolic link through udevadm
+	uav_baud = 57600
 
 	# gcs_connect_path = '/dev/ttyUSB0' # Use for telemetry radio through usb port
-	# gcs_connect_path = '/dev/radio' # Use after configuring symbolic link through udevadm
-	# gcs_baud = 57600
+	gcs_connect_path = '/dev/radio' # Use after configuring symbolic link through udevadm
+	gcs_baud = 57600
 
 	#-----------------------------------------------------------------------------
 	#
