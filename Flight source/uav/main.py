@@ -203,6 +203,13 @@ class DroneCommanderNode(object):
 						bearing = 360 + bearing
 					logger.info('Rotating mission by %s degrees' %(bearing))
 					uav_mission = rotate(orig_mission,bearing)
+                                        if not bagging:
+                                                # Start rosbag recording in a really ugly way
+                                                bagging = True
+                                                cmd = 'rosbag record --split --size=3000 --lz4 -a -x /camera/image -O %s' %(bagfile)
+                                                cmd = shlex.split(cmd)
+                                                rosbag_proc = subprocess.Popen(cmd)
+                                                logger.info('Began rosbag in %s' % (bagfile))
 
 			# Do the action that corresponds to the current value of 'command'
 			if command == 100:
@@ -214,28 +221,28 @@ class DroneCommanderNode(object):
 				if command == 359 and not uav.armed:
 					logger.info('Arming')
 					arm_vehicle(uav,'UAV')
-					if not bagging:
-						# Start rosbag recording in a really ugly way
-						bagging = True
-						cmd = 'rosbag record --split --size=3000 --lz4 -a -x /camera/image -O %s' %(bagfile)
-						cmd = shlex.split(cmd)
-						rosbag_proc = subprocess.Popen(cmd)
-						logger.info('Began rosbag in %s' % (bagfile))
+#					if not bagging:
+#						# Start rosbag recording in a really ugly way
+#						bagging = True
+#						cmd = 'rosbag record --split --size=3000 --lz4 -a -x /camera/image -O %s' %(bagfile)
+#						cmd = shlex.split(cmd)
+#						rosbag_proc = subprocess.Popen(cmd)
+#						logger.info('Began rosbag in %s' % (bagfile))
 				elif command == 358 and uav.armed:
 					logger.info('Disarming')
 					disarm_vehicle(uav,'UAV')
 					# End rosbag recording
-					if bagging:
-						bagging = False
-						rosbag_proc.send_signal(subprocess.signal.SIGINT)
-						logger.info('Stopped rosbagging.')
+#					if bagging:
+#						bagging = False
+#						rosbag_proc.send_signal(subprocess.signal.SIGINT)
+#						logger.info('Stopped rosbagging.')
 				elif command == 357 and uav.armed:
 					logger.info('Taking off')
 					takeoff(uav,'UAV',alt_takeoff)
 					goto_reference(uav, uav.location.global_frame, 0, 0, 0)
 					condition_yaw(uav, 0, relative = True)
 					# Set WPNAV_SPEED after takeoff due to arducopter bug https://github.com/ArduPilot/ardupilot/issues/6711
-					uav.parameters['WPNAV_SPEED'] = 400 # 20-2000 by 50 [cm/s]
+					uav.parameters['WPNAV_SPEED'] = 500 # 20-2000 by 50 [cm/s]
 					in_the_air = True
 					current_wp = None
 			elif in_the_air: # Explicit for comprehension
