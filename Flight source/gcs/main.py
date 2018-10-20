@@ -27,7 +27,7 @@ import math
 #-------------------------------------------------------------------------------
 
 # Set if you are using the reel and tether length safety factor
-using_reel = True
+using_reel = False
 safety_factor = 1.15
 
 # Set rotate command limits
