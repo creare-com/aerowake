@@ -316,7 +316,7 @@ if __name__ == '__main__':
 				invalid_input = False
 				if using_reel:
 					logger.info('Commanding reel to reel in to landing.')
-					commands_to_reel.put({"cmd":"goto", "L":0.4})
+					commands_to_reel.put({"cmd":"goto", "L":0.2})
 				else:
 					logger.info('reelin called when not using reel.')
 
