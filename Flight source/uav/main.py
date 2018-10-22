@@ -132,6 +132,8 @@ class DroneCommanderNode(object):
 			logger.debug('gcsLoc,%s', gcsLoc)
 			logger.debug('uavLoc,%s', uavLoc)
 
+			print uav.battery
+
 			'''
 			The variable 'command' is what controls the drone. It is only updated when a valid and non-repeated param value is set. This ensures that the UAV does not continue commanding the same thing over and over.
 
