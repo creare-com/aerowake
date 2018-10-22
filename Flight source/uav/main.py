@@ -142,8 +142,6 @@ class DroneCommanderNode(object):
 			The parameter for 'stop listening' will be immediately passed through since repeated 'stop listening' commands are also occasionally desired.
 			'''
 
-			print uav.location.global_frame.alt
-
 			if listening:
 				logger.info('Listening')
 				if param == 100:
@@ -203,13 +201,13 @@ class DroneCommanderNode(object):
 						bearing = 360 + bearing
 					logger.info('Rotating mission by %s degrees' %(bearing))
 					uav_mission = rotate(orig_mission,bearing)
-                                        if not bagging:
-                                                # Start rosbag recording in a really ugly way
-                                                bagging = True
-                                                cmd = 'rosbag record --split --size=3000 --lz4 -a -x /camera/image -O %s' %(bagfile)
-                                                cmd = shlex.split(cmd)
-                                                rosbag_proc = subprocess.Popen(cmd)
-                                                logger.info('Began rosbag in %s' % (bagfile))
+					if not bagging:
+						# Start rosbag recording in a really ugly way
+						bagging = True
+						cmd = 'rosbag record --split --size=3000 --lz4 -a -x /camera/image -O %s' %(bagfile)
+						cmd = shlex.split(cmd)
+						rosbag_proc = subprocess.Popen(cmd)
+						logger.info('Began rosbag in %s' % (bagfile))
 
 			# Do the action that corresponds to the current value of 'command'
 			if command == 100:
@@ -221,21 +219,9 @@ class DroneCommanderNode(object):
 				if command == 359 and not uav.armed:
 					logger.info('Arming')
 					arm_vehicle(uav,'UAV')
-#					if not bagging:
-#						# Start rosbag recording in a really ugly way
-#						bagging = True
-#						cmd = 'rosbag record --split --size=3000 --lz4 -a -x /camera/image -O %s' %(bagfile)
-#						cmd = shlex.split(cmd)
-#						rosbag_proc = subprocess.Popen(cmd)
-#						logger.info('Began rosbag in %s' % (bagfile))
 				elif command == 358 and uav.armed:
 					logger.info('Disarming')
 					disarm_vehicle(uav,'UAV')
-					# End rosbag recording
-#					if bagging:
-#						bagging = False
-#						rosbag_proc.send_signal(subprocess.signal.SIGINT)
-#						logger.info('Stopped rosbagging.')
 				elif command == 357 and uav.armed:
 					logger.info('Taking off')
 					takeoff(uav,'UAV',alt_takeoff)
@@ -335,7 +321,7 @@ class DroneCommanderNode(object):
 					logger.info('In the air, but not tracking a waypoint')
 
 			print ''
-			time.sleep(0.5)
+			time.sleep(0.25)
 
 		#------------------------------------
 		# Terminating
@@ -358,7 +344,7 @@ class DroneCommanderNode(object):
 		if bagging:
 			bagging = False
 			rosbag_proc.send_signal(subprocess.signal.SIGINT)
-			logger.info('Stopped rosbagging.')
+			logger.info('Stopped rosbagging.\n')
 
 		logger.info('UAV program completed.\n')
 
@@ -373,12 +359,12 @@ if __name__ == '__main__':
 	#
 	#-----------------------------------------------------------------------------
 
-	# Set connection path to UAV and GCS
-	#print 'USING SITL CONNECTION PATHS'
-	#uav_connect_path = '127.0.0.1:14552'
-	#uav_baud = 115200
-	#gcs_connect_path = '127.0.0.1:14554'
-	#gcs_baud = 115200
+	# # Set connection path to UAV and GCS
+	# print 'USING SITL CONNECTION PATHS'
+	# uav_connect_path = '127.0.0.1:14552'
+	# uav_baud = 115200
+	# gcs_connect_path = '127.0.0.1:14554'
+	# gcs_baud = 115200
 
 	# uav_connect_path = '/dev/ttyACM0' # Use for odroid through pixhawk usb cord
 	# uav_connect_path = '/dev/ttyUSB0' # Use for odroid through usb to serial converter
