@@ -32,12 +32,12 @@ class ReelController:
         self._GEARBOX_MAX_INPUT_RPM  = 8000
         
         # Post-gearbox settings
-        self._REEL_ACCEL_RPMS        = 60 # Used in the Profile, ramps up   speed at this rate
+        self._REEL_ACCEL_RPMS        = 240 # Used in the Profile, ramps up   speed at this rate
         self._REELING_IN_DECEL_RPMS  = 100 # Used in the Profile, ramps down speed at this rate
         self._REELING_OUT_DECEL_RPMS = None # Decelerate quicker while reeling out to prevent letting the tether off the pulleys.  Set to None here to read it from the motor controller.
         self._REEL_MAX_VEL_RPM       = None #100 # Set as the max RPM - profile velocity will be limited to this value.  Set to None here to compute it based on the motor.
         self._MAX_RPM                = 120 # The highest RPM commanded by the tether speed equations
-        self._MIN_RPM                = 12  # The lowest  RPM commanded by the tether speed equations, changed this value from 6 to 24 on 7/31/18 after flight test 1
+        self._MIN_RPM                = 12 # The lowest  RPM commanded by the tether speed equations, changed this value from 6 to 24 on 7/31/18 after flight test 1
         
         # Sensor settings
         self._N_PER_ADC_COUNT        = 0.0045203
