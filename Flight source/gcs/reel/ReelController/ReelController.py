@@ -36,8 +36,9 @@ class ReelController:
         self._REELING_IN_DECEL_RPMS  = 100 # Used in the Profile, ramps down speed at this rate
         self._REELING_OUT_DECEL_RPMS = None # Decelerate quicker while reeling out to prevent letting the tether off the pulleys.  Set to None here to read it from the motor controller.
         self._REEL_MAX_VEL_RPM       = None #100 # Set as the max RPM - profile velocity will be limited to this value.  Set to None here to compute it based on the motor.
-        self._MAX_RPM                = 120 # The highest RPM commanded by the tether speed equations
+        self._MAX_RPM                = 240 # The highest RPM commanded by the tether speed equations
         self._MIN_RPM                = 12 # The lowest  RPM commanded by the tether speed equations, changed this value from 6 to 24 on 7/31/18 after flight test 1
+        self._REELING_IN_ACCEL_RPMS  = 10 # accelerate at this speed on reelin
         
         # Sensor settings
         self._N_PER_ADC_COUNT        = 0.0045203
@@ -166,7 +167,7 @@ class ReelController:
             speed_limit = min(self._MAX_MPS, length_limited_speed)
             mv = 'l'
             dir = "<-"
-            actual_max_mps = self._setMaxTetherSpeedMps(speed_limit, reeling_out=False)
+            actual_max_mps = self._setMaxTetherSpeedMps(speed_limit, reeling_out=False, accel = self._REELING_IN_ACCEL_RPMS)
             self._recommandMotorPosition() # Causes the motor controller to move at the new speed
         else: # Stationary OR reeling out
             # Apply tension deadband
@@ -223,7 +224,7 @@ class ReelController:
         motor_max_rpm = min(motor_limited_rpm, gearbox_limited_rpm)
         return motor_max_rpm
         
-    def _setMaxTetherSpeedMps(self, max_tether_mps, reeling_out=True):
+    def _setMaxTetherSpeedMps(self, max_tether_mps, reeling_out=True, accel=self._REEL_ACCEL_RPMS):
         if reeling_out: decel = self._REELING_OUT_DECEL_RPMS
         else:           decel = self._REELING_IN_DECEL_RPMS
         # Convert to RPM
@@ -236,7 +237,7 @@ class ReelController:
         else:
             try:
                 self._mc.setPositionProfile(velocity=max_tether_rpm,
-                    acceleration=self._REEL_ACCEL_RPMS, deceleration=decel)
+                    acceleration=accel, deceleration=decel)
             except RuntimeError as err:
                 self._logger.error("Error in _mc.setPositionProfile: " + str(err))
             return self.tetherMpsFromReelRpm(max_tether_rpm)
