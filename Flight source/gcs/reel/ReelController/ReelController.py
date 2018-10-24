@@ -224,7 +224,9 @@ class ReelController:
         motor_max_rpm = min(motor_limited_rpm, gearbox_limited_rpm)
         return motor_max_rpm
         
-    def _setMaxTetherSpeedMps(self, max_tether_mps, reeling_out=True, accel=self._REEL_ACCEL_RPMS):
+    def _setMaxTetherSpeedMps(self, max_tether_mps, reeling_out=True, accel=None):
+	if accel is None:
+            accel = self._REEL_ACCEL_RPMS
         if reeling_out: decel = self._REELING_OUT_DECEL_RPMS
         else:           decel = self._REELING_IN_DECEL_RPMS
         # Convert to RPM
