@@ -40,7 +40,6 @@ class ReelController:
         self._MIN_RPM                = 50 # The lowest  RPM commanded by the tether speed equations, changed this value from 6 to 24 on 7/31/18 after flight test 1
         self._REELING_IN_ACCEL_RPMS  = 10 # accelerate at this speed on reelin
         self._REELING_IN_MAX_RPM_NO_TENSION = 20 # Maximum RPM when reeling in if there is not enough tension on the line. If there is enough tension, max rpm when reeling in is self._MAX_RPM.
-        self._REELING_IN_MAX_MPS_NO_TENSION = self.tetherMpsFromReelRpm(self._REELING_IN_MAX_RPM_NO_TENSION)
         self._REELING_IN_TENSION_REQUIRED_N = 3 # There must be at least this many newtons on the tension sensor when reeling in, otherwise reel in will limit max rpm
         
         # Sensor settings
@@ -53,6 +52,7 @@ class ReelController:
         self._reel_diam_m            = reel_diam_m # Need to set this first so the conversion methods to work
         self._MAX_MPS                = self.tetherMpsFromReelRpm(self._MAX_RPM) # _MAX_RPM in mps
         self._MIN_MPS                = self.tetherMpsFromReelRpm(self._MIN_RPM) # _MIN_RPM in mps
+        self._REELING_IN_MAX_MPS_NO_TENSION = self.tetherMpsFromReelRpm(self._REELING_IN_MAX_RPM_NO_TENSION)
         self._L_MAX_SPEED_M          = 10 # length no longer limits reel speed beyond this range
         self._T_MAX_SPEED_N          = 5  # Above this many newtons of force, don't limit payout rate
         self._KT_MPS_PER_N           = 0.2 # 5N at 1 MPS desired #(self._L_MAX_SPEED_M / (self._T_MAX_SPEED_N - self._T_DEADBAND_N)) * (3.6/2.6) # last multiplier is a workaround to keep preious gain, added on 7/31/18 after flight test
