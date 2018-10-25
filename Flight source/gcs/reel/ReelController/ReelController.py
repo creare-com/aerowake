@@ -42,7 +42,7 @@ class ReelController:
         
         # Sensor settings
         self._N_PER_ADC_COUNT        = 0.0045203
-        self._SENSOR_BASELINE_COUNTS = 7716  # subtracting 77 7/31/18 to try to offset tension zero point
+        self._SENSOR_BASELINE_COUNTS = 7716 # subtracting 132 10/25/18 to zero tension sensor # subtracting 77 7/31/18 to try to offset tension zero point
         self._SENSOR_DEADBAND_COUNTS = 250 # Changed this value from 500 to 250 on 7/31/18 after flight test 1
         self._T_DEADBAND_N           = self._N_PER_ADC_COUNT * self._SENSOR_DEADBAND_COUNTS
 
