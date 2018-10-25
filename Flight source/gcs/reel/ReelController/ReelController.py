@@ -33,14 +33,15 @@ class ReelController:
         
         # Post-gearbox settings
         self._REEL_ACCEL_RPMS        = 60 # Used in the Profile, ramps up   speed at this rate
-        self._REELING_IN_DECEL_RPMS  = 100 # Used in the Profile, ramps down speed at this rate
+        self._REELING_IN_DECEL_RPMS  = 150 # Used in the Profile, ramps down speed at this rate
         self._REELING_OUT_DECEL_RPMS = None # Decelerate quicker while reeling out to prevent letting the tether off the pulleys.  Set to None here to read it from the motor controller. Maximum from motor is 300.
         self._REEL_MAX_VEL_RPM       = None #100 # Set as the max RPM - profile velocity will be limited to this value.  Set to None here to compute it based on the motor.
         self._MAX_RPM                = 120 # The highest RPM commanded by the tether speed equations
         self._MIN_RPM                = 50 # The lowest  RPM commanded by the tether speed equations, changed this value from 6 to 24 on 7/31/18 after flight test 1
         self._REELING_IN_ACCEL_RPMS  = 10 # accelerate at this speed on reelin
-        self._REELING_IN_MAX_RPM_NO_TENSION = 20 # Maximum RPM when reeling in if there is not enough tension on the line. If there is enough tension, max rpm when reeling in is self._MAX_RPM.
-        self._REELING_IN_TENSION_REQUIRED_N = 3 # There must be at least this many newtons on the tension sensor when reeling in, otherwise reel in will limit max rpm
+        self._REELING_IN_MAX_RPM_NO_TENSION         = 20 # Maximum RPM when reeling in if there is not enough tension on the line. If there is enough tension, max rpm when reeling in is self._MAX_RPM.
+        self._REELING_IN_TENSION_REQUIRED_N         = 3 # There must be at least this many newtons on the tension sensor when reeling in, otherwise reel in will limit max rpm
+	self._REELING_IN_LENGTH_TO_IGNORE_TENSION_M = 3 # If tether length is less than this, do not set speed based on tension
         
         # Sensor settings
         self._N_PER_ADC_COUNT        = 0.0045203
@@ -168,8 +169,11 @@ class ReelController:
         tension_n = self.getTetherTensionN()
         if current_length > target_length:
             # Reeling in
-            if tension_n < self._REELING_IN_TENSION_REQUIRED_N:
-                speed_limit = min(self._REELING_IN_MAX_MPS_NO_TENSION, length_limited_speed)
+            if current_length > self._REELING_IN_LENGTH_TO_IGNORE_TENSION_M:
+                if tension_n < self._REELING_IN_TENSION_REQUIRED_N:
+                    speed_limit = min(self._REELING_IN_MAX_MPS_NO_TENSION, length_limited_speed)
+                else:
+                    speed_limit = min(self._MAX_MPS, length_limited_speed)
             else:
                 speed_limit = min(self._MAX_MPS, length_limited_speed)
             mv = 'l'
