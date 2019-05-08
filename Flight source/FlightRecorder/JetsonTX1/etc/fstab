@@ -1,0 +1,2 @@
+# UNCONFIGURED FSTAB FOR BASE SYSTEM
+/dev/mmcblk1p1 /media/sd_card ext4 defaults 0 0

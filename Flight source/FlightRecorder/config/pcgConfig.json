@@ -1,0 +1,103 @@
+{
+  "useLidar":true,
+  "useStereoVision":false,
+  "recDataPath":"/media/sd_card/data/rec_%Y-%m-%d_%H%M%S/",
+  "enableGpu":false,
+  "logging":{
+      "verbosity":4,
+      "verbosity is one of the following":{"0":"Silent", "1":"Errors only", "2":"Warnings and errors", "3":"Informative messages as well", "4":"Additional debug info"},
+		"stream":"cout",
+      "stream can be one of the following":["cout", "cerr", "file"],
+      "fileName":"log.txt",
+      "timestampPattern": "[%Y-%m-%d %X] "
+  },
+  "imageAcquisition":{
+      "leftCamSn":  16306755,
+      "rightCamSn": 16306575,
+      "imageRecordPlayback": {
+        "mode":"playback",
+        "mode can be one of the following":["record", "playback", "normal"],
+        "note1":"No spaces in any of the following fields are supported.",
+        "recDir":"images/",
+        "indexFile":"image_index.txt",
+        "playbackPath":"/media/sd_card/data/rec_2018-01-25_142445_tour_de_creare/",
+        "timestampPattern":"%H%M%S",
+        "playbackDate":{"year":2018,"month":1,"day":25}
+      },
+      "visibleLightCamProps": [
+        ["brightness", 5.83,     "%" , "manual"],
+        ["exposure",   1.101562, "EV", "auto"],
+        ["shutter",    40.081322,"ms", "auto"],
+        ["gain",       0.0,      "dB", "auto"]
+      ],
+      "flipImgL":false,
+      "flipImgR":true,
+      "imgFlipCodeL":0,
+      "imgFlipCodeR":-1,
+      "flip codes can be":["0 to flip vertically", "1 to flip horizontally", "-1 to rotate 180"]
+  },
+  "imageProcessing":{
+      "rosTopic":"stereo_vision",
+      "rosFrameId":"og_platform",
+      "rosQueueSize":10,
+      "algorithm":"GpuFastWithBinnedKps",
+      "algorithm can be one of the following":["dummy", "CpuFastWithBinnedKps", "GpuFastWithBinnedKps"],
+      "showImages":false,
+      "stereoDistThreshold":0.75,
+      "stereoCalFile":"/media/sd_card/OpticalGuide/PointCloudGenerator/config/stereoCal.json",
+      "dummyOptions":{
+        "delayMsPerCycle": 50
+      },
+      "CpuFastWithBinnedKpsOptions":{
+        "blurKernelSize":3,
+        "fastThreshold":10,
+        "orbMaxDescs":2000,
+        "numBins":6,
+        "minImprovementFactor":0.75,
+        "minImprovementFactor is":"k, where a match between two features is only counted if: (best match distance) < k * (second best match distance)",
+        "minDisparityPx":3,
+        "minDisparityPx is":"k, where we discard matched keypoints if the X coordinate difference is less than k pixels."
+      },
+      "GpuFastWithBinnedKpsOptions":{
+        "blurKernelSize":3,
+        "fastThreshold":10,
+        "orbMaxDescs":2000,
+        "numBins":6,
+        "minImprovementFactor":0.75,
+        "minImprovementFactor is":"k, where a match between two features is only counted if: (best match distance) < k * (second best match distance)",
+        "minDisparityPx":3,
+        "minDisparityPx is":"k, where we discard matched keypoints if the X coordinate difference is less than k pixels."
+      }
+  },
+  "lidar": {
+      "rosTopic":"lidar",
+      "rosFrameId":"og_platform",
+      "rosQueueSize":10,
+      "lidarIpAddr": "10.11.34.201",
+      "lidarPort":    4141,
+      "minAngleToStoreRad": -3.14159265358979323846,
+      "maxAngleToStoreRad":  3.14159265358979323846,
+      "decimationRate": 50,
+      "decimationRate is":"N, where we only keep 1 out of every N firings.  Valid range is 1 to 50.",
+      "lidarSpinupTimeS": 20,
+      "logRawDataToFile":false,
+      "filenamePattern":"lidar_data_%H%M%S.bin"
+  },
+  "attitudeTracker":{
+      "enabled":false,
+      "imu":{
+        "fwd_axis":   1,
+        "right_axis": 0,
+        "down_axis":  2,
+        "fwd_axis_pol":  -1,
+        "right_axis_pol": 1,
+        "down_axis_pol":  1,
+        "mag_cal": [4.5123, 33.1313, 13.3453]
+      },
+      "logDataToFile":true,
+      "fileName":"imu_data.csv"
+  },
+  "obey_law_1": true,
+  "obey_law_2": true,
+  "obey_law_3": true
+}

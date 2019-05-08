@@ -1,0 +1,22 @@
+To install:
+- Power on and connect the Optical Guide system to a network where you can SSH to it, and where it can access the internet.
+- Run `sudo killall -9 pcg`
+- Delete `/media/sd_card/OpticalGuide/PointCloudGenerator/`
+- Copy this folder as a new `/media/sd_card/OpticalGuide/PointCloudGenerator/`
+- Install ROS Kinetic with the directions at http://wiki.ros.org/kinetic/Installation/Ubuntu
+    - OpenCV 3.4.0 is already installed
+    - If you ever need to install it again with a new Jetson, follow https://docs.opencv.org/trunk/d6/d15/tutorial_building_tegra_cuda.html
+- Install `static_transform_publisher` by running `sudo apt install tf2-tools`.
+- Run `source /opt/ros/kinetic/setup.bash`.
+- In `/media/sd_card/OpticalGuide/PointCloudGenerator/`, run `catkin_make`.  There should be no errors.
+- Edit `run_pcg.sh`:
+    - Change `rosmaster5000` to the IP address or hostname of your ROS master.
+    - This script is run automatically on bootup by the systemd service.
+    - Note that there's also a call in this script to `static_transform_publisher`.  You may wish to edit or remove it.
+- Update `systemd` service so that the software starts automatically on bootup:
+    - Run: `sudo systemctl stop pcg.service`.  It's OK if it indicates an error.
+    - Copy `JetsonTX1/lib/systemd/system/pcg.service` into `/lib/systemd/system/`
+        - An old version of this file should already reside there.  Overwrite it.
+    - Run: `sudo systemctl daemon-reload`.  There should be no errors.
+    - Run: `sudo systemctl start pcg.service`.  There should be no errors.
+    - Run: `sudo systemctl status pcg.service`.  There should be no errors.
