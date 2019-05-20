@@ -1,5 +1,5 @@
 // Compile with:
-// g++ laser_dot_finder.cpp benchmarker.cpp -o laser_dot_finder -lSpinnaker -I/usr/include/spinnaker -lopencv_core -lopencv_imgcodecs -lopencv_features2d -lopencv_imgproc
+// g++ laser_dot_finder.cpp benchmarker.cpp -o laser_dot_finder -lSpinnaker -I/usr/include/spinnaker -lopencv_core -lopencv_imgcodecs -lopencv_features2d -lopencv_imgproc -std=c++11
 
 #include <iostream>
 #include <sstream>
