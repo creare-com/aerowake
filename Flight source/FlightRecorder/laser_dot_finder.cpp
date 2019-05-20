@@ -439,6 +439,7 @@ int main(int /*argc*/, char** /*argv*/)
                 allBms.push_back(&bmTx);
                 allBms.push_back(&bmRel);
                 
+                int imgNum = 0;
                 pCam->BeginAcquisition();
                 cout << "Acquiring images..." << endl;
                 try
@@ -500,41 +501,43 @@ int main(int /*argc*/, char** /*argv*/)
                             ImagePtr convertedImage = pResultImage->Convert(PixelFormat_Mono8, HQ_LINEAR);
                             bmSpinConv.end();
 
-                            // ostringstream filename;
-                            // filename << "Acquisition-";
+                            ostringstream filename;
+                            filename << "img-";
                             // if (!deviceSerialNumber.empty())
                             // {
                                 // filename << deviceSerialNumber.c_str();
                             // }
-                            // filename << ".png";
-                            bmCvConv.start();
-                            cv::Mat cvImg = cvMatFromSpinnakerImage(convertedImage);
-                            bmCvConv.end();
+                            filename << imgNum << ".png";
+                            imgNum++;
+                            convertedImage->Save(filename.str().c_str());
+                            // bmCvConv.start();
+                            // cv::Mat cvImg = cvMatFromSpinnakerImage(convertedImage);
+                            // bmCvConv.end();
                             // cv::imwrite(filename.str().c_str(), cvImg);
                             // cout << "Image saved at " << filename.str() << endl;
                             
                             // Take binary thresholds
-                            cv::Mat binImg;
-                            cv::threshold(cvImg, binImg, 128, 255, CV_THRESH_BINARY);
+                            // cv::Mat binImg;
+                            // cv::threshold(cvImg, binImg, 128, 255, CV_THRESH_BINARY);
                             
                             // Locate dot(s)
-                            vector<cv::KeyPoint> keypoints;
-                            bmBlobDet.start();
-                            detector->detect(binImg, keypoints);
-                            bmBlobDet.end();
-                            cout << "Got " << keypoints.size() << " dots!" << endl;
-                            if(keypoints.size() > 0) {
-                                ldt.logBlobCenter(keypoints[0].pt.x, keypoints[0].pt.y);
-                                float x,y;
-                                ldt.getLatestDotLoc(x, y);
-                                bmTx.start();
-                                transmitPacket(sock, addrDest, true, x, y);
-                                bmTx.end();
-                            } else {
-                                bmTx.start();
-                                transmitPacket(sock, addrDest, false, 0, 0);
-                                bmTx.end();
-                            }
+                            // vector<cv::KeyPoint> keypoints;
+                            // bmBlobDet.start();
+                            // detector->detect(binImg, keypoints);
+                            // bmBlobDet.end();
+                            // cout << "Got " << keypoints.size() << " dots!" << endl;
+                            // if(keypoints.size() > 0) {
+                                // ldt.logBlobCenter(keypoints[0].pt.x, keypoints[0].pt.y);
+                                // float x,y;
+                                // ldt.getLatestDotLoc(x, y);
+                                // bmTx.start();
+                                // transmitPacket(sock, addrDest, true, x, y);
+                                // bmTx.end();
+                            // } else {
+                                // bmTx.start();
+                                // transmitPacket(sock, addrDest, false, 0, 0);
+                                // bmTx.end();
+                            // }
                         }
 
                         //
