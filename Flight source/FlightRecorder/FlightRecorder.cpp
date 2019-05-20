@@ -373,7 +373,7 @@ int main(int /*argc*/, char** /*argv*/)
                             // {
                                 // filename << deviceSerialNumber.c_str();
                             // }
-                            filename << imgNum << ".png";
+                            filename << imgNum << ".tiff";
                             imgNum++;
                             bmSave.start();
                             convertedImage->Save(filename.str().c_str());
