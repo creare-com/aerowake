@@ -20,7 +20,6 @@
 #include <errno.h>
 #include <stdlib.h>
 
-#include "packet_format.hpp"
 #include "benchmarker.h"
 
 using namespace Spinnaker;
