@@ -31,7 +31,7 @@ using namespace std;
 // This function configures a custom exposure time. Automatic exposure is turned 
 // off in order to allow for the customization, and then the custom setting is 
 // applied.
-int ConfigureExposure(INodeMap & nodeMap, double exposureTimeToSet = 2000000.0)
+int ConfigureExposure(INodeMap & nodeMap, bool autoExpose = false, double exposureTimeToSet = 2000000.0)
 {
     int result = 0;
 
@@ -54,49 +54,63 @@ int ConfigureExposure(INodeMap & nodeMap, double exposureTimeToSet = 2000000.0)
         CEnumerationPtr ptrExposureAuto = nodeMap.GetNode("ExposureAuto");
         if (!IsAvailable(ptrExposureAuto) || !IsWritable(ptrExposureAuto))
         {
-            cout << "Unable to disable automatic exposure (node retrieval). Aborting..." << endl << endl;
+            cout << "Unable to disable automatic exposure (node retrieval). Aborting" << endl << endl;
             return -1;
         }
 
-        CEnumEntryPtr ptrExposureAutoOff = ptrExposureAuto->GetEntryByName("Off");
-        if (!IsAvailable(ptrExposureAutoOff) || !IsReadable(ptrExposureAutoOff))
-        {
-            cout << "Unable to disable automatic exposure (enum entry retrieval). Aborting..." << endl << endl;
-            return -1;
+        if(autoExpose) {
+            CEnumEntryPtr ptrExposureAutoOn = ptrExposureAuto->GetEntryByName("On");
+            if (!IsAvailable(ptrExposureAutoOn) || !IsReadable(ptrExposureAutoOn))
+            {
+                cout << "Unable to disable automatic exposure (enum entry retrieval). Aborting" << endl << endl;
+                return -1;
+            }
+
+            ptrExposureAuto->SetIntValue(ptrExposureAutoOn->GetValue());
+
+            cout << "Automatic exposure enabled" << endl;
+
+        } else {
+            CEnumEntryPtr ptrExposureAutoOff = ptrExposureAuto->GetEntryByName("Off");
+            if (!IsAvailable(ptrExposureAutoOff) || !IsReadable(ptrExposureAutoOff))
+            {
+                cout << "Unable to disable automatic exposure (enum entry retrieval). Aborting" << endl << endl;
+                return -1;
+            }
+
+            ptrExposureAuto->SetIntValue(ptrExposureAutoOff->GetValue());
+
+            cout << "Automatic exposure disabled" << endl;
+
+            //
+            // Set exposure time manually; exposure time recorded in microseconds
+            //
+            // *** NOTES ***
+            // The node is checked for availability and writability prior to the 
+            // setting of the node. Further, it is ensured that the desired exposure 
+            // time does not exceed the maximum. Exposure time is counted in 
+            // microseconds. This information can be found out either by 
+            // retrieving the unit with the GetUnit() method or by checking SpinView.
+            // 
+            CFloatPtr ptrExposureTime = nodeMap.GetNode("ExposureTime");
+            if (!IsAvailable(ptrExposureTime) || !IsWritable(ptrExposureTime))
+            {
+                cout << "Unable to set exposure time. Aborting" << endl << endl;
+                return -1;
+            }
+
+            // Ensure desired exposure time does not exceed the maximum
+            const double exposureTimeMax = ptrExposureTime->GetMax();
+
+            if (exposureTimeToSet > exposureTimeMax)
+            {
+                exposureTimeToSet = exposureTimeMax;
+            }
+
+            ptrExposureTime->SetValue(exposureTimeToSet);
+
+            cout << std::fixed << "Exposure time set to " << exposureTimeToSet << " us" << endl << endl;
         }
-
-        ptrExposureAuto->SetIntValue(ptrExposureAutoOff->GetValue());
-
-        cout << "Automatic exposure disabled..." << endl;
-
-        //
-        // Set exposure time manually; exposure time recorded in microseconds
-        //
-        // *** NOTES ***
-        // The node is checked for availability and writability prior to the 
-        // setting of the node. Further, it is ensured that the desired exposure 
-        // time does not exceed the maximum. Exposure time is counted in 
-        // microseconds. This information can be found out either by 
-        // retrieving the unit with the GetUnit() method or by checking SpinView.
-        // 
-        CFloatPtr ptrExposureTime = nodeMap.GetNode("ExposureTime");
-        if (!IsAvailable(ptrExposureTime) || !IsWritable(ptrExposureTime))
-        {
-            cout << "Unable to set exposure time. Aborting..." << endl << endl;
-            return -1;
-        }
-
-        // Ensure desired exposure time does not exceed the maximum
-        const double exposureTimeMax = ptrExposureTime->GetMax();
-
-        if (exposureTimeToSet > exposureTimeMax)
-        {
-            exposureTimeToSet = exposureTimeMax;
-        }
-
-        ptrExposureTime->SetValue(exposureTimeToSet);
-
-        cout << std::fixed << "Exposure time set to " << exposureTimeToSet << " us..." << endl << endl;
     }
     catch (Spinnaker::Exception &e)
     {
@@ -115,146 +129,8 @@ cv::Mat cvMatFromSpinnakerImage(ImagePtr img) {
         img->GetStride());
 }
 
-cv::Ptr<cv::SimpleBlobDetector> createDetector() {
-
-    // Setup SimpleBlobDetector parameters.
-    cv::SimpleBlobDetector::Params params;
-
-    // Change thresholds
-    params.filterByColor = false;
-    params.minThreshold = 0;
-    params.maxThreshold = 255;
-
-    // Filter by Area.
-    params.filterByArea = true;
-    params.minArea = 9;
-    params.maxArea = 64;
-
-    // Filter by Circularity
-    params.filterByCircularity = true;
-    params.minCircularity = 0.8;
-    params.maxCircularity = 1;
-
-    // Filter by Convexity
-    params.filterByConvexity = true;
-    params.minConvexity = 0.9;
-    params.maxConvexity = 1.0;
-
-    // Filter by Inertia
-    params.filterByInertia = true;
-    params.minInertiaRatio = 0.2;
-    params.maxInertiaRatio = 1.0;
-
-    // Set up detector with params
-    return cv::SimpleBlobDetector::create(params);
-}
-
-// https://www.gnu.org/software/libc/manual/html_node/Inet-Example.html
-sockaddr_in initSockaddr (const char *hostname,
-               uint16_t port)
-{
-    sockaddr_in name;
-    struct hostent *hostinfo;
-
-    name.sin_family = AF_INET;
-    name.sin_port = htons (port);
-    hostinfo = gethostbyname (hostname);
-    if (hostinfo == NULL)
-    {
-        fprintf (stderr, "Unknown host %s.\n", hostname);
-    } else {
-        name.sin_addr = *(struct in_addr *) hostinfo->h_addr;
-    }
-    return name;
-}
-
-void transmitPacket(int sock, sockaddr_in addrDest, bool seen, float x, float y) {
-    UpdatePacket_s msg;
-    if(seen) {
-        msg.State = STATE_DOT_FOUND;
-    } else {
-        msg.State = STATE_NO_DOT_FOUND;
-    }
-    msg.DotX = x;
-    msg.DotY = y;
-    size_t msg_length = sizeof(msg);
-
-    int result = sendto(sock, &msg, msg_length, 0, (sockaddr*)&addrDest, sizeof(addrDest));
-
-    std::cout << result << " bytes sent" << std::endl;
-}
-
-int prepSocket() {
-    int result = 0;
-    int sock = socket(AF_INET, SOCK_DGRAM, 0);
-
-    sockaddr_in addrListen = {}; // zero-int, sin_port is 0, which picks a random port for bind.
-    addrListen.sin_family = AF_INET;
-    result = bind(sock, (sockaddr*)&addrListen, sizeof(addrListen));
-    if (result == -1)
-    {
-       int lasterror = errno;
-       std::cout << "error: " << lasterror;
-       return -1;
-    }
-
-    return sock;
-}
-
-class LaserDotTracker {
-public:
-    /**
-     * Call this first.  Indicates to this class that we have seen a laser dot blob.
-     */
-    void logBlobCenter(unsigned int x, unsigned int y) {
-        lastX = x;
-        lastY = y;
-        if(firstUpdate) {
-            minX = x;
-            maxX = x;
-            minY = y;
-            maxY = y;
-            
-            firstUpdate = false;
-        } else {
-            if (x < minX) { minX = x; }
-            if (x > maxX) { maxX = x; }
-            if (y < minY) { minY = y; }
-            if (y > maxY) { maxY = y; }
-        }
-    }
-    /**
-     * Get the dot's latest location.  Output is placed in the arguments.
-     * Will be 0,0 for the upper-left corner and 1,1 for the lower-right corner.
-     */
-    void getLatestDotLoc(float &x, float &y) {
-        if(maxX - minX > 0) {
-            x = ((float)(lastX - minX)) / (maxX - minX);
-        } else {
-            // Default to center
-            x = 0.5f;
-        }
-        if(maxY - minY > 0) {
-            y = ((float)(lastY - minY)) / (maxY - minY);
-        } else {
-            // Default to center
-            y = 0.5f;
-        }
-    }
-    
-private:
-    bool firstUpdate = true;
-    unsigned int minX = 0;
-    unsigned int maxX = 0;
-    unsigned int minY = 0;
-    unsigned int maxY = 0;
-    unsigned int lastX = 0;
-    unsigned int lastY = 0;
-};
-
-
 // Iterate through allBms and write a summary of benchmarkers
-// to the logger object
+// to the console
 void summarizeBenchmarksToLog(list<const Benchmarker *> allBms) {
 	for(auto bm = allBms.begin(); bm != allBms.end(); ++bm) {
 		cout << endl << (*bm)->getName() << ": "  << (*bm)->getAvgMs() << "ms avg";
@@ -284,11 +160,6 @@ int main(int /*argc*/, char** /*argv*/)
         << spinnakerLibraryVersion.type << "."
         << spinnakerLibraryVersion.build << endl << endl;
 
-    // Initialize various things    cv::Ptr<cv::SimpleBlobDetector> detector = createDetector();
-    LaserDotTracker ldt;
-    sockaddr_in addrDest = initSockaddr("10.11.34.219",15000);
-    int sock = prepSocket();
-
     InterfaceList interfaceList = system->GetInterfaces();
     unsigned int numInterfaces = interfaceList.GetSize();
     // cout << "Number of interfaces detected: " << numInterfaces << endl << endl;
@@ -303,7 +174,7 @@ int main(int /*argc*/, char** /*argv*/)
         system->ReleaseInstance();
 
         cout << "No interfaces!" << endl;
-        cout << "Done! Press Enter to exit..." << endl;
+        cout << "Done! Press Enter to exit" << endl;
         getchar();
 
         return -1;
@@ -389,12 +260,13 @@ int main(int /*argc*/, char** /*argv*/)
                 INodeMap & nodeMap = pCam->GetNodeMap();
                 
                 // Set exposure
-                ConfigureExposure(nodeMap, 2500);
+                // ConfigureExposure(nodeMap, false, 2500);
+                ConfigureExposure(nodeMap, true);
 
                 CEnumerationPtr ptrAcquisitionMode = nodeMap.GetNode("AcquisitionMode");
                 if (!IsAvailable(ptrAcquisitionMode) || !IsWritable(ptrAcquisitionMode))
                 {
-                    cout << "Unable to set acquisition mode to continuous (enum retrieval). Aborting..." << endl << endl;
+                    cout << "Unable to set acquisition mode to continuous (enum retrieval). Aborting" << endl << endl;
                     return -1;
                 }
 
@@ -402,21 +274,21 @@ int main(int /*argc*/, char** /*argv*/)
                 CEnumEntryPtr ptrAcquisitionModeContinuous = ptrAcquisitionMode->GetEntryByName("Continuous");
                 if (!IsAvailable(ptrAcquisitionModeContinuous) || !IsReadable(ptrAcquisitionModeContinuous))
                 {
-                    cout << "Unable to set acquisition mode to continuous (entry retrieval). Aborting..." << endl << endl;
+                    cout << "Unable to set acquisition mode to continuous (entry retrieval). Aborting" << endl << endl;
                     return -1;
                 }
                 // Retrieve integer value from entry node
                 const int64_t acquisitionModeContinuous = ptrAcquisitionModeContinuous->GetValue();
                 // Set integer value from entry node as new value of enumeration node
                 ptrAcquisitionMode->SetIntValue(acquisitionModeContinuous);
-                cout << "Acquisition mode set to continuous..." << endl;
+                cout << "Acquisition mode set to continuous" << endl;
                 gcstring deviceSerialNumber("");
                 CStringPtr ptrStringSerial = nodeMapTLDevice.GetNode("DeviceSerialNumber");
                 if (IsAvailable(ptrStringSerial) && IsReadable(ptrStringSerial))
                 {
                     deviceSerialNumber = ptrStringSerial->GetValue();
 
-                    cout << "Device serial number retrieved as " << deviceSerialNumber << "..." << endl;
+                    cout << "Device serial number retrieved as " << deviceSerialNumber << "" << endl;
                 }
                 cout << endl;
 
@@ -424,22 +296,18 @@ int main(int /*argc*/, char** /*argv*/)
                 Benchmarker bmWholeFrame("Entire frame");
                 Benchmarker bmNextImage ("Next Image");
                 Benchmarker bmSpinConv  ("Spinnaker conversion");
-                Benchmarker bmCvConv    ("OpenCV image conversion");
-                Benchmarker bmBlobDet   ("Blob detection");
-                Benchmarker bmTx        ("Packet transmission");
+                Benchmarker bmSave      ("Image save");
                 Benchmarker bmRel       ("Image release");
                 list<const Benchmarker *> allBms;
                 allBms.push_back(&bmWholeFrame);
                 allBms.push_back(&bmNextImage);
                 allBms.push_back(&bmSpinConv);
-                allBms.push_back(&bmCvConv);
-                allBms.push_back(&bmBlobDet);
-                allBms.push_back(&bmTx);
+                allBms.push_back(&bmSave);
                 allBms.push_back(&bmRel);
                 
                 int imgNum = 0;
                 pCam->BeginAcquisition();
-                cout << "Acquiring images..." << endl;
+                cout << "Acquiring images" << endl;
                 try
                 {
                     while(true) {
@@ -465,7 +333,7 @@ int main(int /*argc*/, char** /*argv*/)
                             // Retrieve and print the image status description
                             cout << "Image incomplete: "
                                 << Image::GetImageStatusDescription(pResultImage->GetImageStatus())
-                                << "..." << endl << endl;
+                                << "" << endl << endl;
                         }
                         else
                         {
@@ -507,35 +375,10 @@ int main(int /*argc*/, char** /*argv*/)
                             // }
                             filename << imgNum << ".png";
                             imgNum++;
+                            bmSave.start();
                             convertedImage->Save(filename.str().c_str());
-                            // bmCvConv.start();
-                            // cv::Mat cvImg = cvMatFromSpinnakerImage(convertedImage);
-                            // bmCvConv.end();
-                            // cv::imwrite(filename.str().c_str(), cvImg);
-                            // cout << "Image saved at " << filename.str() << endl;
-                            
-                            // Take binary thresholds
-                            // cv::Mat binImg;
-                            // cv::threshold(cvImg, binImg, 128, 255, CV_THRESH_BINARY);
-                            
-                            // Locate dot(s)
-                            // vector<cv::KeyPoint> keypoints;
-                            // bmBlobDet.start();
-                            // detector->detect(binImg, keypoints);
-                            // bmBlobDet.end();
-                            // cout << "Got " << keypoints.size() << " dots!" << endl;
-                            // if(keypoints.size() > 0) {
-                                // ldt.logBlobCenter(keypoints[0].pt.x, keypoints[0].pt.y);
-                                // float x,y;
-                                // ldt.getLatestDotLoc(x, y);
-                                // bmTx.start();
-                                // transmitPacket(sock, addrDest, true, x, y);
-                                // bmTx.end();
-                            // } else {
-                                // bmTx.start();
-                                // transmitPacket(sock, addrDest, false, 0, 0);
-                                // bmTx.end();
-                            // }
+                            bmSave.end();
+
                         }
 
                         //
@@ -575,7 +418,7 @@ int main(int /*argc*/, char** /*argv*/)
     // Release system
     system->ReleaseInstance();
 
-    cout << endl << "Done! Press Enter to exit..." << endl;
+    cout << endl << "Done! Press Enter to exit" << endl;
     getchar();
 
     return result;
