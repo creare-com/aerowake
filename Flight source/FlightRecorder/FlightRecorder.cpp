@@ -152,12 +152,14 @@ int main(int argc, char** argv)
     
     // Command line options
     string extension = "bmp";
-    cmdOpts.add_option("-x", extension, "File format, as an extension, such as \"bmp\" or \"png\" (omit the quotes).  Must be supported by OpenCV's imwrite(). \"bmp\" is fast (10ms), \"png\" is compact.  Default is \"bmp\".");
+    cmdOpts.add_option("-x", extension, "File format, as an extension, such as \"bmp\" or \"png\" (omit the quotes).  Default is \"" + extension + "\".  Must be supported by OpenCV's imwrite(). \"bmp\" is fast (10ms), \"png\" is compact.");
+    string pathFormat = "./%F_%H-%M-%S";
+    cmdOpts.add_option("-p", pathFormat, "Pattern specifying where to save the files and what to name them. Default: \"" + pathFormat + "\".  Will substitute flags found here: https://howardhinnant.github.io/date/date.html#to_stream_formatting.  '/' characters are directory separators.  If no leading '/', will be relative to working directory.  Avoid any characters not supported by the filesystem, such as colons.");
     CLI11_PARSE(cmdOpts, argc, argv); // This will exit if the user said "-h" or "--help"
     
     int result = 0;
     
-    cout << "Timestamp test: " << date::format("%D %T %Z\n", date::floor<milliseconds>(system_clock::now())) << endl;
+    cout << "Timestamp test: " << date::format(pathFormat, date::floor<milliseconds>(system_clock::now())) << endl;
 
     // Print application build information
     cout << "Application build date: " << __DATE__ << " " << __TIME__ << endl << endl;
@@ -320,7 +322,6 @@ int main(int argc, char** argv)
                 allBms.push_back(&bmSave);
                 allBms.push_back(&bmRel);
                 
-                int imgNum = 0;
                 pCam->BeginAcquisition();
                 cout << "Acquiring images" << endl;
                 try
@@ -383,13 +384,7 @@ int main(int argc, char** argv)
                             bmSpinConv.end();
 
                             ostringstream filename;
-                            filename << "img-";
-                            // if (!deviceSerialNumber.empty())
-                            // {
-                                // filename << deviceSerialNumber.c_str();
-                            // }
-                            filename << imgNum << "." << extension;
-                            imgNum++;
+                            filename << date::format(pathFormat, date::floor<milliseconds>(system_clock::now())) << "." << extension;
                             bmCvConv.start();
                             cv::Mat cvImg = cvMatFromSpinnakerImage(convertedImage);
                             bmCvConv.end();
