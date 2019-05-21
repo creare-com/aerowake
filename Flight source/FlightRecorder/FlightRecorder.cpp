@@ -1,4 +1,5 @@
 
+#include <chrono>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -23,11 +24,13 @@
 
 #include "benchmarker.h"
 #include "CLI11.hpp"
+#include "date.h"
 
+using namespace std;
+using namespace std::chrono;
 using namespace Spinnaker;
 using namespace Spinnaker::GenApi;
 using namespace Spinnaker::GenICam;
-using namespace std;
 
 // This function configures a custom exposure time. Automatic exposure is turned 
 // off in order to allow for the customization, and then the custom setting is 
@@ -153,6 +156,8 @@ int main(int argc, char** argv)
     CLI11_PARSE(cmdOpts, argc, argv); // This will exit if the user said "-h" or "--help"
     
     int result = 0;
+    
+    cout << "Timestamp test: " << date::format("%D %T %Z\n", date::floor<milliseconds>(system_clock::now())) << endl;
 
     // Print application build information
     cout << "Application build date: " << __DATE__ << " " << __TIME__ << endl << endl;
