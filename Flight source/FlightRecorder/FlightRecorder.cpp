@@ -1,10 +1,7 @@
 
 #include <iostream>
 #include <sstream>
-#include <Spinnaker.h>
-#include <SpinGenApi/SpinnakerGenApi.h>
-#include <opencv2/opencv.hpp>
-
+#include <string>
 
 #include <sys/types.h>
 #include <unistd.h>
@@ -20,7 +17,12 @@
 #include <errno.h>
 #include <stdlib.h>
 
+#include <Spinnaker.h>
+#include <SpinGenApi/SpinnakerGenApi.h>
+#include <opencv2/opencv.hpp>
+
 #include "benchmarker.h"
+#include "CLI11.hpp"
 
 using namespace Spinnaker;
 using namespace Spinnaker::GenApi;
@@ -141,8 +143,15 @@ void summarizeBenchmarksToLog(list<const Benchmarker *> allBms) {
     cout << endl;
 }
 
-int main(int /*argc*/, char** /*argv*/)
+int main(int argc, char** argv)
 {
+    CLI::App cmdOpts{"Wake Swarm Flight data recorder"};
+    
+    // Command line options
+    string extension = "bmp";
+    cmdOpts.add_option("-x", extension, "File format, as an extension, such as \"bmp\" or \"png\" (omit the quotes).  Must be supported by OpenCV's imwrite(). \"bmp\" is fast (10ms), \"png\" is compact.  Default is \"bmp\".");
+    CLI11_PARSE(cmdOpts, argc, argv); // This will exit if the user said "-h" or "--help"
+    
     int result = 0;
 
     // Print application build information
@@ -374,7 +383,7 @@ int main(int /*argc*/, char** /*argv*/)
                             // {
                                 // filename << deviceSerialNumber.c_str();
                             // }
-                            filename << imgNum << ".bmp";
+                            filename << imgNum << "." << extension;
                             imgNum++;
                             bmCvConv.start();
                             cv::Mat cvImg = cvMatFromSpinnakerImage(convertedImage);
