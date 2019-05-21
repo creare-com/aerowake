@@ -1,31 +1,35 @@
 
+#include <chrono>
 #include <iostream>
 #include <sstream>
+#include <string>
+
+#include <arpa/inet.h>
+#include <errno.h>
+#include <ifaddrs.h>
+#include <memory.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <net/if.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <unistd.h>
+
 #include <Spinnaker.h>
 #include <SpinGenApi/SpinnakerGenApi.h>
 #include <opencv2/opencv.hpp>
 
-
-#include <sys/types.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <unistd.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <memory.h>
-#include <ifaddrs.h>
-#include <net/if.h>
-#include <errno.h>
-#include <stdlib.h>
-
 #include "benchmarker.h"
+#include "CLI11.hpp"
+#include "date.h"
 
+using namespace std;
+using namespace std::chrono;
 using namespace Spinnaker;
 using namespace Spinnaker::GenApi;
 using namespace Spinnaker::GenICam;
-using namespace std;
 
 // This function configures a custom exposure time. Automatic exposure is turned 
 // off in order to allow for the customization, and then the custom setting is 
@@ -141,10 +145,47 @@ void summarizeBenchmarksToLog(list<const Benchmarker *> allBms) {
     cout << endl;
 }
 
-int main(int /*argc*/, char** /*argv*/)
-{
-    int result = 0;
+/**
+ * Call before attempting to open a file for writing.  Checks if the directory in the path exists,
+ * and if not, attempts to create the directories leading up to it.
+ *
+ * fullPath - full path to file, such as /dir/subdir/filename, or ./dir/subdir/filename, or filename
+ */
+void ensureDirExists(const string &fullPath) {
+    size_t slashLoc;
+    // cout << "Splitting: " << fullPath << endl;
+    slashLoc = fullPath.find_last_of("/\\");
+    
+    string dir;
+    // string file;
+    if(slashLoc == string::npos) {
+        // No / found, so this is a bare file.
+        // So we don't need to do anything
+        // cout << "Writing to working dir; don't need to create anything." << endl;
+    } else {
+        dir = fullPath.substr(0, slashLoc);
+        // file = fullPath.substr(slashLoc + 1);
+        // cout << "Dir: " << dir << endl;
+        
+        // Ensure existence if we have permissions.  Ignore errors.
+        // WARNING: do not remove the single quotes.  They prevent bash command injection.
+        system(("mkdir -p '" + dir + "'").c_str());
+    }
+}
 
+int main(int argc, char** argv)
+{
+    CLI::App cmdOpts{"Wake Swarm Flight data recorder"};
+    
+    // Command line options
+    string extension = "bmp";
+    cmdOpts.add_option("-x", extension, "File format, as an extension, such as \"bmp\" or \"png\" (omit the quotes).  Default is \"" + extension + "\".  Must be supported by OpenCV's imwrite(). \"bmp\" is fast (10ms), \"png\" is compact.");
+    string pathFormat = "./%F_%H-%M-%S";
+    cmdOpts.add_option("-p", pathFormat, "Pattern specifying where to save the files and what to name them. Default: \"" + pathFormat + "\".  Will substitute flags found here: https://howardhinnant.github.io/date/date.html#to_stream_formatting.  '/' characters are directory separators.  If no leading '/', will be relative to working directory.  Avoid any characters not supported by the filesystem, such as colons.");
+    CLI11_PARSE(cmdOpts, argc, argv); // This will exit if the user said "-h" or "--help"
+    
+    int result = 0;
+    
     // Print application build information
     cout << "Application build date: " << __DATE__ << " " << __TIME__ << endl << endl;
 
@@ -296,6 +337,7 @@ int main(int /*argc*/, char** /*argv*/)
                 Benchmarker bmNextImage ("Next Image");
                 Benchmarker bmSpinConv  ("Spinnaker conversion");
                 Benchmarker bmCvConv    ("Conversion to OpenCV");
+                Benchmarker bmMkdir     ("Image directory creation");
                 Benchmarker bmSave      ("Image save");
                 Benchmarker bmRel       ("Image release");
                 list<const Benchmarker *> allBms;
@@ -303,10 +345,10 @@ int main(int /*argc*/, char** /*argv*/)
                 allBms.push_back(&bmNextImage);
                 allBms.push_back(&bmSpinConv);
                 allBms.push_back(&bmCvConv);
+                allBms.push_back(&bmMkdir);
                 allBms.push_back(&bmSave);
                 allBms.push_back(&bmRel);
                 
-                int imgNum = 0;
                 pCam->BeginAcquisition();
                 cout << "Acquiring images" << endl;
                 try
@@ -369,16 +411,13 @@ int main(int /*argc*/, char** /*argv*/)
                             bmSpinConv.end();
 
                             ostringstream filename;
-                            filename << "img-";
-                            // if (!deviceSerialNumber.empty())
-                            // {
-                                // filename << deviceSerialNumber.c_str();
-                            // }
-                            filename << imgNum << ".bmp";
-                            imgNum++;
+                            filename << date::format(pathFormat, date::floor<milliseconds>(system_clock::now())) << "." << extension;
                             bmCvConv.start();
                             cv::Mat cvImg = cvMatFromSpinnakerImage(convertedImage);
                             bmCvConv.end();
+                            bmMkdir.start();
+                            ensureDirExists(filename.str());
+                            bmMkdir.end();
                             bmSave.start();
                             // convertedImage->Save(filename.str().c_str());
                             cv::imwrite(filename.str().c_str(), cvImg);
