@@ -15,7 +15,6 @@
 #include <sys/types.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <sys/stat.h> // for mkdir()
 #include <unistd.h>
 
 #include <Spinnaker.h>
@@ -150,14 +149,28 @@ void summarizeBenchmarksToLog(list<const Benchmarker *> allBms) {
  * Call before attempting to open a file for writing.  Checks if the directory in the path exists,
  * and if not, attempts to create the directories leading up to it.
  *
- * path - full path to file, such as /dir/subdir/filename, or ./dir/subdir/filename, or filename
+ * fullPath - full path to file, such as /dir/subdir/filename, or ./dir/subdir/filename, or filename
  */
-void ensureDirExists(const string &path) {
-    size_t loc;
-    cout << "Splitting: " << path << endl;
-    loc = path.find_last_of("/\\");
-    cout << " folder: " << path.substr(0, loc) << endl;
-    cout << " file: " << path.substr(loc + 1) << endl;
+void ensureDirExists(const string &fullPath) {
+    size_t slashLoc;
+    cout << "Splitting: " << fullPath << endl;
+    slashLoc = fullPath.find_last_of("/\\");
+    
+    string dir;
+    // string file;
+    if(slashLoc == string::npos) {
+        // No / found, so this is a bare file.
+        // So we don't need to do anything
+        cout << "Writing to working dir; don't need to create anything." << endl;
+    } else {
+        dir = fullPath.substr(0, slashLoc);
+        // file = fullPath.substr(slashLoc + 1);
+        cout << "Dir: " << dir << endl;
+        
+        // Ensure existence if we have permissions.  Ignore errors.
+        // WARNING: do not remove the single quotes.  They prevent bash command injection.
+        system(("mkdir -p '" + dir + "'").c_str());
+    }
 }
 
 int main(int argc, char** argv)
