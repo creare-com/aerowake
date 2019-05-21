@@ -374,7 +374,7 @@ int main(int /*argc*/, char** /*argv*/)
                             // {
                                 // filename << deviceSerialNumber.c_str();
                             // }
-                            filename << imgNum << ".tiff";
+                            filename << imgNum << ".bmp";
                             imgNum++;
                             bmCvConv.start();
                             cv::Mat cvImg = cvMatFromSpinnakerImage(convertedImage);
