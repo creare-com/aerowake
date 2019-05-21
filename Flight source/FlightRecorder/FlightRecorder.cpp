@@ -4,19 +4,19 @@
 #include <sstream>
 #include <string>
 
+#include <arpa/inet.h>
+#include <errno.h>
+#include <ifaddrs.h>
+#include <memory.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <net/if.h>
+#include <stdlib.h>
 #include <sys/types.h>
-#include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
+#include <sys/stat.h> // for mkdir()
 #include <unistd.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <memory.h>
-#include <ifaddrs.h>
-#include <net/if.h>
-#include <errno.h>
-#include <stdlib.h>
 
 #include <Spinnaker.h>
 #include <SpinGenApi/SpinnakerGenApi.h>
@@ -146,6 +146,20 @@ void summarizeBenchmarksToLog(list<const Benchmarker *> allBms) {
     cout << endl;
 }
 
+/**
+ * Call before attempting to open a file for writing.  Checks if the directory in the path exists,
+ * and if not, attempts to create the directories leading up to it.
+ *
+ * path - full path to file, such as /dir/subdir/filename, or ./dir/subdir/filename, or filename
+ */
+void ensureDirExists(const string &path) {
+    size_t loc;
+    cout << "Splitting: " << path << endl;
+    loc = path.find_last_of("/\\");
+    cout << " folder: " << path.substr(0, loc) << endl;
+    cout << " file: " << path.substr(loc + 1) << endl;
+}
+
 int main(int argc, char** argv)
 {
     CLI::App cmdOpts{"Wake Swarm Flight data recorder"};
@@ -159,8 +173,9 @@ int main(int argc, char** argv)
     
     int result = 0;
     
-    cout << "Timestamp test: " << date::format(pathFormat, date::floor<milliseconds>(system_clock::now())) << endl;
-
+    ensureDirExists(pathFormat);
+    return 0;
+    
     // Print application build information
     cout << "Application build date: " << __DATE__ << " " << __TIME__ << endl << endl;
 
