@@ -153,7 +153,7 @@ void summarizeBenchmarksToLog(list<const Benchmarker *> allBms) {
  */
 void ensureDirExists(const string &fullPath) {
     size_t slashLoc;
-    cout << "Splitting: " << fullPath << endl;
+    // cout << "Splitting: " << fullPath << endl;
     slashLoc = fullPath.find_last_of("/\\");
     
     string dir;
@@ -161,11 +161,11 @@ void ensureDirExists(const string &fullPath) {
     if(slashLoc == string::npos) {
         // No / found, so this is a bare file.
         // So we don't need to do anything
-        cout << "Writing to working dir; don't need to create anything." << endl;
+        // cout << "Writing to working dir; don't need to create anything." << endl;
     } else {
         dir = fullPath.substr(0, slashLoc);
         // file = fullPath.substr(slashLoc + 1);
-        cout << "Dir: " << dir << endl;
+        // cout << "Dir: " << dir << endl;
         
         // Ensure existence if we have permissions.  Ignore errors.
         // WARNING: do not remove the single quotes.  They prevent bash command injection.
