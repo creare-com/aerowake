@@ -295,12 +295,14 @@ int main(int /*argc*/, char** /*argv*/)
                 Benchmarker bmWholeFrame("Entire frame");
                 Benchmarker bmNextImage ("Next Image");
                 Benchmarker bmSpinConv  ("Spinnaker conversion");
+                Benchmarker bmCvConv    ("Conversion to OpenCV");
                 Benchmarker bmSave      ("Image save");
                 Benchmarker bmRel       ("Image release");
                 list<const Benchmarker *> allBms;
                 allBms.push_back(&bmWholeFrame);
                 allBms.push_back(&bmNextImage);
                 allBms.push_back(&bmSpinConv);
+                allBms.push_back(&bmCvConv);
                 allBms.push_back(&bmSave);
                 allBms.push_back(&bmRel);
                 
@@ -374,10 +376,14 @@ int main(int /*argc*/, char** /*argv*/)
                             // }
                             filename << imgNum << ".tiff";
                             imgNum++;
+                            bmCvConv.start();
+                            cv::Mat cvImg = cvMatFromSpinnakerImage(convertedImage);
+                            bmCvConv.end();
                             bmSave.start();
-                            convertedImage->Save(filename.str().c_str());
+                            // convertedImage->Save(filename.str().c_str());
+                            cv::imwrite(filename.str().c_str(), cvImg);
+                            cout << "Image saved at " << filename.str() << endl;
                             bmSave.end();
-
                         }
 
                         //
