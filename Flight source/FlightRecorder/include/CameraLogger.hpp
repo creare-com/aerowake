@@ -68,7 +68,7 @@ private:
     
     static bool ConfigureExposure(INodeMap & nodeMap, bool autoExpose = false, double exposureTimeToSet = 2000000.0);
     static bool ApplyDefaultSettings(INodeMap & nodeMap);
-    static bool ApplySpinnakerSettingsFile(INodeMap & nodeMap, const string filePath);
+    static bool ApplySpinnakerCsvSettingsFile(INodeMap & nodeMap, const string& filePath);
     static bool ApplySpinnakerEnumOption(INodeMap & nodeMap, const string& nodeName, const string& value);
     static bool ApplySpinnakerStringOption(INodeMap & nodeMap, const string& nodeName, const string& value);
     static bool ApplySpinnakerFloatOption(INodeMap & nodeMap, const string& nodeName, double value);

@@ -309,17 +309,58 @@ bool CameraLogger::ApplyDefaultSettings(INodeMap & nodeMap) {
     return ConfigureExposure(nodeMap, true) && ApplySpinnakerEnumOption(nodeMap, "AcquisitionMode", "Continuous");
 }
 
-bool CameraLogger::ApplySpinnakerSettingsFile(INodeMap & nodeMap, const string filePath) {
-    try {
+bool CameraLogger::ApplySpinnakerCsvSettingsFile(INodeMap & nodeMap, const string& filePath) {
+    bool result = true;
     
+    // Expects to have the first column be the node name, the second be "enum", "integer", "float", or "string", and the third the value.
+    // No quotes anywhere.
+    ifstream infile(filePath);
+    string line;
+    int lineNum = 0;
+    while(getline(infile, line)) {
+        lineNum++; // Needs to be at the start so we can say "continue" later on
+        stringstream row(line);
+        string nodeName;
+        string nodeType;
+        string valueStr;
+        if(!getline(row, nodeName, ',')) {
+            cout << "Could not read node name from line " << lineNum << endl;
+            result = false;
+            continue;
+        }
+        if(!getline(row, nodeType, ',')) {
+            cout << "Could not read node type from line " << lineNum << endl;
+            result = false;
+            continue;
+        }
+        if(!getline(row, valueStr, ',')) {
+            cout << "Could not read value from line " << lineNum << endl;
+            result = false;
+            continue;
+        }
+        
+        if (nodeType == "enum") {
+            result = result && ApplySpinnakerEnumOption(nodemap, nodeName, valueStr);
+        } else if (nodeType == "string") {
+            result = result && ApplySpinnakerStringOption(nodemap, nodeName, valueStr);
+        } else if (nodeType == "integer") {
+            stringstream valueStream(valueStr);
+            int value;
+            valueStream >> value;
+            result = result && ApplySpinnakerIntOption(nodemap, nodeName, value);
+        } else if (nodeType == "float") {
+            stringstream valueStream(valueStr);
+            double value;
+            valueStream >> value;
+            result = result && ApplySpinnakerFloatOption(nodemap, nodeName, value);
+        } else {
+            cout << "Unrecognized node type: " << nodeType << " on line " << lineNum << endl;
+            result = false;
+        }
+        
     }
-    catch (Spinnaker::Exception &e)
-    {
-        cout << "Error applying setting to camera: " << e.what() << endl;
-        return false;
-    }
-    // Success!
-    return true;
+    
+    return result;
 }
 
 bool CameraLogger::ApplySpinnakerEnumOption(INodeMap & nodeMap, const string& nodeName, const string& value) {
