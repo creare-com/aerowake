@@ -145,34 +145,6 @@ void summarizeBenchmarksToLog(list<const Benchmarker *> allBms) {
     cout << endl;
 }
 
-/**
- * Call before attempting to open a file for writing.  Checks if the directory in the path exists,
- * and if not, attempts to create the directories leading up to it.
- *
- * fullPath - full path to file, such as /dir/subdir/filename, or ./dir/subdir/filename, or filename
- */
-void ensureDirExists(const string &fullPath) {
-    size_t slashLoc;
-    // cout << "Splitting: " << fullPath << endl;
-    slashLoc = fullPath.find_last_of("/\\");
-    
-    string dir;
-    // string file;
-    if(slashLoc == string::npos) {
-        // No / found, so this is a bare file.
-        // So we don't need to do anything
-        // cout << "Writing to working dir; don't need to create anything." << endl;
-    } else {
-        dir = fullPath.substr(0, slashLoc);
-        // file = fullPath.substr(slashLoc + 1);
-        // cout << "Dir: " << dir << endl;
-        
-        // Ensure existence if we have permissions.  Ignore errors.
-        // WARNING: do not remove the single quotes.  They prevent bash command injection.
-        system(("mkdir -p '" + dir + "'").c_str());
-    }
-}
-
 int main(int argc, char** argv)
 {
     CLI::App cmdOpts{"Wake Swarm Flight data recorder"};
@@ -180,8 +152,10 @@ int main(int argc, char** argv)
     // Command line options
     string extension = "bmp";
     cmdOpts.add_option("-x", extension, "File format, as an extension, such as \"bmp\" or \"png\" (omit the quotes).  Default is \"" + extension + "\".  Must be supported by OpenCV's imwrite(). \"bmp\" is fast (10ms), \"png\" is compact.");
-    string pathFormat = "./%F_%H-%M-%S";
-    cmdOpts.add_option("-p", pathFormat, "Pattern specifying where to save the files and what to name them. Default: \"" + pathFormat + "\".  Will substitute flags found here: https://howardhinnant.github.io/date/date.html#to_stream_formatting.  '/' characters are directory separators.  If no leading '/', will be relative to working directory.  Avoid any characters not supported by the filesystem, such as colons.");
+    string dirFormat = "./%F_%H-%M-%s/";
+    cmdOpts.add_option("-d", dirFormat, "Pattern specifying the directory at which to save the recording. Default: \"" + dirFormat + "\".  Will substitute flags found here: https://howardhinnant.github.io/date/date.html#to_stream_formatting.  '/' characters are directory separators.  If no leading '/', will be relative to working directory.  Avoid any characters not supported by the filesystem, such as colons.");
+    string imageFilenameFormat = "img_%F_%H-%M-%S";
+    cmdOpts.add_option("-i", imageFilenameFormat, "Pattern specifying the base filename for images captured from camera. Default: \"" + imageFilenameFormat + "\".  Will substitute flags found here: https://howardhinnant.github.io/date/date.html#to_stream_formatting.  Extension will be supplied by another parameter.  Avoid any characters not supported by the filesystem, such as colons.");
     CLI11_PARSE(cmdOpts, argc, argv); // This will exit if the user said "-h" or "--help"
     
     int result = 0;
@@ -190,19 +164,25 @@ int main(int argc, char** argv)
     cout << "Application build date: " << __DATE__ << " " << __TIME__ << endl << endl;
 
     // Retrieve singleton reference to system object
-    SystemPtr system = System::GetInstance();
+    SystemPtr spinSystem = System::GetInstance();
 
     // Print out current library version
-    const LibraryVersion spinnakerLibraryVersion = system->GetLibraryVersion();
+    const LibraryVersion spinnakerLibraryVersion = spinSystem->GetLibraryVersion();
     cout << "Spinnaker library version: "
         << spinnakerLibraryVersion.major << "."
         << spinnakerLibraryVersion.minor << "."
         << spinnakerLibraryVersion.type << "."
         << spinnakerLibraryVersion.build << endl << endl;
 
-    InterfaceList interfaceList = system->GetInterfaces();
+    InterfaceList interfaceList = spinSystem->GetInterfaces();
     unsigned int numInterfaces = interfaceList.GetSize();
     // cout << "Number of interfaces detected: " << numInterfaces << endl << endl;
+
+    // Create directory to store recording
+    string recordingDir = date::format(dirFormat, date::floor<milliseconds>(system_clock::now()));
+    cout << "Storing recording at: " << recordingDir << endl;
+    // WARNING: do not remove the single quotes.  They prevent bash command injection.
+    system(("mkdir -p '" + recordingDir + "'").c_str());
 
     // Finish if there are no cameras
     if (numInterfaces == 0)
@@ -211,7 +191,7 @@ int main(int argc, char** argv)
         interfaceList.Clear();
 
         // Release system
-        system->ReleaseInstance();
+        spinSystem->ReleaseInstance();
 
         cout << "No interfaces!" << endl;
         cout << "Done! Press Enter to exit" << endl;
@@ -337,7 +317,6 @@ int main(int argc, char** argv)
                 Benchmarker bmNextImage ("Next Image");
                 Benchmarker bmSpinConv  ("Spinnaker conversion");
                 Benchmarker bmCvConv    ("Conversion to OpenCV");
-                Benchmarker bmMkdir     ("Image directory creation");
                 Benchmarker bmSave      ("Image save");
                 Benchmarker bmRel       ("Image release");
                 list<const Benchmarker *> allBms;
@@ -345,7 +324,6 @@ int main(int argc, char** argv)
                 allBms.push_back(&bmNextImage);
                 allBms.push_back(&bmSpinConv);
                 allBms.push_back(&bmCvConv);
-                allBms.push_back(&bmMkdir);
                 allBms.push_back(&bmSave);
                 allBms.push_back(&bmRel);
                 
@@ -411,13 +389,11 @@ int main(int argc, char** argv)
                             bmSpinConv.end();
 
                             ostringstream filename;
-                            filename << date::format(pathFormat, date::floor<milliseconds>(system_clock::now())) << "." << extension;
+                            filename << recordingDir << "/" << date::format(imageFilenameFormat, date::floor<milliseconds>(system_clock::now())) << "." << extension;
                             bmCvConv.start();
                             cv::Mat cvImg = cvMatFromSpinnakerImage(convertedImage);
                             bmCvConv.end();
-                            bmMkdir.start();
-                            ensureDirExists(filename.str());
-                            bmMkdir.end();
+
                             bmSave.start();
                             // convertedImage->Save(filename.str().c_str());
                             cv::imwrite(filename.str().c_str(), cvImg);
@@ -460,7 +436,7 @@ int main(int argc, char** argv)
 
     interfacePtr = nullptr;
     // Release system
-    system->ReleaseInstance();
+    spinSystem->ReleaseInstance();
 
     cout << endl << "Done! Press Enter to exit" << endl;
     getchar();
