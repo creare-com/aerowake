@@ -435,7 +435,27 @@ bool CameraLogger::ApplySpinnakerSettingsFile(INodeMap & nodeMap, const string f
 
 bool CameraLogger::ApplySpinnakerEnumOption(INodeMap & nodeMap, const string nodeName, const string value) {
     try {
-    
+        CEnumerationPtr node = nodeMap.GetNode(nodeName.c_str());
+        if (!IsAvailable(node)) 
+        {
+            cout << "Spinnaker node " << nodeName << " is unavailable." << endl;
+            return false;
+        }
+        if (!IsWritable(node)) {
+            cout << "Spinnaker node " << nodeName << " is not writeable." << endl;
+            return false;
+        }
+
+        CEnumEntryPtr ptrEnumValue = node->GetEntryByName(value.c_str());
+        if (!IsAvailable(ptrEnumValue) || !IsReadable(ptrEnumValue))
+        {
+            cout << "Spinnaker enum " << nodeName << " does not have a value called " << value << "." << endl;
+            return false;
+        }
+
+        node->SetIntValue(ptrEnumValue->GetValue());
+
+        cout << nodeName << " set to " << value << "." << endl;
     }
     catch (Spinnaker::Exception &e)
     {
@@ -448,7 +468,20 @@ bool CameraLogger::ApplySpinnakerEnumOption(INodeMap & nodeMap, const string nod
 
 bool CameraLogger::ApplySpinnakerStringOption(INodeMap & nodeMap, const string nodeName, const string value) {
     try {
-    
+        CStringPtr node = nodeMap.GetNode(nodeName.c_str());
+        if (!IsAvailable(node)) 
+        {
+            cout << "Spinnaker node " << nodeName << " is unavailable." << endl;
+            return false;
+        }
+        if (!IsWritable(node)) {
+            cout << "Spinnaker node " << nodeName << " is not writeable." << endl;
+            return false;
+        }
+
+        node->SetValue(value.c_str());
+
+        cout << nodeName << " set to " << value << "." << endl;
     }
     catch (Spinnaker::Exception &e)
     {
@@ -461,7 +494,6 @@ bool CameraLogger::ApplySpinnakerStringOption(INodeMap & nodeMap, const string n
 
 bool CameraLogger::ApplySpinnakerFloatOption(INodeMap & nodeMap, const string nodeName, double value) {
     try {
-        // gcstring gcName(nodeName.c_str());
         CFloatPtr node = nodeMap.GetNode(nodeName.c_str());
         if (!IsAvailable(node)) 
         {
@@ -495,12 +527,35 @@ bool CameraLogger::ApplySpinnakerFloatOption(INodeMap & nodeMap, const string no
     }
     // Success!
     return true;
-
 }
 
 bool CameraLogger::ApplySpinnakerIntOption(INodeMap & nodeMap, string nodeName, int value) {
     try {
-    
+        CIntegerPtr node = nodeMap.GetNode(nodeName.c_str());
+        if (!IsAvailable(node)) 
+        {
+            cout << "Spinnaker node " << nodeName << " is unavailable." << endl;
+            return false;
+        }
+        if (!IsWritable(node)) {
+            cout << "Spinnaker node " << nodeName << " is not writeable." << endl;
+            return false;
+        }
+
+        const int max = node->GetMax();
+        const int min = node->GetMin();
+
+        if (value > max) {
+            cout << "Correcting camera option " << nodeName << " from " << value << " to its max of " << max << "." << endl;
+            value = max;
+        } else if(value < min) {
+            cout << "Correcting camera option " << nodeName << " from " << value << " to its min of " << min << "." << endl;
+            value = min;
+        }
+
+        node->SetValue(value);
+
+        cout << nodeName << " set to " << value << "." << endl;
     }
     catch (Spinnaker::Exception &e)
     {
