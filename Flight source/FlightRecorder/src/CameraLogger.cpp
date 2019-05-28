@@ -334,7 +334,7 @@ int CameraLogger::ConfigureExposure(INodeMap & nodeMap, bool autoExpose, double 
             CEnumEntryPtr ptrExposureAutoOn = ptrExposureAuto->GetEntryByName("On");
             if (!IsAvailable(ptrExposureAutoOn) || !IsReadable(ptrExposureAutoOn))
             {
-                cout << "Unable to ensable automatic exposure (enum entry retrieval). Aborting" << endl << endl;
+                cout << "Unable to enable automatic exposure (enum entry retrieval). Aborting" << endl << endl;
                 return -1;
             }
 
