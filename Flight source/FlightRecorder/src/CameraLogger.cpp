@@ -31,11 +31,11 @@ CameraLogger::CameraLogger(string recordingDir, string imageFilenameFormat, stri
 }
 
 CameraLogger::~CameraLogger() {
-    camList.Clear();
     if(pCam != nullptr) {
         pCam->EndAcquisition();
         pCam = nullptr;
     }
+    camList.Clear();
     // Clear camera list before releasing system
     interfaceList.Clear();
     if(spinSystem != nullptr) {
@@ -155,13 +155,15 @@ bool CameraLogger::initCamera() {
                 INodeMap & nodeMap = pCam->GetNodeMap();
                 
                 // Set exposure
-                ConfigureExposure(nodeMap, true);
+                if (ConfigureExposure(nodeMap, true) < 0) {
+                    return false;
+                }
 
                 CEnumerationPtr ptrAcquisitionMode = nodeMap.GetNode("AcquisitionMode");
                 if (!IsAvailable(ptrAcquisitionMode) || !IsWritable(ptrAcquisitionMode))
                 {
                     cout << "Unable to set acquisition mode to continuous (enum retrieval). Aborting" << endl << endl;
-                    return -1;
+                    return false;
                 }
 
                 // Retrieve entry node from enumeration node
@@ -169,7 +171,7 @@ bool CameraLogger::initCamera() {
                 if (!IsAvailable(ptrAcquisitionModeContinuous) || !IsReadable(ptrAcquisitionModeContinuous))
                 {
                     cout << "Unable to set acquisition mode to continuous (entry retrieval). Aborting" << endl << endl;
-                    return -1;
+                    return false;
                 }
                 // Retrieve integer value from entry node
                 const int64_t acquisitionModeContinuous = ptrAcquisitionModeContinuous->GetValue();
@@ -332,7 +334,7 @@ int CameraLogger::ConfigureExposure(INodeMap & nodeMap, bool autoExpose, double 
             CEnumEntryPtr ptrExposureAutoOn = ptrExposureAuto->GetEntryByName("On");
             if (!IsAvailable(ptrExposureAutoOn) || !IsReadable(ptrExposureAutoOn))
             {
-                cout << "Unable to disable automatic exposure (enum entry retrieval). Aborting" << endl << endl;
+                cout << "Unable to ensable automatic exposure (enum entry retrieval). Aborting" << endl << endl;
                 return -1;
             }
 
