@@ -295,131 +295,20 @@ bool CameraLogger::captureAndLogImage() {
 // This function configures a custom exposure time. Automatic exposure is turned 
 // off in order to allow for the customization, and then the custom setting is 
 // applied.
-int CameraLogger::ConfigureExposure(INodeMap & nodeMap, bool autoExpose, double exposureTimeToSet)
+bool CameraLogger::ConfigureExposure(INodeMap & nodeMap, bool autoExpose, double exposureTimeToSet)
 {
-    int result = 0;
-
-    cout << endl << endl << "*** CONFIGURING EXPOSURE ***" << endl << endl;
-
-    try
-    {
-        //
-        // Turn off automatic exposure mode
-        //
-        // *** NOTES ***
-        // Automatic exposure prevents the manual configuration of exposure 
-        // time and needs to be turned off.
-        //
-        // *** LATER ***
-        // Exposure time can be set automatically or manually as needed. This
-        // example turns automatic exposure off to set it manually and back
-        // on in order to return the camera to its default state.
-        //
-        CEnumerationPtr ptrExposureAuto = nodeMap.GetNode("ExposureAuto");
-        if (!IsAvailable(ptrExposureAuto) || !IsWritable(ptrExposureAuto))
-        {
-            cout << "Unable to disable automatic exposure (node retrieval). Aborting" << endl << endl;
-            return -1;
-        }
-
-        if(autoExpose) {
-            CEnumEntryPtr ptrExposureAutoOn = ptrExposureAuto->GetEntryByName("Continuous");
-            if (!IsAvailable(ptrExposureAutoOn) || !IsReadable(ptrExposureAutoOn))
-            {
-                cout << "Unable to enable automatic exposure (enum entry retrieval). Aborting" << endl << endl;
-                return -1;
-            }
-
-            ptrExposureAuto->SetIntValue(ptrExposureAutoOn->GetValue());
-
-            cout << "Automatic exposure enabled" << endl;
-
-        } else {
-            CEnumEntryPtr ptrExposureAutoOff = ptrExposureAuto->GetEntryByName("Off");
-            if (!IsAvailable(ptrExposureAutoOff) || !IsReadable(ptrExposureAutoOff))
-            {
-                cout << "Unable to disable automatic exposure (enum entry retrieval). Aborting" << endl << endl;
-                return -1;
-            }
-
-            ptrExposureAuto->SetIntValue(ptrExposureAutoOff->GetValue());
-
-            cout << "Automatic exposure disabled" << endl;
-
-            //
-            // Set exposure time manually; exposure time recorded in microseconds
-            //
-            // *** NOTES ***
-            // The node is checked for availability and writability prior to the 
-            // setting of the node. Further, it is ensured that the desired exposure 
-            // time does not exceed the maximum. Exposure time is counted in 
-            // microseconds. This information can be found out either by 
-            // retrieving the unit with the GetUnit() method or by checking SpinView.
-            // 
-            CFloatPtr ptrExposureTime = nodeMap.GetNode("ExposureTime");
-            if (!IsAvailable(ptrExposureTime) || !IsWritable(ptrExposureTime))
-            {
-                cout << "Unable to set exposure time. Aborting" << endl << endl;
-                return -1;
-            }
-
-            // Ensure desired exposure time does not exceed the maximum
-            const double exposureTimeMax = ptrExposureTime->GetMax();
-
-            if (exposureTimeToSet > exposureTimeMax)
-            {
-                exposureTimeToSet = exposureTimeMax;
-            }
-
-            ptrExposureTime->SetValue(exposureTimeToSet);
-
-            cout << std::fixed << "Exposure time set to " << exposureTimeToSet << " us" << endl << endl;
-        }
+    bool result = true;
+    result = result && ApplySpinnakerEnumOption(nodeMap, "ExposureAuto", autoExpose? "Continuous":"Off");
+    if(!autoExpose) {
+        result = result && ApplySpinnakerFloatOption(nodeMap, "ExposureTime", exposureTimeToSet);
     }
-    catch (Spinnaker::Exception &e)
-    {
-        cout << "Error: " << e.what() << endl;
-        result = -1;
-    }
-
     return result;
 }
+
 bool CameraLogger::ApplyDefaultSettings(INodeMap & nodeMap) {
-    try {
-
-        // Set exposure
-        if (ConfigureExposure(nodeMap, true) < 0) {
-            return false;
-        }
-
-        CEnumerationPtr ptrAcquisitionMode = nodeMap.GetNode("AcquisitionMode");
-        if (!IsAvailable(ptrAcquisitionMode) || !IsWritable(ptrAcquisitionMode))
-        {
-            cout << "Unable to set acquisition mode to continuous (enum retrieval). Aborting" << endl << endl;
-            return false;
-        }
-
-        // Retrieve entry node from enumeration node
-        CEnumEntryPtr ptrAcquisitionModeContinuous = ptrAcquisitionMode->GetEntryByName("Continuous");
-        if (!IsAvailable(ptrAcquisitionModeContinuous) || !IsReadable(ptrAcquisitionModeContinuous))
-        {
-            cout << "Unable to set acquisition mode to continuous (entry retrieval). Aborting" << endl << endl;
-            return false;
-        }
-        // Retrieve integer value from entry node
-        const int64_t acquisitionModeContinuous = ptrAcquisitionModeContinuous->GetValue();
-        // Set integer value from entry node as new value of enumeration node
-        ptrAcquisitionMode->SetIntValue(acquisitionModeContinuous);
-        cout << "Acquisition mode set to continuous" << endl;
-    }
-    catch (Spinnaker::Exception &e)
-    {
-        cout << "Error applying default settings: " << e.what() << endl;
-        return false;
-    }
-    // Success!
-    return true;
+    return ConfigureExposure(nodeMap, true) && ApplySpinnakerEnumOption(nodeMap, "AcquisitionMode", "Continuous");
 }
+
 bool CameraLogger::ApplySpinnakerSettingsFile(INodeMap & nodeMap, const string filePath) {
     try {
     
@@ -433,7 +322,7 @@ bool CameraLogger::ApplySpinnakerSettingsFile(INodeMap & nodeMap, const string f
     return true;
 }
 
-bool CameraLogger::ApplySpinnakerEnumOption(INodeMap & nodeMap, const string nodeName, const string value) {
+bool CameraLogger::ApplySpinnakerEnumOption(INodeMap & nodeMap, const string& nodeName, const string& value) {
     try {
         CEnumerationPtr node = nodeMap.GetNode(nodeName.c_str());
         if (!IsAvailable(node)) 
@@ -466,7 +355,7 @@ bool CameraLogger::ApplySpinnakerEnumOption(INodeMap & nodeMap, const string nod
     return true;
 }
 
-bool CameraLogger::ApplySpinnakerStringOption(INodeMap & nodeMap, const string nodeName, const string value) {
+bool CameraLogger::ApplySpinnakerStringOption(INodeMap & nodeMap, const string& nodeName, const string& value) {
     try {
         CStringPtr node = nodeMap.GetNode(nodeName.c_str());
         if (!IsAvailable(node)) 
@@ -492,7 +381,7 @@ bool CameraLogger::ApplySpinnakerStringOption(INodeMap & nodeMap, const string n
     return true;
 }
 
-bool CameraLogger::ApplySpinnakerFloatOption(INodeMap & nodeMap, const string nodeName, double value) {
+bool CameraLogger::ApplySpinnakerFloatOption(INodeMap & nodeMap, const string& nodeName, double value) {
     try {
         CFloatPtr node = nodeMap.GetNode(nodeName.c_str());
         if (!IsAvailable(node)) 
@@ -529,7 +418,7 @@ bool CameraLogger::ApplySpinnakerFloatOption(INodeMap & nodeMap, const string no
     return true;
 }
 
-bool CameraLogger::ApplySpinnakerIntOption(INodeMap & nodeMap, string nodeName, int value) {
+bool CameraLogger::ApplySpinnakerIntOption(INodeMap & nodeMap, const string& nodeName, int value) {
     try {
         CIntegerPtr node = nodeMap.GetNode(nodeName.c_str());
         if (!IsAvailable(node)) 
