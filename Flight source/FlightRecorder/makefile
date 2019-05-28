@@ -2,6 +2,7 @@
 
 SRCS=$(wildcard src/*.cpp)
 INC=-I/usr/include/spinnaker -Iinclude/
+PROJ_INC=$(wildcard include/*.hpp include/*.h)
 OUTPUT=FlightRecorder
 OPTIONS=-std=c++11
 LIBS=-lSpinnaker -lopencv_core -lopencv_imgcodecs -lopencv_features2d -lopencv_imgproc
@@ -12,5 +13,5 @@ all: $(OUTPUT)
 clean: 
 	rm -f $(OUTPUT)
 	
-$(OUTPUT): $(SRCS)
+$(OUTPUT): $(SRCS) $(PROJ_INC)
 	g++ $(SRCS) -o $(OUTPUT) $(INC) $(LIBS) $(OPTIONS)
