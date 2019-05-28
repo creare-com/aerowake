@@ -21,9 +21,9 @@
 #include <SpinGenApi/SpinnakerGenApi.h>
 #include <opencv2/opencv.hpp>
 
-#include "benchmarker.h"
-#include "CLI11.hpp"
-#include "date.h"
+#include <benchmarker.hpp>
+#include <CLI11.hpp>
+#include <date.h>
 
 using namespace std;
 using namespace std::chrono;
