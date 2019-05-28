@@ -35,10 +35,12 @@ public:
     
     /**
      * Find the first USB camera, configure it, and tell it to begin acquisition
+     * Returns true for success, false otherwise
      */
-    bool initCamera();
+    bool initCamera(string settingsFilePath = "");
     /**
      * Pull one frame from the camera and save it to disk at the configured location
+     * Returns true for success, false otherwise
      */
     bool captureAndLogImage();
     
@@ -62,6 +64,12 @@ private:
     CameraPtr pCam = nullptr;
     
     static int ConfigureExposure(INodeMap & nodeMap, bool autoExpose = false, double exposureTimeToSet = 2000000.0);
+    static bool ApplyDefaultSettings(INodeMap & nodeMap);
+    static bool ApplySpinnakerSettingsFile(INodeMap & nodeMap, const string filePath);
+    static bool ApplySpinnakerEnumOption(INodeMap & nodeMap, const string nodeName, const string value);
+    static bool ApplySpinnakerStringOption(INodeMap & nodeMap, const string nodeName, const string value);
+    static bool ApplySpinnakerFloatOption(INodeMap & nodeMap, const string nodeName, double value);
+    static bool ApplySpinnakerIntOption(INodeMap & nodeMap, const string nodeName, int value);
     static cv::Mat cvMatFromSpinnakerImage(ImagePtr img);
 }; 
 

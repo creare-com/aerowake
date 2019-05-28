@@ -54,7 +54,7 @@ CameraLogger::~CameraLogger() {
 /**
  * Find the first USB camera, configure it, and tell it to begin acquisition
  */
-bool CameraLogger::initCamera() {
+bool CameraLogger::initCamera(string settingsFilePath) {
     // Retrieve singleton reference to system object
     spinSystem = System::GetInstance();
     
@@ -160,30 +160,6 @@ bool CameraLogger::initCamera() {
                 // Retrieve GenICam nodemap
                 INodeMap & nodeMap = pCam->GetNodeMap();
                 
-                // Set exposure
-                if (ConfigureExposure(nodeMap, true) < 0) {
-                    return false;
-                }
-
-                CEnumerationPtr ptrAcquisitionMode = nodeMap.GetNode("AcquisitionMode");
-                if (!IsAvailable(ptrAcquisitionMode) || !IsWritable(ptrAcquisitionMode))
-                {
-                    cout << "Unable to set acquisition mode to continuous (enum retrieval). Aborting" << endl << endl;
-                    return false;
-                }
-
-                // Retrieve entry node from enumeration node
-                CEnumEntryPtr ptrAcquisitionModeContinuous = ptrAcquisitionMode->GetEntryByName("Continuous");
-                if (!IsAvailable(ptrAcquisitionModeContinuous) || !IsReadable(ptrAcquisitionModeContinuous))
-                {
-                    cout << "Unable to set acquisition mode to continuous (entry retrieval). Aborting" << endl << endl;
-                    return false;
-                }
-                // Retrieve integer value from entry node
-                const int64_t acquisitionModeContinuous = ptrAcquisitionModeContinuous->GetValue();
-                // Set integer value from entry node as new value of enumeration node
-                ptrAcquisitionMode->SetIntValue(acquisitionModeContinuous);
-                cout << "Acquisition mode set to continuous" << endl;
                 gcstring deviceSerialNumber("");
                 CStringPtr ptrStringSerial = nodeMapTLDevice.GetNode("DeviceSerialNumber");
                 if (IsAvailable(ptrStringSerial) && IsReadable(ptrStringSerial))
@@ -193,6 +169,13 @@ bool CameraLogger::initCamera() {
                     cout << "Device serial number retrieved as " << deviceSerialNumber << "" << endl;
                 }
                 cout << endl;
+                
+                if(settingsFilePath != "") {
+                    ApplySpinnakerSettingsFile(nodeMap, settingsFilePath);
+                } else {
+                    ApplyDefaultSettings(nodeMap);
+                }
+                
                 
                 // Tell it to become ready
                 cout << "Beginning acquisition " << endl;
@@ -401,6 +384,134 @@ int CameraLogger::ConfigureExposure(INodeMap & nodeMap, bool autoExpose, double 
 
     return result;
 }
+bool CameraLogger::ApplyDefaultSettings(INodeMap & nodeMap) {
+    try {
+
+        // Set exposure
+        if (ConfigureExposure(nodeMap, true) < 0) {
+            return false;
+        }
+
+        CEnumerationPtr ptrAcquisitionMode = nodeMap.GetNode("AcquisitionMode");
+        if (!IsAvailable(ptrAcquisitionMode) || !IsWritable(ptrAcquisitionMode))
+        {
+            cout << "Unable to set acquisition mode to continuous (enum retrieval). Aborting" << endl << endl;
+            return false;
+        }
+
+        // Retrieve entry node from enumeration node
+        CEnumEntryPtr ptrAcquisitionModeContinuous = ptrAcquisitionMode->GetEntryByName("Continuous");
+        if (!IsAvailable(ptrAcquisitionModeContinuous) || !IsReadable(ptrAcquisitionModeContinuous))
+        {
+            cout << "Unable to set acquisition mode to continuous (entry retrieval). Aborting" << endl << endl;
+            return false;
+        }
+        // Retrieve integer value from entry node
+        const int64_t acquisitionModeContinuous = ptrAcquisitionModeContinuous->GetValue();
+        // Set integer value from entry node as new value of enumeration node
+        ptrAcquisitionMode->SetIntValue(acquisitionModeContinuous);
+        cout << "Acquisition mode set to continuous" << endl;
+    }
+    catch (Spinnaker::Exception &e)
+    {
+        cout << "Error applying default settings: " << e.what() << endl;
+        return false;
+    }
+    // Success!
+    return true;
+}
+bool CameraLogger::ApplySpinnakerSettingsFile(INodeMap & nodeMap, const string filePath) {
+    try {
+    
+    }
+    catch (Spinnaker::Exception &e)
+    {
+        cout << "Error applying setting to camera: " << e.what() << endl;
+        return false;
+    }
+    // Success!
+    return true;
+}
+
+bool CameraLogger::ApplySpinnakerEnumOption(INodeMap & nodeMap, const string nodeName, const string value) {
+    try {
+    
+    }
+    catch (Spinnaker::Exception &e)
+    {
+        cout << "Error applying setting " << nodeName << " to camera: " << e.what() << endl;
+        return false;
+    }
+    // Success!
+    return true;
+}
+
+bool CameraLogger::ApplySpinnakerStringOption(INodeMap & nodeMap, const string nodeName, const string value) {
+    try {
+    
+    }
+    catch (Spinnaker::Exception &e)
+    {
+        cout << "Error applying setting " << nodeName << " to camera: " << e.what() << endl;
+        return false;
+    }
+    // Success!
+    return true;
+}
+
+bool CameraLogger::ApplySpinnakerFloatOption(INodeMap & nodeMap, const string nodeName, double value) {
+    try {
+        // gcstring gcName(nodeName.c_str());
+        CFloatPtr node = nodeMap.GetNode(nodeName.c_str());
+        if (!IsAvailable(node)) 
+        {
+            cout << "Spinnaker node " << nodeName << " is unavailable." << endl;
+            return false;
+        }
+        if (!IsWritable(node)) {
+            cout << "Spinnaker node " << nodeName << " is not writeable." << endl;
+            return false;
+        }
+
+        const double max = node->GetMax();
+        const double min = node->GetMin();
+
+        if (value > max) {
+            cout << "Correcting camera option " << nodeName << " from " << value << " to its max of " << max << "." << endl;
+            value = max;
+        } else if(value < min) {
+            cout << "Correcting camera option " << nodeName << " from " << value << " to its min of " << min << "." << endl;
+            value = min;
+        }
+
+        node->SetValue(value);
+
+        cout << nodeName << " set to " << value << "." << endl;
+    }
+    catch (Spinnaker::Exception &e)
+    {
+        cout << "Error applying setting " << nodeName << " to camera: " << e.what() << endl;
+        return false;
+    }
+    // Success!
+    return true;
+
+}
+
+bool CameraLogger::ApplySpinnakerIntOption(INodeMap & nodeMap, string nodeName, int value) {
+    try {
+    
+    }
+    catch (Spinnaker::Exception &e)
+    {
+        cout << "Error applying setting " << nodeName << " to camera: " << e.what() << endl;
+        return false;
+    }
+    // Success!
+    return true;
+}
+
+
 
 
 cv::Mat CameraLogger::cvMatFromSpinnakerImage(ImagePtr img) {
