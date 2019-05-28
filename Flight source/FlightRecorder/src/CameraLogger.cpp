@@ -31,26 +31,32 @@ CameraLogger::CameraLogger(string recordingDir, string imageFilenameFormat, stri
 }
 
 CameraLogger::~CameraLogger() {
-    if(pCam != nullptr) {
-        pCam->EndAcquisition();
-        pCam = nullptr;
+    try
+    {
+        if(pCam != nullptr) {
+            pCam->EndAcquisition();
+            pCam = nullptr;
+        }
+        camList.Clear();
+        // Clear camera list before releasing system
+        interfaceList.Clear();
+        if(spinSystem != nullptr) {
+            spinSystem->ReleaseInstance();
+            spinSystem = nullptr;
+        }
     }
-    camList.Clear();
-    // Clear camera list before releasing system
-    interfaceList.Clear();
-    if(spinSystem != nullptr) {
-        spinSystem->ReleaseInstance();
-        spinSystem = nullptr;
+    catch (Spinnaker::Exception &e)
+    {
+        cout << "Error destructing CameraLogger object: " << e.what() << endl;
     }
 }
-
 
 /**
  * Find the first USB camera, configure it, and tell it to begin acquisition
  */
 bool CameraLogger::initCamera() {
     // Retrieve singleton reference to system object
-    SystemPtr spinSystem = System::GetInstance();
+    spinSystem = System::GetInstance();
     
 
     // Print out current library version
@@ -61,7 +67,7 @@ bool CameraLogger::initCamera() {
         << spinnakerLibraryVersion.type << "."
         << spinnakerLibraryVersion.build << endl << endl;
 
-    InterfaceList interfaceList = spinSystem->GetInterfaces();
+    interfaceList = spinSystem->GetInterfaces();
     unsigned int numInterfaces = interfaceList.GetSize();
     // cout << "Number of interfaces detected: " << numInterfaces << endl << endl;
     
@@ -146,11 +152,11 @@ bool CameraLogger::initCamera() {
                 pCam = camList.GetByIndex(0);
                 cout << "Found camera on " << interfaceDisplayName << "." << endl;
                 
+                // Initialize camera
+                pCam->Init();
                 
                 // Retrieve TL device nodemap and print device information
                 INodeMap & nodeMapTLDevice = pCam->GetTLDeviceNodeMap();
-                // Initialize camera
-                pCam->Init();
                 // Retrieve GenICam nodemap
                 INodeMap & nodeMap = pCam->GetNodeMap();
                 
@@ -200,6 +206,7 @@ bool CameraLogger::initCamera() {
         cout << "Error connecting to camera: " << e.what() << endl;
         return false;
     }
+    interfacePtr = nullptr;
     cout << "Done initializing." << endl;
     // Success!
     return true;
