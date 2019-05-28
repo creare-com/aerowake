@@ -189,7 +189,9 @@ bool CameraLogger::initCamera() {
                 cout << endl;
                 
                 // Tell it to become ready
+                cout << "Beginning acquisition " << endl;
                 pCam->BeginAcquisition();
+                cout << "done. " << endl;
             }
         }
     }
@@ -198,7 +200,7 @@ bool CameraLogger::initCamera() {
         cout << "Error connecting to camera: " << e.what() << endl;
         return false;
     }
-    
+    cout << "Done initializing." << endl;
     // Success!
     return true;
 }

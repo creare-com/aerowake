@@ -70,6 +70,7 @@ int main(int argc, char** argv)
 
     CameraLogger camLogger(recordingDir, imageFilenameFormat, extension, allBms);
     camLogger.initCamera();
+    cout << "Returned from initializing." << endl;
 
     while(true) {
         bmWholeFrame.start();
