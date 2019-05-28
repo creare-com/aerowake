@@ -15,8 +15,11 @@
 #include <string>
 #include <list>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <Spinnaker.h>
 #include <SpinGenApi/SpinnakerGenApi.h>
+#pragma GCC diagnostic pop
 #include <opencv2/opencv.hpp>
 
 #include <benchmarker.hpp>
