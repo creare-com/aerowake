@@ -171,7 +171,7 @@ bool CameraLogger::initCamera(string settingsFilePath) {
                 cout << endl;
                 
                 if(settingsFilePath != "") {
-                    ApplySpinnakerSettingsFile(nodeMap, settingsFilePath);
+                    ApplySpinnakerCsvSettingsFile(nodeMap, settingsFilePath);
                 } else {
                     ApplyDefaultSettings(nodeMap);
                 }
@@ -340,19 +340,19 @@ bool CameraLogger::ApplySpinnakerCsvSettingsFile(INodeMap & nodeMap, const strin
         }
         
         if (nodeType == "enum") {
-            result = result && ApplySpinnakerEnumOption(nodemap, nodeName, valueStr);
+            result = result && ApplySpinnakerEnumOption(nodeMap, nodeName, valueStr);
         } else if (nodeType == "string") {
-            result = result && ApplySpinnakerStringOption(nodemap, nodeName, valueStr);
+            result = result && ApplySpinnakerStringOption(nodeMap, nodeName, valueStr);
         } else if (nodeType == "integer") {
             stringstream valueStream(valueStr);
             int value;
             valueStream >> value;
-            result = result && ApplySpinnakerIntOption(nodemap, nodeName, value);
+            result = result && ApplySpinnakerIntOption(nodeMap, nodeName, value);
         } else if (nodeType == "float") {
             stringstream valueStream(valueStr);
             double value;
             valueStream >> value;
-            result = result && ApplySpinnakerFloatOption(nodemap, nodeName, value);
+            result = result && ApplySpinnakerFloatOption(nodeMap, nodeName, value);
         } else {
             cout << "Unrecognized node type: " << nodeType << " on line " << lineNum << endl;
             result = false;
