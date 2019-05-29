@@ -79,9 +79,9 @@ int main(int argc, char** argv)
     
     list<const Benchmarker *> allBms;
     Benchmarker bmWholeFrame("Entire frame");
-    Benchmarker bmSync("Sync filesystem");
+    // Benchmarker bmSync("Sync filesystem");
     allBms.push_back(&bmWholeFrame);
-    allBms.push_back(&bmSync);
+    // allBms.push_back(&bmSync);
 
     CameraLogger camLogger(recordingDir, imageFilenameFormat, extension, allBms);
     camLogger.initCamera(cameraSettingsPath);
@@ -91,9 +91,9 @@ int main(int argc, char** argv)
             
             camLogger.captureAndLogImage();
             
-            bmSync.start();
-            sync();
-            bmSync.end();
+            // bmSync.start();
+            // sync();
+            // bmSync.end();
             
             bmWholeFrame.end();
         }
