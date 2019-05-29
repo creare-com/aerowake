@@ -50,6 +50,8 @@ int main(int argc, char** argv)
     cmdOpts.add_option("-d", dirFormat, "Pattern specifying the directory at which to save the recording. Default: \"" + dirFormat + "\".  Will substitute flags found here: https://howardhinnant.github.io/date/date.html#to_stream_formatting.  '/' characters are directory separators.  If no leading '/', will be relative to working directory.  Avoid any characters not supported by the filesystem, such as colons.");
     string imageFilenameFormat = "img_%F_%H-%M-%S";
     cmdOpts.add_option("-i", imageFilenameFormat, "Pattern specifying the base filename for images captured from camera. Default: \"" + imageFilenameFormat + "\".  Will substitute flags found here: https://howardhinnant.github.io/date/date.html#to_stream_formatting.  Extension will be supplied by another parameter.  Avoid any characters not supported by the filesystem, such as colons.");
+    string cameraSettingsPath = "camera_settings.csv";
+    cmdOpts.add_option("-c", cameraSettingsPath, "Path to camera settings file.  Default is " + cameraSettingsPath + ". Must follow a very specific CSV format - see example file.");
     CLI11_PARSE(cmdOpts, argc, argv); // This will exit if the user said "-h" or "--help"
     
     int result = 0;
@@ -69,9 +71,9 @@ int main(int argc, char** argv)
     allBms.push_back(&bmWholeFrame);
 
     CameraLogger camLogger(recordingDir, imageFilenameFormat, extension, allBms);
-    camLogger.initCamera();
+    camLogger.initCamera(cameraSettingsPath);
     cout << "Returned from initializing." << endl;
-
+    return 0;
     while(true) {
         bmWholeFrame.start();
         camLogger.captureAndLogImage();
