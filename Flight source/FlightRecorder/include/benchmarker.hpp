@@ -1,13 +1,13 @@
 /*
-	benchmarker.h
+	benchmarker.hpp
 	
 	Class for profiling/benchmarking.
 	
 	2017-2-28  JDW  Created.
 */
 
-#ifndef __PCG_BENCHMARKER_H__
-#define __PCG_BENCHMARKER_H__
+#ifndef __BENCHMARKER_HPP__
+#define __BENCHMARKER_HPP__
 
 
 #include <sstream>
@@ -61,4 +61,4 @@ public:
 	int getIterations() const { return numTimesRun; }
 };
 
-#endif // __PCG_BENCHMARKER_H__
+#endif // __BENCHMARKER_HPP__
