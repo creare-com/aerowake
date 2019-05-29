@@ -170,7 +170,8 @@ bool CameraLogger::initCamera(string settingsFilePath) {
                 }
                 cout << endl;
                 
-                PrintAllNodes(nodeMap);
+                // Shows available nodes.  Only really need this once per camera type.
+                // PrintAllNodes(nodeMap);
                 
                 if(settingsFilePath != "") {
                     ApplySpinnakerCsvSettingsFile(nodeMap, settingsFilePath);
@@ -346,22 +347,22 @@ bool CameraLogger::ApplySpinnakerCsvSettingsFile(INodeMap & nodeMap, const strin
         
         // cout << "Parsed. nodeName: '" << nodeName << "', nodeType: '" << nodeType << "', valueStr: '" << valueStr << "'." << endl;
         
-        if (nodeType == "enum") {
+        if (nodeType == "Enumeration") {
             result = ApplySpinnakerEnumOption(nodeMap, nodeName, valueStr) && result;
-        } else if (nodeType == "string") {
+        } else if (nodeType == "String") {
             result = ApplySpinnakerStringOption(nodeMap, nodeName, valueStr) && result;
-        } else if (nodeType == "integer") {
+        } else if (nodeType == "Integer") {
             stringstream valueStream(valueStr);
             int value;
             valueStream >> value;
             result = ApplySpinnakerIntOption(nodeMap, nodeName, value) && result;
-        } else if (nodeType == "float") {
+        } else if (nodeType == "Float") {
             stringstream valueStream(valueStr);
             double value;
             valueStream >> value;
             result = ApplySpinnakerFloatOption(nodeMap, nodeName, value) && result;
         } else {
-            cout << "Unrecognized node type: " << nodeType << " on line " << lineNum << endl;
+            cout << "Node type not presently supported: " << nodeType << " on line " << lineNum << endl;
             result = false;
         }
         
