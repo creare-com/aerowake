@@ -202,7 +202,7 @@ bool CameraLogger::initCamera(string settingsFilePath) {
  */
 bool CameraLogger::captureAndLogImage() {
               
-    cout << "Acquiring image" << endl;
+    // cout << "Acquiring image" << endl;
     try
     {
         //
@@ -267,7 +267,7 @@ bool CameraLogger::captureAndLogImage() {
             bmSave.start();
             // convertedImage->Save(filename.str().c_str());
             cv::imwrite(filename.str().c_str(), cvImg);
-            cout << "Image saved at " << filename.str() << endl;
+            // cout << "Image saved at " << filename.str() << endl;
             bmSave.end();
         }
 
@@ -283,7 +283,7 @@ bool CameraLogger::captureAndLogImage() {
         pResultImage->Release();
         bmRel.end();
 
-        cout << endl;
+        // cout << endl;
     }
     catch (Spinnaker::Exception &e)
     {
