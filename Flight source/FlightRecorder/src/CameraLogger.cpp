@@ -319,6 +319,9 @@ bool CameraLogger::ApplySpinnakerCsvSettingsFile(INodeMap & nodeMap, const strin
     int lineNum = 0;
     while(getline(infile, line)) {
         lineNum++; // Needs to be at the start so we can say "continue" later on
+        
+        // cout << "Parsing line " << lineNum << ": '" << line << "'." << endl;
+        
         stringstream row(line);
         string nodeName;
         string nodeType;
@@ -339,20 +342,22 @@ bool CameraLogger::ApplySpinnakerCsvSettingsFile(INodeMap & nodeMap, const strin
             continue;
         }
         
+        // cout << "Parsed. nodeName: '" << nodeName << "', nodeType: '" << nodeType << "', valueStr: '" << valueStr << "'." << endl;
+        
         if (nodeType == "enum") {
-            result = result && ApplySpinnakerEnumOption(nodeMap, nodeName, valueStr);
+            result = ApplySpinnakerEnumOption(nodeMap, nodeName, valueStr) && result;
         } else if (nodeType == "string") {
-            result = result && ApplySpinnakerStringOption(nodeMap, nodeName, valueStr);
+            result = ApplySpinnakerStringOption(nodeMap, nodeName, valueStr) && result;
         } else if (nodeType == "integer") {
             stringstream valueStream(valueStr);
             int value;
             valueStream >> value;
-            result = result && ApplySpinnakerIntOption(nodeMap, nodeName, value);
+            result = ApplySpinnakerIntOption(nodeMap, nodeName, value) && result;
         } else if (nodeType == "float") {
             stringstream valueStream(valueStr);
             double value;
             valueStream >> value;
-            result = result && ApplySpinnakerFloatOption(nodeMap, nodeName, value);
+            result = ApplySpinnakerFloatOption(nodeMap, nodeName, value) && result;
         } else {
             cout << "Unrecognized node type: " << nodeType << " on line " << lineNum << endl;
             result = false;
@@ -392,6 +397,7 @@ bool CameraLogger::ApplySpinnakerEnumOption(INodeMap & nodeMap, const string& no
         cout << "Error applying setting " << nodeName << " to camera: " << e.what() << endl;
         return false;
     }
+    
     // Success!
     return true;
 }
@@ -418,6 +424,7 @@ bool CameraLogger::ApplySpinnakerStringOption(INodeMap & nodeMap, const string& 
         cout << "Error applying setting " << nodeName << " to camera: " << e.what() << endl;
         return false;
     }
+
     // Success!
     return true;
 }
@@ -495,7 +502,6 @@ bool CameraLogger::ApplySpinnakerIntOption(INodeMap & nodeMap, const string& nod
     // Success!
     return true;
 }
-
 
 
 

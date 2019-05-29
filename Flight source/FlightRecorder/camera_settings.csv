@@ -1,8 +1,9 @@
-Gain,integer,-10
 GainAuto,enum,Off
-AcquisitionFrameRate,float,15
+Gain,integer,-10
 AcquisitionFrameRateAuto,enum,Off
+AcquisitionFrameRate,float,15
 ExposureAuto,enum,Off
-ExposureTime,float,0.015
 ExposureMode,enum,Timed
+ExposureTime,float,15
+ExposureCompensationAuto,enum,Off
 ExposureCompensation,float,-7.58496
