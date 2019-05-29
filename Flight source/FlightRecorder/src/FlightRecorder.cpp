@@ -72,7 +72,6 @@ int main(int argc, char** argv)
 
     CameraLogger camLogger(recordingDir, imageFilenameFormat, extension, allBms);
     camLogger.initCamera(cameraSettingsPath);
-    return 0;
 
     while(true) {
         bmWholeFrame.start();
