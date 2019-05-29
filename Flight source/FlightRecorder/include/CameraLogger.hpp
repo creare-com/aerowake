@@ -73,6 +73,7 @@ private:
     static bool ApplySpinnakerStringOption(INodeMap & nodeMap, const string& nodeName, const string& value);
     static bool ApplySpinnakerFloatOption(INodeMap & nodeMap, const string& nodeName, double value);
     static bool ApplySpinnakerIntOption(INodeMap & nodeMap, const string& nodeName, int value);
+    static bool PrintAllNodes(INodeMap & nodeMap);
     static cv::Mat cvMatFromSpinnakerImage(ImagePtr img);
 }; 
 

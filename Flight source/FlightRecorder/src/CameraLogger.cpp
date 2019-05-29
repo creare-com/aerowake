@@ -170,6 +170,8 @@ bool CameraLogger::initCamera(string settingsFilePath) {
                 }
                 cout << endl;
                 
+                PrintAllNodes(nodeMap);
+                
                 if(settingsFilePath != "") {
                     ApplySpinnakerCsvSettingsFile(nodeMap, settingsFilePath);
                 } else {
@@ -497,6 +499,30 @@ bool CameraLogger::ApplySpinnakerIntOption(INodeMap & nodeMap, const string& nod
     catch (Spinnaker::Exception &e)
     {
         cout << "Error applying setting " << nodeName << " to camera: " << e.what() << endl;
+        return false;
+    }
+    // Success!
+    return true;
+}
+
+bool CameraLogger::PrintAllNodes(INodeMap & nodeMap) {
+    try {
+        // vector<INode> nodeList;
+        NodeList_t nodeList;
+        nodeMap.GetNodes(nodeList);
+        
+        if(nodeList.size() > 0) {
+            cout << "Nodes in map:" << endl;
+            for(INode * node : nodeList) {
+                cout << "  " << node->GetName() << " (" << node->GetDisplayName() << "): " << node->GetDescription() << endl;
+            }
+        } else {
+            cout << "Got no nodes from nodemap." << endl;
+        }
+    }
+    catch (Spinnaker::Exception &e)
+    {
+        cout << "Error getting nodes: " << e.what() << endl;
         return false;
     }
     // Success!
