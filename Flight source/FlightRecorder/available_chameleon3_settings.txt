@@ -1,0 +1,1239 @@
+Application build date: May 29 2019 12:07:04
+
+Storing recording at: ./2019-05-29_12-07-52.433/
+Spinnaker library version: 1.23.0.27
+
+Found camera on USB Interface 0.
+Device serial number retrieved as 19105250
+
+Nodes in map:
+  Root (Root): Category    
+  AnalogControl (Analog Control): Category    Category that contains the analog control features.
+  DeviceControl (Device Control): Category    Category for device information and control.
+  AcquisitionControl (Acquisition Control): Category    Category for acquisition and trigger control features.
+  ImageFormatControl (Image Format Control): Category    Category for image format control features.
+  UserSetControl (User Set Control): Category    Category that contains the User Set control features.
+  DataFlashControl (Data Flash Control): Category    Category that controls access to the camera's onboard flash memory that is available for nonvolatile user data storage.
+  DigitalIOControl (Digital I/O Control): Category    Category that contains the digital input and output control features.
+  LUTControl (LUT Control ): Category    Category that includes the LUT control features.
+  TransportLayerControl (Transport Layer Control): Category    Category that contains the transport layer control features.
+  ChunkDataControl (Chunk Data Control): Category    Category that contains the Chunk Data control features.
+  EventControl (Event Control): Category    Category that contains Events which notify host that something has occurred.
+  RemoveParameterLimits (Remove Parameter Limits): Category    Category that removes parameter limits.
+  UserDefinedValues (User Defined Values): Category    Category that contains user defined values.
+  Device (Device): Port    
+  TLParamsLocked (TLParamsLocked): Integer    
+  NOT_TLParamsLocked (NOT_TLParamsLocked): Integer    
+  CamRegBaseAddress (CamRegBaseAddress): Integer    
+  SBRMOffset (SBRMOffset): Integer    
+  Fmt7RegBaseAddress (Fmt7RegBaseAddress): Integer    
+  GainSelector (Gain Selector): Enumeration    Selects which Gain is controlled by the various Gain features.
+  GainAuto (Gain Auto): Enumeration    Sets the automatic gain control (AGC) mode.
+  Gain (Gain): Float    Gain applied to the image in dB.
+  AutoGainLowerLimit (Auto Gain Lower Limit): Float    Lower limit of the Auto Gain (dB) parameter
+  AutoGainUpperLimit (Auto Gain Upper Limit): Float    Upper limit of the Auto Gain (dB) parameter
+  BlackLevel (Black Level): Float    Analog black level in percent.
+  BlackLevelAuto (Black Level Auto): Enumeration    Controls the mode for automatic black level adjustment. The exact algorithm used to implement this adjustment is device-specific.
+  BlackLevelClampingEnable (Black Level Clamping Enable): Boolean    Enable the black level auto clamping feature which performing dark current compensation
+  Gamma (Gamma): Float    Controls the gamma correction of pixel intensity.
+  GammaEnabled (Gamma Enabled): Boolean    Enables/disables gamma correction.
+  Sharpness (Sharpness): Integer    Sharpness of the image.
+  SharpnessEnabled (Sharpness Enabled): Boolean    Enables/disables sharpness adjustment.
+  SharpnessAuto (Sharpness Auto): Enumeration    Controls the mode for automatic sharpness adjustment.
+  Hue (Hue): Float    Hue of the image in degrees.
+  HueEnabled (Hue Enabled): Boolean    Enables/disables hue adjustment.
+  HueAuto (Hue Level Auto): Enumeration    Controls the mode for automatic hue level adjustment. The exact algorithm used to implement this adjustment is device-specific.
+  Saturation (Saturation): Float    Saturation of the image in percent.
+  SaturationEnabled (Saturation Enabled): Boolean    Enables/disables saturation adjustment.
+  SaturationAuto (Saturation Auto): Enumeration    Controls the mode for automatic saturation adjustment.
+  BalanceWhiteAuto (Balance White Auto): Enumeration    Balance White Auto is the 'automatic' counterpart of the manual white balance feature.
+  BalanceRatioSelector (Balance Ratio Selector): Enumeration    Selects a balance ratio to configure. Once a balance ratio control has been selected.
+  BalanceRatio (Balance Ratio): Float    This value sets the selected balance ratio control as an integer.
+  EnumEntry_GainSelector_All (All): EnumEntry    Gain will be applied to all channels or taps.
+  GainAutoInq_Bit (GainAutoInq_Bit): Integer    
+  GainAutoLocked_Int (GainAutoLocked_Int): Integer    
+  EnumEntry_GainAuto_Off (Off): EnumEntry    Gain is User controlled using Gain.
+  GainManualInq_Bit (GainManualInq_Bit): Integer    
+  EnumEntry_GainAuto_Once (Once): EnumEntry    Gain is automatically adjusted once by the device. Once it has converged, it automatically returns to the Off state.
+  GainOnceInq_Bit (GainOnceInq_Bit): Integer    
+  EnumEntry_GainAuto_Continuous (Continuous): EnumEntry    Gain is constantly adjusted by the device.
+  GainCtrlVal_Int (GainCtrlVal_Int): Integer    
+  GainCtrl_Reg (GainCtrl_Reg): Integer    
+  GainCtrlVal_Int_ConvertTo (GainCtrlVal_Int_ConvertTo): Integer    
+  GainCtrlVal_Int_ConvertFrom (GainCtrlVal_Int_ConvertFrom): Integer    
+  GainAbsCtrlInq_Bit (GainAbsCtrlInq_Bit): Integer    
+  GainManualCtrlLockedInq_Int (GainManualCtrlLockedInq_Int): Integer    
+  GainAbsVal_Reg (GainAbsVal_Reg): Float    
+  GainAbsMinInq_Float (GainAbsMinInq_Float): Float    
+  GainAbsMaxInq_Float (GainAbsMaxInq_Float): Float    
+  GainAbsMinInq_Reg (GainAbsMinInq_Reg): Float    
+  AutoGainLowerLimitVal_Reg (AutoGainLowerLimitVal_Reg): Float    
+  GainAbsMaxInq_Reg (GainAbsMaxInq_Reg): Float    
+  AutoGainUpperLimitVal_Reg (AutoGainUpperLimitVal_Reg): Float    
+  GainAutoCtrlLockedInq_Int (GainAutoCtrlLockedInq_Int): Integer    
+  AutoGainRangeMin_Reg (AutoGainRangeMin_Reg): Float    
+  AutoGainRangeMax_Reg (AutoGainRangeMax_Reg): Float    
+  BlackLevelClampingEnable_Imp (BlackLevelClampingEnable_Imp): Integer    
+  BlackLevelClampingEnable_Val (BlackLevelClampingEnable_Val): Integer    
+  BlackLevelAutoInq_Bit (BlackLevelAutoInq_Bit): Integer    
+  BlackLevelAutoLocked_Int (BlackLevelAutoLocked_Int): Integer    
+  EnumEntry_BlackLevelAuto_Off (Off): EnumEntry    
+  BlackLevelAbsCtrlInq_Bit (BlackLevelAbsCtrlInq_Bit): Integer    
+  EnumEntry_BlackLevelAuto_Once (Once): EnumEntry    
+  BlackLevelOnceInq_Bit (BlackLevelOnceInq_Bit): Integer    
+  EnumEntry_BlackLevelAuto_Continuous (Continuous): EnumEntry    
+  BlackLevelAuto_Int (BlackLevelAuto_Int): Integer    
+  BlackLevelCtrl_Reg (BlackLevelCtrl_Reg): Integer    
+  BlackLevelAuto_Int_ConvertTo (BlackLevelAuto_Int_ConvertTo): Integer    
+  BlackLevelAuto_Int_ConvertFrom (BlackLevelAuto_Int_ConvertFrom): Integer    
+  BlackLevelImplemented_Int (BlackLevelImplemented_Int): Integer    
+  BlackLevelLocked_Int (BlackLevelLocked_Int): Integer    
+  BlackLevelAbsVal_Reg (BlackLevelAbsVal_Reg): Float    
+  BlackLevelAbsMinInq_Reg (BlackLevelAbsMinInq_Reg): Float    
+  BlackLevelAbsMaxInq_Reg (BlackLevelAbsMaxInq_Reg): Float    
+  BlackLevelReadOutInq_Bit (BlackLevelReadOutInq_Bit): Integer    
+  BlackLevelManualInq_Bit (BlackLevelManualInq_Bit): Integer    
+  GammaImplemented_Int (GammaImplemented_Int): Integer    
+  GammaOnOffInq_Bit (GammaOnOffInq_Bit): Integer    
+  GammaLocked_Int (GammaLocked_Int): Integer    
+  GammaAbsVal_Reg (GammaAbsVal_Reg): Float    
+  GammaAbsMin_Reg (GammaAbsMin_Reg): Float    
+  GammaAbsMax_Reg (GammaAbsMax_Reg): Float    
+  GammaAbsInq_Bit (GammaAbsInq_Bit): Integer    
+  GammaReadOutInq_Bit (GammaReadOutInq_Bit): Integer    
+  GammaManualInq_Bit (GammaManualInq_Bit): Integer    
+  GammaCtrl_Reg (GammaCtrl_Reg): Integer    
+  GammaEnabled_Int (GammaEnabled_Int): Integer    
+  GammaEnabled_Int_ConvertTo (GammaEnabled_Int_ConvertTo): Integer    
+  GammaEnabled_Int_ConvertFrom (GammaEnabled_Int_ConvertFrom): Integer    
+  SharpnessOnOffInq_Bit (SharpnessOnOffInq_Bit): Integer    
+  SharpnessEnabled_Int (SharpnessEnabled_Int): Integer    
+  SharpnessCtrl_Reg (SharpnessCtrl_Reg): Integer    
+  SharpnessEnabled_Int_ConvertTo (SharpnessEnabled_Int_ConvertTo): Integer    
+  SharpnessEnabled_Int_ConvertFrom (SharpnessEnabled_Int_ConvertFrom): Integer    
+  SharpnessAutoInq_Bit (SharpnessAutoInq_Bit): Integer    
+  SharpnessAutoLocked_Int (SharpnessAutoLocked_Int): Integer    
+  EnumEntry_SharpnessAuto_Off (Off): EnumEntry    
+  SharpnessManualInq_Bit (SharpnessManualInq_Bit): Integer    
+  EnumEntry_SharpnessAuto_Once (Once): EnumEntry    
+  SharpnessOnceInq_Bit (SharpnessOnceInq_Bit): Integer    
+  EnumEntry_SharpnessAuto_Continuous (Continuous): EnumEntry    
+  SharpnessAutoCtrl_Int (SharpnessAutoCtrl_Int): Integer    
+  SharpnessAutoCtrl_Int_ConvertTo (SharpnessAutoCtrl_Int_ConvertTo): Integer    
+  SharpnessAutoCtrl_Int_ConvertFrom (SharpnessAutoCtrl_Int_ConvertFrom): Integer    
+  SharpnessPresInq_Bit (SharpnessPresInq_Bit): Integer    
+  SharpnessManualCtrlLockedInq_Int (SharpnessManualCtrlLockedInq_Int): Integer    
+  SharpnessVal_Reg (SharpnessVal_Reg): Integer    
+  SharpnessRawMinInq_Reg (SharpnessRawMinInq_Reg): Integer    
+  SharpnessRawMaxInq_Reg (SharpnessRawMaxInq_Reg): Integer    
+  HueEnabledImplemented_Int (HueEnabledImplemented_Int): Integer    
+  HueEnabled_Int (HueEnabled_Int): Integer    
+  HueAbsCtrlInq_Bit (HueAbsCtrlInq_Bit): Integer    
+  HueManualInq_Bit (HueManualInq_Bit): Integer    
+  HueAutoInq_Bit (HueAutoInq_Bit): Integer    
+  HueCtrl_Reg (HueCtrl_Reg): Integer    
+  HueEnabled_Int_ConvertTo (HueEnabled_Int_ConvertTo): Integer    
+  HueEnabled_Int_ConvertFrom (HueEnabled_Int_ConvertFrom): Integer    
+  HueAutoLocked_Int (HueAutoLocked_Int): Integer    
+  EnumEntry_HueAuto_Off (Off): EnumEntry    
+  EnumEntry_HueAuto_Once (Once): EnumEntry    
+  HueOnceInq_Bit (HueOnceInq_Bit): Integer    
+  EnumEntry_HueAuto_Continuous (Continuous): EnumEntry    
+  HueAuto_Int (HueAuto_Int): Integer    
+  HueAuto_Int_ConvertTo (HueAuto_Int_ConvertTo): Integer    
+  HueAuto_Int_ConvertFrom (HueAuto_Int_ConvertFrom): Integer    
+  HueImplemented_Int (HueImplemented_Int): Integer    
+  HueLocked_Int (HueLocked_Int): Integer    
+  HueAbsVal_Reg (HueAbsVal_Reg): Float    
+  HueAbsMinInq_Reg (HueAbsMinInq_Reg): Float    
+  HueAbsMaxInq_Reg (HueAbsMaxInq_Reg): Float    
+  HueReadOutInq_Bit (HueReadOutInq_Bit): Integer    
+  SaturationOnOffInq_Bit (SaturationOnOffInq_Bit): Integer    
+  SaturationEnabled_Int (SaturationEnabled_Int): Integer    
+  SaturationCtrl_Reg (SaturationCtrl_Reg): Integer    
+  SaturationEnabled_Int_ConvertTo (SaturationEnabled_Int_ConvertTo): Integer    
+  SaturationEnabled_Int_ConvertFrom (SaturationEnabled_Int_ConvertFrom): Integer    
+  SaturationAutoInq_Bit (SaturationAutoInq_Bit): Integer    
+  SaturationAutoLocked_Int (SaturationAutoLocked_Int): Integer    
+  EnumEntry_SaturationAuto_Off (Off): EnumEntry    
+  SaturationAbsCtrlInq_Bit (SaturationAbsCtrlInq_Bit): Integer    
+  EnumEntry_SaturationAuto_Once (Once): EnumEntry    
+  SaturationOnceInq_Bit (SaturationOnceInq_Bit): Integer    
+  EnumEntry_SaturationAuto_Continuous (Continuous): EnumEntry    
+  SaturationAuto_Int (SaturationAuto_Int): Integer    
+  SaturationAuto_Int_ConvertTo (SaturationAuto_Int_ConvertTo): Integer    
+  SaturationAuto_Int_ConvertFrom (SaturationAuto_Int_ConvertFrom): Integer    
+  SaturationManualCtrlLockedInq_Int (SaturationManualCtrlLockedInq_Int): Integer    
+  SaturationAbsVal_Reg (SaturationAbsVal_Reg): Float    
+  SaturationAbsMinInq_Reg (SaturationAbsMinInq_Reg): Float    
+  SaturationAbsMaxInq_Reg (SaturationAbsMaxInq_Reg): Float    
+  UserSetLoad_CtrlValueReg (UserSetLoad_CtrlValueReg): Integer    
+  GainPresInq_Bit (GainPresInq_Bit): Integer    
+  GainOnOffInq_Bit (GainOnOffInq_Bit): Integer    
+  RemoveLimits_Reg (RemoveLimits_Reg): Integer    
+  BlackLevelPresInq_Bit (BlackLevelPresInq_Bit): Integer    
+  BlackLevelOnOffInq_Bit (BlackLevelOnOffInq_Bit): Integer    
+  CurrentVideoMode_Reg (CurrentVideoMode_Reg): Integer    
+  PixelFormat (Pixel Format): Enumeration    Format of the pixel data.
+  OBCP_Enabled_Reg (OBCP_Enabled_Reg): Integer    
+  GammaPresInq_Bit (GammaPresInq_Bit): Integer    
+  GammaMinInq_Reg (GammaMinInq_Reg): Integer    
+  GammaMaxInq_Reg (GammaMaxInq_Reg): Integer    
+  HuePresInq_Bit (HuePresInq_Bit): Integer    
+  HueOnOffInq_Bit (HueOnOffInq_Bit): Integer    
+  SaturationPresInq_Bit (SaturationPresInq_Bit): Integer    
+  SaturationManualInq_Bit (SaturationManualInq_Bit): Integer    
+  SaturationRawMinInq_Reg (SaturationRawMinInq_Reg): Integer    
+  SaturationRawMaxInq_Reg (SaturationRawMaxInq_Reg): Integer    
+  SaturationVal_Reg (SaturationVal_Reg): Integer    
+  BalanceRatio_AbsPresence (BalanceRatio_AbsPresence): Integer    
+  BalanceWhiteAuto_InqAvailable (BalanceWhiteAuto_InqAvailable): Integer    
+  EnumEntry_BalanceWhiteAuto_Off (Off): EnumEntry    Disables the Balance White Auto function.
+  BalanceWhiteAuto_Off_InqAvailable (BalanceWhiteAuto_Off_InqAvailable): Integer    
+  EnumEntry_BalanceWhiteAuto_Once (Once): EnumEntry    Sets operation mode to 'once'.
+  BalanceWhiteAuto_Once_InqAvailable (BalanceWhiteAuto_Once_InqAvailable): Integer    
+  EnumEntry_BalanceWhiteAuto_Continuous (Continuous): EnumEntry    Sets operation mode to 'continuous'.
+  BalanceWhiteAuto_Continuous_InqAvailable (BalanceWhiteAuto_Continuous_InqAvailable): Integer    
+  BalanceWhiteAuto_CtrlValue_Calc (BalanceWhiteAuto_CtrlValue_Calc): Integer    
+  BalanceWhiteAuto_CtrlValue (BalanceWhiteAuto_CtrlValue): Integer    
+  BalanceWhiteAuto_CtrlValue_Calc_ConvertTo (BalanceWhiteAuto_CtrlValue_Calc_ConvertTo): Integer    
+  BalanceWhiteAuto_CtrlValue_Calc_ConvertFrom (BalanceWhiteAuto_CtrlValue_Calc_ConvertFrom): Integer    
+  BalanceRatioSelector_InqAvailable (BalanceRatioSelector_InqAvailable): Integer    
+  EnumEntry_BalanceRatioSelector_Red (Red): EnumEntry    This enumeration value selects the red balance ratio control for adjustment.
+  BalanceRatioSelector_Red_InqPresence (BalanceRatioSelector_Red_InqPresence): Integer    
+  EnumEntry_BalanceRatioSelector_Green (Green): EnumEntry    This enumeration value selects the green balance ratio control for adjustment.
+  BalanceRatioSelector_Green_InqPresence (BalanceRatioSelector_Green_InqPresence): Integer    
+  EnumEntry_BalanceRatioSelector_Blue (Blue): EnumEntry    This enumeration value selects the blue balance ratio control for adjustment.
+  BalanceRatioSelector_Blue_InqPresence (BalanceRatioSelector_Blue_InqPresence): Integer    
+  BalanceRatioSelector_CtrlValue (BalanceRatioSelector_CtrlValue): Integer    
+  BalanceRatio_InqAvailable (BalanceRatio_InqAvailable): Integer    
+  BalanceRatio_AbsLocked (BalanceRatio_AbsLocked): Integer    
+  BalanceRatioVal_Reg (BalanceRatioVal_Reg): Float    
+  BalanceRatioMin_Reg (BalanceRatioMin_Reg): Float    
+  BalanceRatioMax_Reg (BalanceRatioMax_Reg): Float    
+  BalanceRatio_AbsAvailable (BalanceRatio_AbsAvailable): Integer    
+  BalanceRatioSelector_InqPresence (BalanceRatioSelector_InqPresence): Integer    
+  BalanceWhiteAuto_OnOff_InqAvailable (BalanceWhiteAuto_OnOff_InqAvailable): Integer    
+  BalanceRatioVal_ColorReg (BalanceRatioVal_ColorReg): Integer    
+  DeviceVendorName (Vendor Name): String    Name of the manufacturer of the device.
+  DeviceModelName (Model Name): String    Model name of the device.
+  DeviceVersion (Device Version): String    Version of the device.
+  DeviceSerialNumber (Device Serial Number): String    Device serial number. This string is a unique identifier of the device.
+  DeviceID (Device ID): String    Device identifier (serial number).
+  DeviceUserID (Device User ID): String    User Defined Name.
+  DeviceGenCpVersionMajor (Device Gen Cp Version Major): Integer    Major version of the GenCP protocol supported by the device.
+  DeviceGenCPVersionMinor (Device Gen CP Version Minor): Integer    Minor version of the GenCP protocol supported by the device.
+  DeviceFamilyName (Family Name): String    Family name of the device.
+  U3VDeviceCapability (U3V Device Capability): Category    Describes Device Capability.
+  Timestamp (Timestamp): Integer    Reports the current value of the device timestamp counter (ns).
+  TimestampLatch (Timestamp Latch): Command    Latches the curretn device time into the timstamp register.
+  TimestampIncrement (Timestamp Increment): Integer    Indicates the timestamp increment in ns/tick.
+  pgrSensorDescription (Sensor Description): String    Description of the sensor of the device.
+  DeviceSVNVersion (Device SVN Version): String    SVN Version of the device.
+  DeviceFirmwareVersion (Device Firmware Version): String    Version of the firmware in the device.
+  DeviceScanType (Device Scan Type): Enumeration    Scan type of the sensor.
+  DeviceTemperature (Device Temperature): Float    Device temperature in degrees Celcius (C).
+  DeviceReset (Reset Device): Command    This is a command that immediately resets and reboots the device.
+  pgrDeviceUptime (Device Uptime): Integer    Time since the device was powered up.
+  AutoFunctionAOIsControl (Auto Function AOIs Control): Enumeration    ON or OFF for the feature of the Auto Function AOIs.
+  AutoFunctionAOIWidth (Width): Integer    Width of the auto function area of interest in pixels.
+  AutoFunctionAOIHeight (Height): Integer    Height of the auto function area of interest in pixels.
+  AutoFunctionAOIOffsetX (Offset X): Integer    Vertical offset from the origin to the auto function area of interest in pixels.
+  AutoFunctionAOIOffsetY (Offset Y): Integer    Horizontal offset from the origin to the auto function area of interest in pixels.
+  pgrDevicePowerSupplySelector (Device Power Supply Selector): Enumeration    Selects the power supply or source to control or read.
+  pgrPowerSourcePresent (Power Source Present): Enumeration    Indicates if the selected power source currently has power present.
+  pgrPowerSupplyEnable (Power Supply Enable): Enumeration    Enables or disables the selected power supply.
+  pgrPowerSupplyVoltage (Power Supply Voltage): Float    Indicates the current voltage of the selected power supply.
+  pgrPowerSupplyCurrent (Power Supply Current): Float    Indicates the output current of the selected power supply.
+  DeviceMaxThroughput (Device Max Throughput): Integer    Maximum bandwidth of the data  that can be streamed out of the device.
+  DeviceLinkThroughputLimit (Device Link Throughput Limit): Integer    Limits the maximum bandwidth of data that will be streamed out by the device.
+  TestPendingAck (Test Pending Ack): Integer    Test PENDING_ACK feature.
+  GenCPVersionMajor_Reg (GenCPVersionMajor_Reg): Integer    
+  GenCPVersionMinor_Reg (GenCPVersionMinor_Reg): Integer    
+  UserNameAvailable (User Name Available): Boolean    Set if User Defined Name available.
+  AccessPrivilegeAvailable (Access Privilege Available): Boolean    Set if Heartbeat/Access Privilege is available.
+  MessageChannelSupported (Message Channel Supported): Boolean    Set if the device supports a Message Channel.
+  TimestampSupported (Timestamp Supported): Boolean    Set if the device supports a timestamp register.
+  StringEncoding (String Encoding): Integer    String Encoding of the BRM.
+  FamilyRegisterAvailable (Family Register Available): Boolean    Set if the device supports the Family Name register.
+  SBRMSupported (SBRM Supported): Boolean    Set if the device supports a SBRM.
+  EndianessRegistersSupported (Endianess Registers Supported): Boolean    Set if the device supports the Protocol Endianess and Implementation Endianess registers.
+  WrittenLengthFieldSupported (Written Length Field Supported): Boolean    Set to 1 if the device sends the length_written field in the SCD section of the WriteMemAck command.
+  UserNameAvailable_Reg (UserNameAvailable_Reg): Integer    
+  AccessPrivilegeAvailable_Reg (AccessPrivilegeAvailable_Reg): Integer    
+  MessageChannelSupported_Reg (MessageChannelSupported_Reg): Integer    
+  TimestampSupported_Reg (TimestampSupported_Reg): Integer    
+  StringEncoding_Reg (StringEncoding_Reg): Integer    
+  FamilyRegisterAvailable_Reg (FamilyRegisterAvailable_Reg): Integer    
+  SBRMSupported_Reg (SBRMSupported_Reg): Integer    
+  EndianessRegistersSupported_Reg (EndianessRegistersSupported_Reg): Integer    
+  WrittenLengthFieldSupported_Reg (WrittenLengthFieldSupported_Reg): Integer    
+  Timestamp_reg (Timestamp_reg): Integer    
+  TimestampLatch_reg (TimestampLatch_reg): Integer    
+  TimestampIncrement_reg (TimestampIncrement_reg): Integer    
+  EnumEntry_DeviceScanType_Areascan (Areascan): EnumEntry    
+  TemperatureC_Float (TemperatureC_Float): Float    
+  Temperature_Reg (Temperature_Reg): Integer    
+  DeviceReset_InqPresenceReg (DeviceReset_InqPresenceReg): Integer    
+  DeviceReset_CtrlValueReg (DeviceReset_CtrlValueReg): Integer    
+  DeviceUptime_Reg (DeviceUptime_Reg): Integer    
+  AE_AOI_Implemented_Bit (AE_AOI_Implemented_Bit): Integer    
+  EnumEntry_AutoFunctionAOIsControl_Off (Off): EnumEntry    
+  EnumEntry_AutoFunctionAOIsControl_On (On): EnumEntry    
+  AE_AOI_OnOff_Int (AE_AOI_OnOff_Int): Integer    
+  AE_WidthCtrlVal_Reg (AE_WidthCtrlVal_Reg): Integer    
+  AE_WidthMax_Int (AE_WidthMax_Int): Integer    
+  AE_WidthInc_Int (AE_WidthInc_Int): Integer    
+  AE_HeightCtrlVal_Reg (AE_HeightCtrlVal_Reg): Integer    
+  AE_HeightMax_Int (AE_HeightMax_Int): Integer    
+  AE_HeightInc_Int (AE_HeightInc_Int): Integer    
+  AE_OffsetXCtrlVal_Reg (AE_OffsetXCtrlVal_Reg): Integer    
+  AE_OffsetXMax_Int (AE_OffsetXMax_Int): Integer    
+  AE_OffsetXInc_Int (AE_OffsetXInc_Int): Integer    
+  AE_OffsetYCtrlVal_Reg (AE_OffsetYCtrlVal_Reg): Integer    
+  AE_OffsetYMax_Int (AE_OffsetYMax_Int): Integer    
+  AE_OffsetYInc_Int (AE_OffsetYInc_Int): Integer    
+  AE_AOIRegBaseAddress (AE_AOIRegBaseAddress): Integer    
+  AE_AOIRegBaseAddr_Reg (AE_AOIRegBaseAddr_Reg): Integer    
+  AE_AOI_Control_Reg (AE_AOI_Control_Reg): Integer    
+  AE_AOI_OnOff_Int_ConvertTo (AE_AOI_OnOff_Int_ConvertTo): Integer    
+  AE_AOI_OnOff_Int_ConvertFrom (AE_AOI_OnOff_Int_ConvertFrom): Integer    
+  HeightMax_Reg (HeightMax_Reg): Integer    
+  AE_Vunit_Reg (AE_Vunit_Reg): Integer    
+  WidthMax_Reg (WidthMax_Reg): Integer    
+  AE_Hunit_Reg (AE_Hunit_Reg): Integer    
+  AE_Hposunit_Reg (AE_Hposunit_Reg): Integer    
+  AE_Vposunit_Reg (AE_Vposunit_Reg): Integer    
+  DevicePowerSupply_Imp (DevicePowerSupply_Imp): Integer    
+  EnumEntry_pgrDevicePowerSupplySelector_External (External): EnumEntry    Power coming externally into the camera, often provided through the GPIO connector.
+  DevicePowerExt_Imp (DevicePowerExt_Imp): Integer    
+  EnumEntry_pgrDevicePowerSupplySelector_LinkPower (LinkPower): EnumEntry    Power coming to the camera over the link (typically USB or PoE).
+  DevicePowerLink_Imp (DevicePowerLink_Imp): Integer    
+  EnumEntry_pgrDevicePowerSupplySelector_Voltage5_0 (5.0 Volts): EnumEntry    Internally generated 5V rail.
+  DevicePowerV5_0_Imp (DevicePowerV5_0_Imp): Integer    
+  EnumEntry_pgrDevicePowerSupplySelector_Voltage3_3 (3.3 Volts): EnumEntry    Internally generated 3.3V rail.
+  DevicePowerV3_3_Imp (DevicePowerV3_3_Imp): Integer    
+  EnumEntry_pgrDevicePowerSupplySelector_CCD_Vpos (CCD Vpos): EnumEntry    Internally generated positive voltage.
+  DevicePowerCCDVpos_Imp (DevicePowerCCDVpos_Imp): Integer    
+  EnumEntry_pgrDevicePowerSupplySelector_CCD_Vneg (CCD Vneg): EnumEntry    Internally generated negative voltage.
+  DevicePowerCCDVneg_Imp (DevicePowerCCDVneg_Imp): Integer    
+  EnumEntry_pgrDevicePowerSupplySelector_SensorPower (Sensor Power): EnumEntry    Internally generated sensor power.
+  DevicePowerSensor_Imp (DevicePowerSensor_Imp): Integer    
+  PowerSupplySelector_Val (PowerSupplySelector_Val): Integer    
+  PwrSrc_Present_Available_Int (PwrSrc_Present_Available_Int): Integer    
+  EnumEntry_pgrPowerSourcePresent_False (False): EnumEntry    
+  EnumEntry_pgrPowerSourcePresent_True (True): EnumEntry    
+  PowerSourcePresent_Int (PowerSourcePresent_Int): Integer    
+  PwrSrc_Enable_Available_Int (PwrSrc_Enable_Available_Int): Integer    
+  EnumEntry_pgrPowerSupplyEnable_False (False): EnumEntry    
+  EnumEntry_pgrPowerSupplyEnable_True (True): EnumEntry    
+  PowerSupplyEnable_Int (PowerSupplyEnable_Int): Integer    
+  PwrSrc_Voltage_Available_Int (PwrSrc_Voltage_Available_Int): Integer    
+  PowerSupply_VoltVal_Reg (PowerSupply_VoltVal_Reg): Float    
+  PwrSrc_Current_Available_Int (PwrSrc_Current_Available_Int): Integer    
+  PowerSupply_CurVal_Reg (PowerSupply_CurVal_Reg): Float    
+  MaxThroughput_Bps (MaxThroughput_Bps): Integer    
+  MinThroughput_Bps (MinThroughput_Bps): Integer    
+  DeviceThroughputMax_Reg (DeviceThroughputMax_Reg): Integer    
+  DeviceThroughputMin_Reg (DeviceThroughputMin_Reg): Integer    
+  Binning_Reg (Binning_Reg): Integer    
+  Width (Width): Integer    Width of the image provided by the device (in pixels).
+  Height (Height): Integer    Height of the image provided by the device (in pixels).
+  Bandwidth_Bps_Int (Bandwidth_Bps_Int): Integer    
+  DeviceThroughput_Reg (DeviceThroughput_Reg): Integer    
+  Bandwidth_Bps_Int_ConvertTo (Bandwidth_Bps_Int_ConvertTo): Integer    
+  Bandwidth_Bps_Int_ConvertFrom (Bandwidth_Bps_Int_ConvertFrom): Integer    
+  TestPendingAck_Reg (TestPendingAck_Reg): Integer    
+  TriggerSelector (Trigger Selector): Enumeration    Selects the type of trigger to configure.
+  TriggerMode (Trigger Mode): Enumeration    Controls whether or not the selected trigger is active.
+  TriggerSoftware (Trigger Software): Command    Generates an internal trigger if Trigger Source is set to Software.
+  TriggerSource (Trigger Source): Enumeration    Specifies the internal signal or physical input line to use as the trigger source. The selected trigger must have its TriggerMode set to On.
+  TriggerActivation (Trigger Activation): Enumeration    Specifies the activation mode of the trigger.
+  TriggerOverlap (Trigger Overlap): Enumeration    Specifies the type trigger overlap permitted with the previous frame.
+  TriggerDelay (Trigger Delay): Float    Specifies the delay (in microseconds) to apply after the trigger reception before activating it.
+  TriggerDelayEnabled (Trigger Delay Enabled): Boolean    Specifies whether or not the Trigger Delay is enabled.
+  ExposureMode (Exposure Mode): Enumeration    Sets the operation mode of the Exposure (or shutter).
+  ExposureAuto (Exposure Auto): Enumeration    Sets the automatic exposure mode when Exposure Mode is Timed.
+  ExposureTime (Exposure Time): Float    Exposure time in microseconds when Exposure Mode is Timed and ExposureAuto is Off.
+  ExposureTimeAbs (Exposure Time Abs): Float    Exposure time in microseconds when Exposure Mode is Timed and ExposureAuto is Off.
+  AutoExposureTimeLowerLimit (Auto Exposure Lower Limit): Float    Lower limit of the Auto Exposure (us) parameter
+  AutoExposureTimeUpperLimit (Auto Exposure Upper Limit): Float    Upper limit of the Auto Exposure (us) parameter
+  pgrExposureCompensationAuto (Exposure Compensation Auto): Enumeration    Sets the automatic exposure compensation value mode.
+  pgrExposureCompensation (Exposure Compensation): Float    The measured or target image plane illuminance in EV.
+  pgrAutoExposureCompensationLowerLimit (Auto Exposure Compensation Lower Limit): Float    Lower limit of the auto exposure compensation value(EV) parameter
+  pgrAutoExposureCompensationUpperLimit (Auto Exposure Compensation Upper Limit): Float    Upper limit of the auto exposure compensation value(EV) parameter
+  AcquisitionMode (Acquisition Mode): Enumeration    Sets the acquisition mode of the device.
+  AcquisitionStart (Acquisition Start): Command    Starts the Acquisition of the device.
+  AcquisitionStop (Acquisition Stop): Command    Stops the acquisition of the device at the end of the current frame.
+  AcquisitionFrameRateAuto (Frame Rate Auto): Enumeration    Controls the mode for automatic frame rate adjustment.
+  AcquisitionFrameRateEnabled (Acquisition Frame Rate Control Enabled): Boolean    Enables manual control of the camera frame rate.
+  AcquisitionFrameRate (Acquisition Frame Rate): Float    Controls the acquisition rate (in Hertz) at which the frames are captured.
+  AcquisitionFrameCount (Acquisition Frame Count): Integer    Number of frames to acquire in multi-frame acquisition mode.
+  AcquisitionStatusSelector (Acquisition Status Selector): Enumeration    Selects the internal acquisition signal to read using AcquisitionStatus.
+  AcquisitionStatus (Acquisition Status): Boolean    Reads the state of the internal acquisition signal selected using AcquisitionStatusSelector.
+  SingleFrameAcquisitionMode (Single Frame Acquisition Mode): Enumeration    Selects type of single acquisition mode
+  TransmitFrameCount (Transmit Frame Count): Integer    Number of images transmitted from the camera.
+  pgrHDRModeEnabled (High Dynamic Range Mode Enabled): Boolean    Specifies whether or not the High Dynamic Range mode is enabled.
+  pgrHDRImageSelector (HDR Image Selector): Enumeration    Selects the HDR image.
+  pgrHDR_ExposureTimeAbs (HDR Exposure Time Abs): Float    Exposure time in microseconds of selected HDR image.
+  pgrHDR_GainAbs (HDR Gain Abs): Float    Gain applied to the HDR image in dB.
+  TriggerPresInq_Bit (TriggerPresInq_Bit): Integer    
+  EnumEntry_TriggerSelector_FrameStart (Frame Start): EnumEntry    
+  TriggerMode0Inq_Bit (TriggerMode0Inq_Bit): Integer    
+  EnumEntry_TriggerSelector_ExposureActive (Exposure Active): EnumEntry    
+  TriggerMode1Inq_Bit (TriggerMode1Inq_Bit): Integer    
+  TriggerSelector_Int (TriggerSelector_Int): Integer    
+  TriggerOverlap_Int (TriggerOverlap_Int): Integer    
+  TriggerModeCtrlVal_Reg (TriggerModeCtrlVal_Reg): Integer    
+  TriggerSelector_Int_ConvertTo (TriggerSelector_Int_ConvertTo): Integer    
+  TriggerSelector_Int_ConvertFrom (TriggerSelector_Int_ConvertFrom): Integer    
+  TriggerOnOffInq_Bit (TriggerOnOffInq_Bit): Integer    
+  EnumEntry_TriggerMode_Off (Off): EnumEntry    
+  EnumEntry_TriggerMode_On (On): EnumEntry    
+  TriggerModeOnOff_Bit (TriggerModeOnOff_Bit): Integer    
+  TriggerSourceSwInq_Bit (TriggerSourceSwInq_Bit): Integer    
+  TriggerSoftwareAvailInq_Int (TriggerSoftwareAvailInq_Int): Integer    
+  TriggerSoftwareCmd_Reg (TriggerSoftwareCmd_Reg): Integer    
+  TriggerSourceCtrlVal_Reg (TriggerSourceCtrlVal_Reg): Integer    
+  EnumEntry_TriggerSource_Software (Software): EnumEntry    
+  EnumEntry_TriggerSource_Line0 (Line 0): EnumEntry    
+  TriggerSource0Inq_Bit (TriggerSource0Inq_Bit): Integer    
+  EnumEntry_TriggerSource_Line1 (Line 1): EnumEntry    
+  TriggerSource1Inq_Bit (TriggerSource1Inq_Bit): Integer    
+  EnumEntry_TriggerSource_Line2 (Line 2): EnumEntry    
+  TriggerSource2Inq_Bit (TriggerSource2Inq_Bit): Integer    
+  EnumEntry_TriggerSource_Line3 (Line 3): EnumEntry    
+  TriggerSource3Inq_Bit (TriggerSource3Inq_Bit): Integer    
+  TriggerPolarityInq_Bit (TriggerPolarityInq_Bit): Integer    
+  EnumEntry_TriggerActivation_RisingEdge (Rising Edge): EnumEntry    
+  EnumEntry_TriggerActivation_FallingEdge (Falling Edge): EnumEntry    
+  TriggerPolarityCtrlVal_Reg (TriggerPolarityCtrlVal_Reg): Integer    
+  TriggerMode14Inq_Bit (TriggerMode14Inq_Bit): Integer    
+  TriggerOverlap_Available_Int (TriggerOverlap_Available_Int): Integer    
+  EnumEntry_TriggerOverlap_Off (Off): EnumEntry    No trigger overlap is permitted.
+  EnumEntry_TriggerOverlap_ReadOut (Read Out): EnumEntry    Trigger is accepted immediately after the exposure period.
+  TriggerOverlap_Int_ConvertTo (TriggerOverlap_Int_ConvertTo): Integer    
+  TriggerOverlap_Int_ConvertFrom (TriggerOverlap_Int_ConvertFrom): Integer    
+  TriggerDelayPresInq_Bit (TriggerDelayPresInq_Bit): Integer    
+  TriggerDelayValMicrosecs_Float (TriggerDelayValMicrosecs_Float): Float    
+  TriggerDelayMinMicrosecs_Float (TriggerDelayMinMicrosecs_Float): Float    
+  TriggerDelayMaxMicrosecs_Float (TriggerDelayMaxMicrosecs_Float): Float    
+  TriggerDelayAbsVal_Reg (TriggerDelayAbsVal_Reg): Float    
+  TriggerDelayValMicrosecs_Float_ConvertTo (TriggerDelayValMicrosecs_Float_ConvertTo): Float    
+  TriggerDelayValMicrosecs_Float_ConvertFrom (TriggerDelayValMicrosecs_Float_ConvertFrom): Float    
+  TriggerDelayAbsMin_Reg (TriggerDelayAbsMin_Reg): Float    
+  TriggerDelayAbsMax_Reg (TriggerDelayAbsMax_Reg): Float    
+  TriggerDelayOnOff_Int (TriggerDelayOnOff_Int): Integer    
+  TriggerDelay_Reg (TriggerDelay_Reg): Integer    
+  TriggerDelayOnOff_Int_ConvertTo (TriggerDelayOnOff_Int_ConvertTo): Integer    
+  TriggerDelayOnOff_Int_ConvertFrom (TriggerDelayOnOff_Int_ConvertFrom): Integer    
+  EnumEntry_ExposureMode_Timed (Timed): EnumEntry    
+  EnumEntry_ExposureMode_TriggerWidth (Trigger Width): EnumEntry    
+  ExposureMode_Int (ExposureMode_Int): Integer    
+  ExposureMode_Int_ConvertTo (ExposureMode_Int_ConvertTo): Integer    
+  ExposureMode_Int_ConvertFrom (ExposureMode_Int_ConvertFrom): Integer    
+  ExposurePresInq_Reg (ExposurePresInq_Reg): Integer    
+  ExposureAutoLock_Int (ExposureAutoLock_Int): Integer    
+  EnumEntry_ExposureAuto_Off (Off): EnumEntry    Exposure set to manual control.
+  ExposureAutoOffImp_Int (ExposureAutoOffImp_Int): Integer    
+  EnumEntry_ExposureAuto_Once (Once): EnumEntry    Exposure is automatically adjusted once, then returns to Off.
+  ExposureOnePushInq_Bit (ExposureOnePushInq_Bit): Integer    
+  EnumEntry_ExposureAuto_Continuous (Continuous): EnumEntry    Exposure is automatically adjusted by the camera
+  ExposureAutoInq_Bit (ExposureAutoInq_Bit): Integer    
+  ExposureAutoCtrl_Int (ExposureAutoCtrl_Int): Integer    
+  ExposureCtrl_Reg (ExposureCtrl_Reg): Integer    
+  ExposureAutoCtrl_Int_ConvertTo (ExposureAutoCtrl_Int_ConvertTo): Integer    
+  ExposureAutoCtrl_Int_ConvertFrom (ExposureAutoCtrl_Int_ConvertFrom): Integer    
+  ExposureManualInq_Bit (ExposureManualInq_Bit): Integer    
+  ExposureLocked_Int (ExposureLocked_Int): Integer    
+  ExposureUsCtrl_Float (ExposureUsCtrl_Float): Float    
+  ExposureMinAbsVal_Float (ExposureMinAbsVal_Float): Float    
+  ExposureMaxAbsVal_Float (ExposureMaxAbsVal_Float): Float    
+  ExposureAbsValueCtrl_Reg (ExposureAbsValueCtrl_Reg): Float    
+  ExposureUsCtrl_Float_ConvertTo (ExposureUsCtrl_Float_ConvertTo): Float    
+  ExposureUsCtrl_Float_ConvertFrom (ExposureUsCtrl_Float_ConvertFrom): Float    
+  ExposureMinUsInq_Float (ExposureMinUsInq_Float): Float    
+  AutoExposureLowerLimitVal_Float (AutoExposureLowerLimitVal_Float): Float    
+  ExposureMaxUsInq_Float (ExposureMaxUsInq_Float): Float    
+  AutoExposureUpperLimitVal_Float (AutoExposureUpperLimitVal_Float): Float    
+  ExposureAbsMinInq_Reg (ExposureAbsMinInq_Reg): Float    
+  ExposureMinUsInq_Float_ConvertTo (ExposureMinUsInq_Float_ConvertTo): Float    
+  ExposureMinUsInq_Float_ConvertFrom (ExposureMinUsInq_Float_ConvertFrom): Float    
+  ExposureAbsMaxInq_Reg (ExposureAbsMaxInq_Reg): Float    
+  ExposureMaxUsInq_Float_ConvertTo (ExposureMaxUsInq_Float_ConvertTo): Float    
+  ExposureMaxUsInq_Float_ConvertFrom (ExposureMaxUsInq_Float_ConvertFrom): Float    
+  ExposureRangeLocked_Int (ExposureRangeLocked_Int): Integer    
+  AutoExposureRangeMin_Float (AutoExposureRangeMin_Float): Float    
+  AutoExposureLowerLimitVal_Reg (AutoExposureLowerLimitVal_Reg): Float    
+  AutoExposureLowerLimitVal_Float_ConvertTo (AutoExposureLowerLimitVal_Float_ConvertTo): Float    
+  AutoExposureLowerLimitVal_Float_ConvertFrom (AutoExposureLowerLimitVal_Float_ConvertFrom): Float    
+  AutoExposureRangeMin_Reg (AutoExposureRangeMin_Reg): Float    
+  AutoExposureRangeMax_Float (AutoExposureRangeMax_Float): Float    
+  AutoExposureUpperLimitVal_Reg (AutoExposureUpperLimitVal_Reg): Float    
+  AutoExposureUpperLimitVal_Float_ConvertTo (AutoExposureUpperLimitVal_Float_ConvertTo): Float    
+  AutoExposureUpperLimitVal_Float_ConvertFrom (AutoExposureUpperLimitVal_Float_ConvertFrom): Float    
+  AutoExposureRangeMax_Reg (AutoExposureRangeMax_Reg): Float    
+  ExposureCompAutoInq_Bit (ExposureCompAutoInq_Bit): Integer    
+  EnumEntry_pgrExposureCompensationAuto_Off (Off): EnumEntry    
+  ExposureCompManualInq_Bit (ExposureCompManualInq_Bit): Integer    
+  EnumEntry_pgrExposureCompensationAuto_Once (Once): EnumEntry    
+  ExposureCompOnePushInq_Bit (ExposureCompOnePushInq_Bit): Integer    
+  EnumEntry_pgrExposureCompensationAuto_Continuous (Continuous): EnumEntry    
+  ExposureCompAutoCtrl_Int (ExposureCompAutoCtrl_Int): Integer    
+  ExposureCompCtrl_Reg (ExposureCompCtrl_Reg): Integer    
+  ExposureCompAutoCtrl_Int_ConvertTo (ExposureCompAutoCtrl_Int_ConvertTo): Integer    
+  ExposureCompAutoCtrl_Int_ConvertFrom (ExposureCompAutoCtrl_Int_ConvertFrom): Integer    
+  ExposureCompLocked_Int (ExposureCompLocked_Int): Integer    
+  ExposureCompAbsVal_Reg (ExposureCompAbsVal_Reg): Float    
+  ExposureCompAbsMinInq_Reg (ExposureCompAbsMinInq_Reg): Float    
+  ExposureCompAbsMaxInq_Reg (ExposureCompAbsMaxInq_Reg): Float    
+  ExposureCompRangeLocked_Int (ExposureCompRangeLocked_Int): Integer    
+  AutoExposureCompLowerLimitVal_Reg (AutoExposureCompLowerLimitVal_Reg): Float    
+  AutoExposureCompValueRangeMin_Reg (AutoExposureCompValueRangeMin_Reg): Float    
+  AutoExposureCompUpperLimitVal_Reg (AutoExposureCompUpperLimitVal_Reg): Float    
+  AutoExposureCompRangeMax_Reg (AutoExposureCompRangeMax_Reg): Float    
+  EnumEntry_AcquisitionMode_Continuous (Continuous): EnumEntry    
+  EnumEntry_AcquisitionMode_SingleFrame (SingleFrame): EnumEntry    
+  EnumEntry_AcquisitionMode_MultiFrame (MultiFrame): EnumEntry    
+  AcquisitionMode_Reg (AcquisitionMode_Reg): Integer    
+  AcquisitionStart_Reg (AcquisitionStart_Reg): Integer    
+  AcquisitionStop_Reg (AcquisitionStop_Reg): Integer    
+  AcqFrameRateAutoInq_Bit (AcqFrameRateAutoInq_Bit): Integer    
+  AcqFrameRateAutoLocked_Int (AcqFrameRateAutoLocked_Int): Integer    
+  EnumEntry_AcquisitionFrameRateAuto_Off (Off): EnumEntry    
+  AcqFrameRateImplemented_Int (AcqFrameRateImplemented_Int): Integer    
+  EnumEntry_AcquisitionFrameRateAuto_Once (Once): EnumEntry    
+  AcqFrameRateOnceInq_Bit (AcqFrameRateOnceInq_Bit): Integer    
+  EnumEntry_AcquisitionFrameRateAuto_Continuous (Continuous): EnumEntry    
+  AcqFrameRateAuto_Int (AcqFrameRateAuto_Int): Integer    
+  AcqFrameRateEnCtrlVal_Reg (AcqFrameRateEnCtrlVal_Reg): Integer    
+  AcqFrameRatePresInq_Bit (AcqFrameRatePresInq_Bit): Integer    
+  AcqFrameRateAbsCtrlInq_Bit (AcqFrameRateAbsCtrlInq_Bit): Integer    
+  AcqFrameRateAuto_Int_ConvertTo (AcqFrameRateAuto_Int_ConvertTo): Integer    
+  AcqFrameRateAuto_Int_ConvertFrom (AcqFrameRateAuto_Int_ConvertFrom): Integer    
+  AcqFrameRateEnAvail_Int (AcqFrameRateEnAvail_Int): Integer    
+  AcqFrameRateEnCtrlVal_Int (AcqFrameRateEnCtrlVal_Int): Integer    
+  AcqFrameRateEnCtrlVal_Int_ConvertTo (AcqFrameRateEnCtrlVal_Int_ConvertTo): Integer    
+  AcqFrameRateEnCtrlVal_Int_ConvertFrom (AcqFrameRateEnCtrlVal_Int_ConvertFrom): Integer    
+  AcqFrameRateAvail_Int (AcqFrameRateAvail_Int): Integer    
+  AcqFrameRateManualCtrlLockedInq_Int (AcqFrameRateManualCtrlLockedInq_Int): Integer    
+  AcqFrameRateCtrlVal_Reg (AcqFrameRateCtrlVal_Reg): Float    
+  AcqFrameRateMinInq_Reg (AcqFrameRateMinInq_Reg): Float    
+  AcqFrameRateMaxInq_Reg (AcqFrameRateMaxInq_Reg): Float    
+  AcqFrameRateReadOutInq_Bit (AcqFrameRateReadOutInq_Bit): Integer    
+  AcquisitionFrameCountAvailableInq_Int (AcquisitionFrameCountAvailableInq_Int): Integer    
+  AcquisitionFrameCount_Reg (AcquisitionFrameCount_Reg): Integer    
+  EnumEntry_AcquisitionStatusSelector_FrameTriggerWait (FrameTriggerWait): EnumEntry    
+  AcquisitionStatusSelector_Reg (AcquisitionStatusSelector_Reg): Integer    
+  AcquisitionStatus_Int (AcquisitionStatus_Int): Integer    
+  AcquisitionStatus_Reg (AcquisitionStatus_Reg): Integer    
+  EnumEntry_SingleFrameAcquisitionMode_FreeRunning (Free Running): EnumEntry    
+  EnumEntry_SingleFrameAcquisitionMode_Triggered (Triggered): EnumEntry    
+  SingleFrameAcquisitionMode_Reg (SingleFrameAcquisitionMode_Reg): Integer    
+  TransmitFrameCount_Imp (TransmitFrameCount_Imp): Integer    
+  TransmitFrameCount_Val (TransmitFrameCount_Val): Integer    
+  pgrHDR_PresInq_Bit (pgrHDR_PresInq_Bit): Integer    
+  pgrHDR_OnOff_Bit (pgrHDR_OnOff_Bit): Integer    
+  EnumEntry_pgrHDRImageSelector_Image1 (Image 1): EnumEntry    HDR image 1.
+  EnumEntry_pgrHDRImageSelector_Image2 (Image 2): EnumEntry    HDR image 2.
+  EnumEntry_pgrHDRImageSelector_Image3 (Image 3): EnumEntry    HDR image 3.
+  EnumEntry_pgrHDRImageSelector_Image4 (Image 4): EnumEntry    HDR image 4.
+  pgrHDR_ImageValue (pgrHDR_ImageValue): Integer    
+  pgrHDR_ShutterPresInq_Bit (pgrHDR_ShutterPresInq_Bit): Integer    
+  pgrHDR_ShutterUsAbsVal_Reg (pgrHDR_ShutterUsAbsVal_Reg): Float    
+  pgrHDR_ShutterAbsVal_Reg (pgrHDR_ShutterAbsVal_Reg): Float    
+  pgrHDR_ShutterUsAbsVal_Reg_ConvertTo (pgrHDR_ShutterUsAbsVal_Reg_ConvertTo): Float    
+  pgrHDR_ShutterUsAbsVal_Reg_ConvertFrom (pgrHDR_ShutterUsAbsVal_Reg_ConvertFrom): Float    
+  pgrHDR_GainPresInq_Bit (pgrHDR_GainPresInq_Bit): Integer    
+  pgrHDR_GainAbsVal_Reg (pgrHDR_GainAbsVal_Reg): Float    
+  pgrHDR_ImageRegOffset (pgrHDR_ImageRegOffset): Integer    
+  pgrHDR_ImageAbsRegOffset (pgrHDR_ImageAbsRegOffset): Integer    
+  LineMode (Line Mode): Enumeration    Controls whether the physical Line is used to Input or Output a signal.
+  TriggerMode2Inq_Bit (TriggerMode2Inq_Bit): Integer    
+  TriggerMode3Inq_Bit (TriggerMode3Inq_Bit): Integer    
+  TriggerMode4Inq_Bit (TriggerMode4Inq_Bit): Integer    
+  TriggerMode5Inq_Bit (TriggerMode5Inq_Bit): Integer    
+  TriggerMode15Inq_Bit (TriggerMode15Inq_Bit): Integer    
+  ExposureAbsCtrlInq_Bit (ExposureAbsCtrlInq_Bit): Integer    
+  ExposureCompPresInq_Reg (ExposureCompPresInq_Reg): Integer    
+  ExposureCompAbsCtrlInq_Bit (ExposureCompAbsCtrlInq_Bit): Integer    
+  AcqFrameRateOnOffInq_Bit (AcqFrameRateOnOffInq_Bit): Integer    
+  AcqFrameRateManualInq_Bit (AcqFrameRateManualInq_Bit): Integer    
+  PixelCoding (Pixel Coding): Enumeration    Coding of the pixels in the image.
+  OnBoardColorProcessEnabled (On Board Color Process Enabled): Boolean    Enables the on board color process for the sensor output image data.
+  OffsetX (Offset X): Integer    Vertical offset from the origin to the AOI (in pixels).
+  OffsetY (Offset Y): Integer    Horizontal offset from the origin to the AOI (in pixels).
+  SensorWidth (Sensor Width): Integer    Effective width of the sensor in pixels.
+  SensorHeight (Sensor Height): Integer    Effective height of the sensor in pixels.
+  SensorShutterMode (Sensor Shutter Mode): Enumeration    Sets the shutter mode of the type.
+  WidthMax (Max Width): Integer    Maximum width of the image (in pixels).
+  HeightMax (Max Height): Integer    Maximum height of the image (in pixels).
+  VideoMode (Video Mode): Enumeration    Current video mode.
+  BinningHorizontal (Binning Horizontal): Integer    Number of horizontal pixels to combine together.
+  BinningVertical (Binning Vertical): Integer    Number of vertical pixels to combine together.
+  BinningControl (Binning Control): Enumeration    Switchs between average binning and additive binning.
+  DecimationHorizontal (Decimation Horizontal): Integer    Horizontal sub-sampling of the image. This reduces the horizontal resolution (width) of the image by the specified horizontal decimation factor. A value of 1 indicates that the camera performs no horizontal decimation.
+  DecimationVertical (Decimation Vertical): Integer    Vertical sub-sampling of the image. This reduces the vertical resolution (height) of the image by the specified vertical decimation factor. A value of 1 indicates that the camera performs no vertical decimation.
+  ReverseX (Reverse X): Boolean    Flip horizontally the image sent by the device. The AOI is applied after the flip.
+  ReverseY (Reverse Y): Boolean    Flip vertically the image sent by the device. The Region of interest is applied after the flipping.
+  PixelSize (Pixel Size): Enumeration    Size of a pixel in bits.
+  PixelColorFilter (Pixel Color Filter): Enumeration    Type of color filter that is applied to the image.
+  PixelDynamicRangeMin (Pixel Dynamic Range Min): Integer    Indicates the minimum pixel value transferred from the camera.
+  PixelDynamicRangeMax (Pixel Dynamic Range Max): Integer    Indicates the maximum pixel value transferred from the camera.
+  TestImageSelector (Test Image Selector): Enumeration    Selects the type of test image that is sent by the camera.
+  TestPattern (Test Pattern): Enumeration    Selects the type of test pattern that is generated by the device as image source.
+  PixelDefectControl (PixelDefectControl): Category    
+  EnumEntry_PixelFormat_Mono8 (Mono 8): EnumEntry    Pixel format set to Mono 8.
+  Mono8Inq_Reg (Mono8Inq_Reg): Integer    
+  EnumEntry_PixelFormat_Mono12Packed (Mono 12 Packed (IIDC-msb)): EnumEntry    Pixel format set Mono 12 IIDC-msb Packed.
+  Mono12PackedInq_Reg (Mono12PackedInq_Reg): Integer    
+  EnumEntry_PixelFormat_Mono12p (Mono 12 Packed): EnumEntry    Pixel format set to 12-bit monochrome pixel lsb packed.
+  Mono12pInq_Reg (Mono12pInq_Reg): Integer    
+  EnumEntry_PixelFormat_Mono16 (Mono 16): EnumEntry    Pixel format set to Mono 16.
+  Mono16Inq_Reg (Mono16Inq_Reg): Integer    
+  EnumEntry_PixelFormat_BayerGR8 (Bayer GR 8): EnumEntry    Pixel format set to Bayer GR 8.
+  BayerGR8Inq_Reg (BayerGR8Inq_Reg): Integer    
+  EnumEntry_PixelFormat_BayerRG8 (Bayer RG 8): EnumEntry    Pixel format set to Bayer RG 8.
+  BayerRG8Inq_Reg (BayerRG8Inq_Reg): Integer    
+  EnumEntry_PixelFormat_BayerGB8 (Bayer GB 8): EnumEntry    Pixel format set to Bayer GB 8.
+  BayerGB8Inq_Reg (BayerGB8Inq_Reg): Integer    
+  EnumEntry_PixelFormat_BayerBG8 (Bayer BG 8): EnumEntry    Pixel format set to Bayer BG 8.
+  BayerBG8Inq_Reg (BayerBG8Inq_Reg): Integer    
+  EnumEntry_PixelFormat_BayerGR12p (BayerGR 12 Packed): EnumEntry    Pixel format set to 12-bit bayer GR lsb packed.
+  BayerGR12pInq_Reg (BayerGR12pInq_Reg): Integer    
+  EnumEntry_PixelFormat_BayerRG12p (BayerRG 12 Packed): EnumEntry    Pixel format set to 12-bit bayer RG lsb packed.
+  BayerRG12pInq_Reg (BayerRG12pInq_Reg): Integer    
+  EnumEntry_PixelFormat_BayerGB12p (BayerGB 12 Packed): EnumEntry    Pixel format set to 12-bit bayer GB lsb packed.
+  BayerGB12pInq_Reg (BayerGB12pInq_Reg): Integer    
+  EnumEntry_PixelFormat_BayerBG12p (BayerBG 12 Packed): EnumEntry    Pixel format set to 12-bit bayer BG lsb packed.
+  BayerBG12pInq_Reg (BayerBG12pInq_Reg): Integer    
+  EnumEntry_PixelFormat_BayerGR12Packed (BayerGR 12 Packed (IIDC-msb)): EnumEntry    Pixel format set BayerGR 12 IIDC-msb Packed.
+  BayerGR12PackedInq_Reg (BayerGR12PackedInq_Reg): Integer    
+  EnumEntry_PixelFormat_BayerRG12Packed (BayerRG 12 Packed (IIDC-msb)): EnumEntry    Pixel format set BayerRG 12 IIDC-msb Packed.
+  BayerRG12PackedInq_Reg (BayerRG12PackedInq_Reg): Integer    
+  EnumEntry_PixelFormat_BayerGB12Packed (BayerGB 12 Packed (IIDC-msb)): EnumEntry    Pixel format set BayerGB 12 IIDC-msb Packed.
+  BayerGB12PackedInq_Reg (BayerGB12PackedInq_Reg): Integer    
+  EnumEntry_PixelFormat_BayerBG12Packed (BayerBG 12 Packed (IIDC-msb)): EnumEntry    Pixel format set BayerBG 12 IIDC-msb Packed.
+  BayerBG12PackedInq_Reg (BayerBG12PackedInq_Reg): Integer    
+  EnumEntry_PixelFormat_BayerGR16 (BayerGR 16): EnumEntry    Pixel format set BayerGR 16.
+  BayerGR16Inq_Reg (BayerGR16Inq_Reg): Integer    
+  EnumEntry_PixelFormat_BayerRG16 (BayerRG 16): EnumEntry    Pixel format set BayerRG 16.
+  BayerRG16Inq_Reg (BayerRG16Inq_Reg): Integer    
+  EnumEntry_PixelFormat_BayerGB16 (BayerGB 16): EnumEntry    Pixel format set BayerGB 16.
+  BayerGB16Inq_Reg (BayerGB16Inq_Reg): Integer    
+  EnumEntry_PixelFormat_BayerBG16 (BayerBG 16): EnumEntry    Pixel format set BayerBG 16.
+  BayerBG16Inq_Reg (BayerBG16Inq_Reg): Integer    
+  EnumEntry_PixelFormat_YCbCr411_8_CbYYCrYY (YCbCr 411 8 (CbYYCrYY)): EnumEntry    Pixel format set to 8-bit YCbCr 4:1:1 (CbYYCrYY).
+  YUV411PackedInq_Reg (YUV411PackedInq_Reg): Integer    
+  EnumEntry_PixelFormat_YCbCr422_8_CbYCrY (YCbCr 422 8 (CbYCrY)): EnumEntry    Pixel format set to 8-bit Y'CbCr 4:2:2 (CbYCrY).
+  YUV422PackedInq_Reg (YUV422PackedInq_Reg): Integer    
+  EnumEntry_PixelFormat_YCbCr8_CbYCr (YCbCr 8 (CbYCr)): EnumEntry    Pixel format set to 8-bit YCbCr 4:4:4 (CbYCr).
+  YUV444PackedInq_Reg (YUV444PackedInq_Reg): Integer    
+  EnumEntry_PixelFormat_RGB8 (RGB 8): EnumEntry    Pixel format set RGB 8.
+  RGB8Inq_Reg (RGB8Inq_Reg): Integer    
+  PixelFormatCtrlVal_Int (PixelFormatCtrlVal_Int): Integer    
+  ColorFilterRG_Int (ColorFilterRG_Int): Integer    
+  ColorFilterBG_Int (ColorFilterBG_Int): Integer    
+  ColorFilterGB_Int (ColorFilterGB_Int): Integer    
+  ColorFilterGR_Int (ColorFilterGR_Int): Integer    
+  ColorCodingID_Reg (ColorCodingID_Reg): Integer    
+  PixelFormatCtrlVal_Int_ConvertTo (PixelFormatCtrlVal_Int_ConvertTo): Integer    
+  PixelFormatCtrlVal_Int_ConvertFrom (PixelFormatCtrlVal_Int_ConvertFrom): Integer    
+  Raw8Inq_Reg (Raw8Inq_Reg): Integer    
+  Raw16Inq_Reg (Raw16Inq_Reg): Integer    
+  Raw12PackedInq_Reg (Raw12PackedInq_Reg): Integer    
+  Raw12pInq_Reg (Raw12pInq_Reg): Integer    
+  ColorFilterId_Reg (ColorFilterId_Reg): Integer    
+  EnumEntry_PixelCoding_Mono (Mono): EnumEntry    
+  EnumEntry_PixelCoding_MonoSigned (MonoSigned): EnumEntry    
+  EnumEntry_PixelCoding_RGBPacked (RGB Packed): EnumEntry    
+  EnumEntry_PixelCoding_YUV411Packed (YUV 411 Packed): EnumEntry    
+  EnumEntry_PixelCoding_YUV422Packed (YUV 422 Packed): EnumEntry    
+  EnumEntry_PixelCoding_YUV444Packed (YUV 444 Packed): EnumEntry    
+  EnumEntry_PixelCoding_Raw (Raw): EnumEntry    
+  PixelCoding_Int (PixelCoding_Int): Integer    
+  SensorShutterModeInq_Pres (SensorShutterModeInq_Pres): Integer    
+  SensorShutterModeGlobal_Pres (SensorShutterModeGlobal_Pres): Integer    
+  SensorShutterModeRolling_Pres (SensorShutterModeRolling_Pres): Integer    
+  SensorShutterModeGlobalReset_Pres (SensorShutterModeGlobalReset_Pres): Integer    
+  SensorShutterMode_Val (SensorShutterMode_Val): Integer    
+  pgrDefectPixelCorrectionType (Defect Pixel Correction Type): Enumeration    Specifies the current defect pixel correction type.
+  pgrDefectPixelCorrectionEnable (Defect Pixel Correction Enable): Boolean    Enable or disable pixel correction.
+  pgrDefectPixelCorrectionTestMode (Defect Pixel Correction Test Mode): Enumeration    Controls whether or not the defect pixel correction test mode is active.
+  pgrCurrentCorrectedPixelCount (Current Corrected Pixel Count): Integer    Current number of pixels that are being corrected.
+  pgrCurrentCorrectedPixelIndex (Current Corrected Pixel Index): Integer    Control the index of the defected pixels to be corrected.
+  pgrCurrentCorrectedPixelOffsetX (Current Corrected Pixel Offset X): Integer    Control the X offset of the defect pixel specified by the index.
+  pgrCurrentCorrectedPixelOffsetY (Current Corrected Pixel Offset Y): Integer    Control the Y offset of the defect pixel specified by the index.
+  pgrCurrentCorrectedPixelSave (Current Corrected Pixel Save): Command    Save the Current Corrected Pixels to the non-volatile memory of the device.
+  OBCP_PresInq_Bit (OBCP_PresInq_Bit): Integer    
+  OBCP_AvailableInq_Bit (OBCP_AvailableInq_Bit): Integer    
+  OBCPLocked_Int (OBCPLocked_Int): Integer    
+  OBCPEnabled_Int (OBCPEnabled_Int): Integer    
+  OBCP_Raw8Inq_Bit (OBCP_Raw8Inq_Bit): Integer    
+  OBCP_Raw16Inq_Bit (OBCP_Raw16Inq_Bit): Integer    
+  OBCP_Raw12PackedInq_Bit (OBCP_Raw12PackedInq_Bit): Integer    
+  OBCP_Raw12PInq_Bit (OBCP_Raw12PInq_Bit): Integer    
+  OBCPEnabled_Int_ConvertTo (OBCPEnabled_Int_ConvertTo): Integer    
+  OBCPEnabled_Int_ConvertFrom (OBCPEnabled_Int_ConvertFrom): Integer    
+  SensorWidth_Reg (SensorWidth_Reg): Integer    
+  SensorHeight_Reg (SensorHeight_Reg): Integer    
+  EnumEntry_SensorShutterMode_Global (Global): EnumEntry    
+  EnumEntry_SensorShutterMode_Rolling (Rolling): EnumEntry    
+  EnumEntry_SensorShutterMode_GlobalReset (Global Reset): EnumEntry    
+  SensorShutterMode_Int (SensorShutterMode_Int): Integer    
+  SensorShutterMode_Int_ConvertTo (SensorShutterMode_Int_ConvertTo): Integer    
+  SensorShutterMode_Int_ConvertFrom (SensorShutterMode_Int_ConvertFrom): Integer    
+  WidthCtrlVal_Reg (WidthCtrlVal_Reg): Integer    
+  WidthInc_Int (WidthInc_Int): Integer    
+  WidthMax_Int (WidthMax_Int): Integer    
+  Hunit_Reg (Hunit_Reg): Integer    
+  OffsetXCtrlVal_Reg (OffsetXCtrlVal_Reg): Integer    
+  HeightCtrlVal_Reg (HeightCtrlVal_Reg): Integer    
+  HeightInc_Int (HeightInc_Int): Integer    
+  HeightMax_Int (HeightMax_Int): Integer    
+  Vunit_Reg (Vunit_Reg): Integer    
+  OffsetYCtrlVal_Reg (OffsetYCtrlVal_Reg): Integer    
+  OffsetXMax_Int (OffsetXMax_Int): Integer    
+  OffsetXInc_Int (OffsetXInc_Int): Integer    
+  Hposunit_Reg (Hposunit_Reg): Integer    
+  OffsetYMax_Int (OffsetYMax_Int): Integer    
+  OffsetYInc_Int (OffsetYInc_Int): Integer    
+  Vposunit_Reg (Vposunit_Reg): Integer    
+  EnumEntry_VideoMode_Mode0 (0): EnumEntry    
+  VideoMode0Inq_Bit (VideoMode0Inq_Bit): Integer    
+  EnumEntry_VideoMode_Mode1 (1): EnumEntry    
+  VideoMode1Inq_Bit (VideoMode1Inq_Bit): Integer    
+  EnumEntry_VideoMode_Mode2 (2): EnumEntry    
+  VideoMode2Inq_Bit (VideoMode2Inq_Bit): Integer    
+  EnumEntry_VideoMode_Mode3 (3): EnumEntry    
+  VideoMode3Inq_Bit (VideoMode3Inq_Bit): Integer    
+  EnumEntry_VideoMode_Mode4 (4): EnumEntry    
+  VideoMode4Inq_Bit (VideoMode4Inq_Bit): Integer    
+  EnumEntry_VideoMode_Mode5 (5): EnumEntry    
+  VideoMode5Inq_Bit (VideoMode5Inq_Bit): Integer    
+  EnumEntry_VideoMode_Mode6 (6): EnumEntry    
+  VideoMode6Inq_Bit (VideoMode6Inq_Bit): Integer    
+  EnumEntry_VideoMode_Mode7 (7): EnumEntry    
+  VideoMode7Inq_Bit (VideoMode7Inq_Bit): Integer    
+  EnumEntry_VideoMode_Mode8 (8): EnumEntry    
+  VideoMode8Inq_Bit (VideoMode8Inq_Bit): Integer    
+  EnumEntry_VideoMode_Mode9 (9): EnumEntry    
+  VideoMode9Inq_Bit (VideoMode9Inq_Bit): Integer    
+  EnumEntry_VideoMode_Mode10 (10): EnumEntry    
+  VideoMode10Inq_Bit (VideoMode10Inq_Bit): Integer    
+  EnumEntry_VideoMode_Mode11 (11): EnumEntry    
+  VideoMode11Inq_Bit (VideoMode11Inq_Bit): Integer    
+  EnumEntry_VideoMode_Mode12 (12): EnumEntry    
+  VideoMode12Inq_Bit (VideoMode12Inq_Bit): Integer    
+  EnumEntry_VideoMode_Mode13 (13): EnumEntry    
+  VideoMode13Inq_Bit (VideoMode13Inq_Bit): Integer    
+  EnumEntry_VideoMode_Mode14 (14): EnumEntry    
+  VideoMode14Inq_Bit (VideoMode14Inq_Bit): Integer    
+  EnumEntry_VideoMode_Mode15 (15): EnumEntry    
+  VideoMode15Inq_Bit (VideoMode15Inq_Bit): Integer    
+  BinningHorizontalLocked (BinningHorizontalLocked): Integer    
+  BinningCols_Int (BinningCols_Int): Integer    
+  BinningMaxCols_Int (BinningMaxCols_Int): Integer    
+  BinningCols_Reg (BinningCols_Reg): Integer    
+  BinningCols_Int_ConvertTo (BinningCols_Int_ConvertTo): Integer    
+  BinningCols_Int_ConvertFrom (BinningCols_Int_ConvertFrom): Integer    
+  BinningMaxCols_Reg (BinningMaxCols_Reg): Integer    
+  BinningRows_Int (BinningRows_Int): Integer    
+  BinningMaxRows_Int (BinningMaxRows_Int): Integer    
+  BinningRows_Int_ConvertTo (BinningRows_Int_ConvertTo): Integer    
+  BinningRows_Int_ConvertFrom (BinningRows_Int_ConvertFrom): Integer    
+  BinningMaxRows_Reg (BinningMaxRows_Reg): Integer    
+  BinningControl_Imp (BinningControl_Imp): Integer    
+  BinningControl_Avl (BinningControl_Avl): Integer    
+  EnumEntry_BinningControl_Additive (Additive): EnumEntry    
+  EnumEntry_BinningControl_Average (Average): EnumEntry    
+  BinningControl_Val (BinningControl_Val): Integer    
+  FPGABinning_Int (FPGABinning_Int): Integer    
+  Decimation_PresInq_Bit (Decimation_PresInq_Bit): Integer    
+  Decimation_Available_Bit (Decimation_Available_Bit): Integer    
+  DecimationHorizontalLocked (DecimationHorizontalLocked): Integer    
+  DecimationCols_Int (DecimationCols_Int): Integer    
+  DecimationMaxCols_Int (DecimationMaxCols_Int): Integer    
+  DecimationCols_Reg (DecimationCols_Reg): Integer    
+  DecimationCols_Int_ConvertTo (DecimationCols_Int_ConvertTo): Integer    
+  DecimationCols_Int_ConvertFrom (DecimationCols_Int_ConvertFrom): Integer    
+  DecimationMaxCols_Reg (DecimationMaxCols_Reg): Integer    
+  DecimationRows_Int (DecimationRows_Int): Integer    
+  DecimationMaxRows_Int (DecimationMaxRows_Int): Integer    
+  Decimation_Reg (Decimation_Reg): Integer    
+  DecimationRows_Int_ConvertTo (DecimationRows_Int_ConvertTo): Integer    
+  DecimationRows_Int_ConvertFrom (DecimationRows_Int_ConvertFrom): Integer    
+  DecimationMaxRows_Reg (DecimationMaxRows_Reg): Integer    
+  ReverseXInq_Reg (ReverseXInq_Reg): Integer    
+  ReverseXCtrlVal_Reg (ReverseXCtrlVal_Reg): Integer    
+  ReverseYInq_Reg (ReverseYInq_Reg): Integer    
+  ReverseYCtrlVal_Reg (ReverseYCtrlVal_Reg): Integer    
+  EnumEntry_PixelSize_Bpp8 (8 Bits/Pixel): EnumEntry    
+  EnumEntry_PixelSize_Bpp10 (10 Bits/Pixel): EnumEntry    
+  EnumEntry_PixelSize_Bpp12 (12 Bits/Pixel): EnumEntry    
+  EnumEntry_PixelSize_Bpp16 (16 Bits/Pixel): EnumEntry    
+  EnumEntry_PixelSize_Bpp24 (24 Bits/Pixel): EnumEntry    
+  EnumEntry_PixelSize_Bpp32 (32 Bits/Pixel): EnumEntry    
+  PixelSize_Int (PixelSize_Int): Integer    
+  EnumEntry_PixelColorFilter_BayerRG (BayerRG): EnumEntry    
+  EnumEntry_PixelColorFilter_BayerGB (BayerGB): EnumEntry    
+  EnumEntry_PixelColorFilter_BayerGR (BayerGR): EnumEntry    
+  EnumEntry_PixelColorFilter_BayerBG (BayerBG): EnumEntry    
+  EnumEntry_PixelColorFilter_None (None): EnumEntry    
+  pgrPixelDynamicRangeMin_Value (pgrPixelDynamicRangeMin_Value): Integer    
+  pgrPixelDynamicRangeMax_Value (pgrPixelDynamicRangeMax_Value): Integer    
+  pgrPixelDepth_Value (pgrPixelDepth_Value): Integer    
+  TestImageInq_Reg (TestImageInq_Reg): Integer    
+  EnumEntry_TestImageSelector_Off (Off): EnumEntry    
+  EnumEntry_TestImageSelector_TestImage1 (Test Image 1): EnumEntry    
+  EnumEntry_TestImageSelector_TestImage2 (Test Image 2): EnumEntry    
+  TestImageCtrlVal_Reg (TestImageCtrlVal_Reg): Integer    
+  EnumEntry_TestPattern_Off (Off): EnumEntry    Image is coming from the sensor.
+  EnumEntry_TestPattern_TestImage1 (Test Image 1): EnumEntry    
+  EnumEntry_TestPattern_TestImage2 (Test Image 2): EnumEntry    
+  PixelDefectCtrl_Imp (PixelDefectCtrl_Imp): Integer    
+  EnumEntry_pgrDefectPixelCorrectionType_FPGACorrection (FPGA Correction): EnumEntry    
+  EnumEntry_pgrDefectPixelCorrectionType_SensorCorrection (Sensor Correction): EnumEntry    
+  PixelDefectType_Int (PixelDefectType_Int): Integer    
+  PixelDefect_Locked_Int (PixelDefect_Locked_Int): Integer    
+  PixelDefectEnable_Int (PixelDefectEnable_Int): Integer    
+  PixelDefectEnable_Available_Int (PixelDefectEnable_Available_Int): Integer    
+  EnumEntry_pgrDefectPixelCorrectionTestMode_Off (Off): EnumEntry    
+  EnumEntry_pgrDefectPixelCorrectionTestMode_On (On): EnumEntry    
+  PixelDefectTestMode_Int (PixelDefectTestMode_Int): Integer    
+  PixelDefectCurCnt_Val (PixelDefectCurCnt_Val): Integer    
+  PixelDefectMax_Val (PixelDefectMax_Val): Integer    
+  PixelDefectIndex_Available_Int (PixelDefectIndex_Available_Int): Integer    
+  PixelDefectIndex_Val (PixelDefectIndex_Val): Integer    
+  PixelDefectIndexMax_Int (PixelDefectIndexMax_Int): Integer    
+  PixelDefectCur_X (PixelDefectCur_X): Integer    
+  PixelDefectOffsetXMax_Int (PixelDefectOffsetXMax_Int): Integer    
+  PixelDefectCur_Y (PixelDefectCur_Y): Integer    
+  PixelDefectOffsetYMax_Int (PixelDefectOffsetYMax_Int): Integer    
+  PixelDefectCtrl_Reg (PixelDefectCtrl_Reg): Integer    
+  PixelDefectSaveVal_Int (PixelDefectSaveVal_Int): Integer    
+  BinningRows_Reg (BinningRows_Reg): Integer    
+  DecimationRows_Reg (DecimationRows_Reg): Integer    
+  SensorBinning_Int (SensorBinning_Int): Integer    
+  PixelDefectCoordinateRegAddress (PixelDefectCoordinateRegAddress): Integer    
+  UserSetCurrent (Current User Set): Integer    Indicates the user set that is currently in use.  At initialization time, the camera loads the most recently saved user set.
+  UserSetSelector (User Set Selector): Enumeration    Selects the feature User Set to load, save or configure.
+  UserSetLoad (User Set Load): Command    Loads the User Set specified by UserSetSelector to the device and makes it active.
+  UserSetSave (User Set Save): Command    Save the User Set specified by UserSetSelector to the non-volatile memory of the device.
+  UserSetDefault (User Set Default): Enumeration    Selects the feature User Set to load and make active by default when the device is reset.
+  UserSetDefaultSelector (Default User Set): Enumeration    Selects the feature User Set to load, save or configure.
+  CurMemCh_Reg (CurMemCh_Reg): Integer    
+  UserSet1Implemented_Int (UserSet1Implemented_Int): Integer    
+  EnumEntry_UserSetSelector_Default (Default): EnumEntry    Factory default settings.
+  EnumEntry_UserSetSelector_UserSet1 (User Set 1): EnumEntry    Selects the user set 1.
+  EnumEntry_UserSetSelector_UserSet2 (User Set 2): EnumEntry    Selects the user set 2.
+  UserSet2Implemented_Int (UserSet2Implemented_Int): Integer    
+  UserSetVal_Int (UserSetVal_Int): Integer    
+  UserSetSaveLock_Int (UserSetSaveLock_Int): Integer    
+  MemorySave_Reg (MemorySave_Reg): Integer    
+  MemoryChannelMax_Reg (MemoryChannelMax_Reg): Integer    
+  MemSaveCh_Reg (MemSaveCh_Reg): Integer    
+  UserSetVal_Int_ConvertTo (UserSetVal_Int_ConvertTo): Integer    
+  UserSetVal_Int_ConvertFrom (UserSetVal_Int_ConvertFrom): Integer    
+  EnumEntry_UserSetDefault_Default (Default): EnumEntry    Select the factory setting user set.
+  UserSetSelector_Default_InqPresenceReg (UserSetSelector_Default_InqPresenceReg): Integer    
+  EnumEntry_UserSetDefault_UserSet1 (User Set 1): EnumEntry    Select the user set 1.
+  EnumEntry_UserSetDefault_UserSet2 (User Set 2): EnumEntry    Select the user set 2.
+  UserSetDefaultSelector_CtrlValueReg (UserSetDefaultSelector_CtrlValueReg): Integer    
+  EnumEntry_UserSetDefaultSelector_Default (Default): EnumEntry    Factory default settings.
+  EnumEntry_UserSetDefaultSelector_UserSet1 (User Set 1): EnumEntry    
+  EnumEntry_UserSetDefaultSelector_UserSet2 (User Set 2): EnumEntry    
+  DataFlashPageSize (Data Flash Page Size): Integer    Size of the data flash page.
+  DataFlashPageCount (Data Flash Page Count): Integer    Number of the data flash pages.
+  ActivePageNumber (Active Page Number): Integer    Control the number of the active data flash page.
+  ActivePageOffset (Active Page Offset): Integer    Control the offset of the coefficient to access in the active data flash page.
+  ActivePageValue (Active Page Value): Integer    Returns the value at entry ActivePageOffset of the active data flash page.
+  ActivePageSave (Active Page Save): Command    Save the data in the active page to the data flash.
+  DataFlashCtrl_Imp (DataFlashCtrl_Imp): Integer    
+  DataFlashPageSize_Int (DataFlashPageSize_Int): Integer    
+  DF_PageSizeDepth_Reg (DF_PageSizeDepth_Reg): Integer    
+  DataFlashPageCount_Int (DataFlashPageCount_Int): Integer    
+  DF_PageCountDepth_Reg (DF_PageCountDepth_Reg): Integer    
+  ActivePageNumber_Int (ActivePageNumber_Int): Integer    
+  ActivePageNumber_Max (ActivePageNumber_Max): Integer    
+  ActivePageOffset_Int (ActivePageOffset_Int): Integer    
+  ActivePageOffset_Max (ActivePageOffset_Max): Integer    
+  ActivePageValue_Reg (ActivePageValue_Reg): Integer    
+  DataFlashBaseAddress (DataFlashBaseAddress): Integer    
+  DataFlashBaseAddress_Reg (DataFlashBaseAddress_Reg): Integer    
+  DataFlashValue_Offset (DataFlashValue_Offset): Integer    
+  ActivePageSave_Reg (ActivePageSave_Reg): Integer    
+  LineSelector (Line Selector): Enumeration    Selects the physical line (or pin) of the external device connector to configure.
+  LineSource (Line Source): Enumeration    Selects which internal acquisition or I/O source signal to output on the selected line.
+  LineInverter (Line Inverter): Boolean    Controls the inversion of the signal of the selected input or output line.
+  StrobeDelay (Strobe Delay): Float    Sets the duration (in microseconds) of the delay before starting the Strobe Signal.
+  StrobeDuration (Strobe Duration): Float    Sets the duration (in microseconds) of the Strobe Signal.
+  LineDebouncerTimeRaw (Line Debouncer Time Raw): Integer    Sets the raw value of the selected line debouncer time in microseconds.
+  LineStatus (Line Status): Boolean    Returns the current status of the selected input or output Line.
+  LineStatusAll (Line Status All): Integer    Returns the current status of all available Line signals at time of polling in a single bitfield.
+  ExposureActiveMode (Exposure Active Mode): Enumeration    Control sensor active exposure type.
+  UserOutputSelector (User Output Selector): Enumeration    Selects the physical line (or pin) of the external device connector to configure.
+  UserOutputValue (User Output Value): Boolean    Sets the value of the bit to be output to the selected line.
+  V3_3Enable (3.3V Enable): Boolean    Internally generated 3.3V rail.
+  GPIOImplemented_Int (GPIOImplemented_Int): Integer    
+  EnumEntry_LineSelector_Line0 (Line 0): EnumEntry    
+  GPIOPin0PresInq_Bit (GPIOPin0PresInq_Bit): Integer    
+  EnumEntry_LineSelector_Line1 (Line 1): EnumEntry    
+  GPIOPin1PresInq_Bit (GPIOPin1PresInq_Bit): Integer    
+  EnumEntry_LineSelector_Line2 (Line 2): EnumEntry    
+  GPIOPin2PresInq_Bit (GPIOPin2PresInq_Bit): Integer    
+  EnumEntry_LineSelector_Line3 (Line 3): EnumEntry    
+  GPIOPin3PresInq_Bit (GPIOPin3PresInq_Bit): Integer    
+  LineSelected_Int (LineSelected_Int): Integer    
+  GPIOPinCount_Reg (GPIOPinCount_Reg): Integer    
+  GPIOCtrlPinRegBaseAddress (GPIOCtrlPinRegBaseAddress): Integer    
+  StrobeRegBaseAddress (StrobeRegBaseAddress): Integer    
+  StrobeRegOffset_Reg (StrobeRegOffset_Reg): Integer    
+  StrobeLineCntCtrlAddress (StrobeLineCntCtrlAddress): Integer    
+  StrobeLineCnt16Address (StrobeLineCnt16Address): Integer    
+  UserOutputPinRegBaseAddress (UserOutputPinRegBaseAddress): Integer    
+  UserOutputSelector_Int (UserOutputSelector_Int): Integer    
+  UserOutputStrobeCntCtrlAddress (UserOutputStrobeCntCtrlAddress): Integer    
+  GPIOPinPresInq_Bit (GPIOPinPresInq_Bit): Integer    
+  LineModeLocked_Int (LineModeLocked_Int): Integer    
+  EnumEntry_LineMode_Input (Input): EnumEntry    
+  LineModeInputAvailable_Int (LineModeInputAvailable_Int): Integer    
+  EnumEntry_LineMode_Output (Output): EnumEntry    
+  LineModeOutputAvailable_Int (LineModeOutputAvailable_Int): Integer    
+  LineMode_Int (LineMode_Int): Integer    
+  GPIOCtrlPin_Reg (GPIOCtrlPin_Reg): Integer    
+  GPIOPinMode_Reg (GPIOPinMode_Reg): Integer    
+  LineMode_Int_ConvertTo (LineMode_Int_ConvertTo): Integer    
+  LineMode_Int_ConvertFrom (LineMode_Int_ConvertFrom): Integer    
+  LineModeInput0Inq_Bit (LineModeInput0Inq_Bit): Integer    
+  LineModeInput1Inq_Bit (LineModeInput1Inq_Bit): Integer    
+  LineModeInput2Inq_Bit (LineModeInput2Inq_Bit): Integer    
+  LineModeInput3Inq_Bit (LineModeInput3Inq_Bit): Integer    
+  Strobe0Inq_Bit (Strobe0Inq_Bit): Integer    
+  Strobe1Inq_Bit (Strobe1Inq_Bit): Integer    
+  Strobe2Inq_Bit (Strobe2Inq_Bit): Integer    
+  Strobe3Inq_Bit (Strobe3Inq_Bit): Integer    
+  V3_3Enable_Imp (V3_3Enable_Imp): Integer    
+  V3_3Enable_Val (V3_3Enable_Val): Integer    
+  LineSourceAvailable_Int (LineSourceAvailable_Int): Integer    
+  EnumEntry_LineSource_ExposureActive (ExposureActive): EnumEntry    
+  LineSourceExposureActive_Int (LineSourceExposureActive_Int): Integer    
+  EnumEntry_LineSource_ExternalTriggerActive (ExternalTriggerActive): EnumEntry    
+  LineSourceExternalTriggerActive_Int (LineSourceExternalTriggerActive_Int): Integer    
+  EnumEntry_LineSource_UserOutput1 (UserOutput1): EnumEntry    
+  LineSourceUserOutput1_Int (LineSourceUserOutput1_Int): Integer    
+  EnumEntry_LineSource_UserOutput2 (UserOutput2): EnumEntry    
+  LineSourceUserOutput2_Int (LineSourceUserOutput2_Int): Integer    
+  EnumEntry_LineSource_UserOutput3 (UserOutput3): EnumEntry    
+  LineSourceUserOutput3_Int (LineSourceUserOutput3_Int): Integer    
+  LineSource_Int (LineSource_Int): Integer    
+  StrobeLinePolarity_Reg (StrobeLinePolarity_Reg): Integer    
+  StrobeLineOnOff_Bit (StrobeLineOnOff_Bit): Integer    
+  GPIOXtra_Reg (GPIOXtra_Reg): Integer    
+  LineSource_Int_ConvertTo (LineSource_Int_ConvertTo): Integer    
+  LineSource_Int_ConvertFrom (LineSource_Int_ConvertFrom): Integer    
+  LineInverterAvailable_Int (LineInverterAvailable_Int): Integer    
+  StrobeLinePolarity_Bit (StrobeLinePolarity_Bit): Integer    
+  StrobeEnabledAvailable_Int (StrobeEnabledAvailable_Int): Integer    
+  StrobeCntLock_Int (StrobeCntLock_Int): Integer    
+  StrobeDelayVal_Float (StrobeDelayVal_Float): Float    
+  StrobeAbsMin_Reg (StrobeAbsMin_Reg): Float    
+  StrobeAbsMax_Reg (StrobeAbsMax_Reg): Float    
+  StrobeLineDelay_Reg (StrobeLineDelay_Reg): Integer    
+  StrobeDelayVal_Float_ConvertTo (StrobeDelayVal_Float_ConvertTo): Float    
+  StrobeDelayVal_Float_ConvertFrom (StrobeDelayVal_Float_ConvertFrom): Float    
+  StrobeDurationVal_Float (StrobeDurationVal_Float): Float    
+  StrobeLineDuration_Reg (StrobeLineDuration_Reg): Integer    
+  StrobeDurationVal_Float_ConvertTo (StrobeDurationVal_Float_ConvertTo): Float    
+  StrobeDurationVal_Float_ConvertFrom (StrobeDurationVal_Float_ConvertFrom): Float    
+  LineDebouncerTimeRaw_InqPresence (LineDebouncerTimeRaw_InqPresence): Integer    
+  LineDebouncerTimeRaw_InqAvailable (LineDebouncerTimeRaw_InqAvailable): Integer    
+  LineDebouncerTimeRaw_CtrlValue (LineDebouncerTimeRaw_CtrlValue): Integer    
+  LineDebouncerTimeRaw_MinValue (LineDebouncerTimeRaw_MinValue): Integer    
+  LineDebouncerTimeRaw_MaxValue (LineDebouncerTimeRaw_MaxValue): Integer    
+  LineDebouncerTimeRaw_Ctrl_Reg (LineDebouncerTimeRaw_Ctrl_Reg): Integer    
+  LineDebouncerTimeRaw_LineSelect_Reg (LineDebouncerTimeRaw_LineSelect_Reg): Integer    
+  LineDebouncerTimeRaw_CtrlValue_ConvertTo (LineDebouncerTimeRaw_CtrlValue_ConvertTo): Integer    
+  LineDebouncerTimeRaw_CtrlValue_ConvertFrom (LineDebouncerTimeRaw_CtrlValue_ConvertFrom): Integer    
+  LineDebouncerTimeRaw_LineSelect_adrCalc (LineDebouncerTimeRaw_LineSelect_adrCalc): Integer    
+  LineStatusVal_Int (LineStatusVal_Int): Integer    
+  GPIOPinVal_Reg (GPIOPinVal_Reg): Integer    
+  Exposure_Active_Line1_Pres (Exposure_Active_Line1_Pres): Integer    
+  EnumEntry_ExposureActiveMode_Line1 (Line1): EnumEntry    
+  EnumEntry_ExposureActiveMode_AnyPixels (AnyPixels): EnumEntry    
+  Exposure_Active_AnyPixel_Pres (Exposure_Active_AnyPixel_Pres): Integer    
+  EnumEntry_ExposureActiveMode_AllPixels (AllPixels): EnumEntry    
+  Exposure_Active_AllPixel_Pres (Exposure_Active_AllPixel_Pres): Integer    
+  ExposureActiveMode_Int (ExposureActiveMode_Int): Integer    
+  EnumEntry_UserOutputSelector_UserOutputValue1 (UserOutputValue1): EnumEntry    
+  EnumEntry_UserOutputSelector_UserOutputValue2 (UserOutputValue2): EnumEntry    
+  EnumEntry_UserOutputSelector_UserOutputValue3 (UserOutputValue3): EnumEntry    
+  UserOutputValueAvailable_Int (UserOutputValueAvailable_Int): Integer    
+  UserOutputValue_Int (UserOutputValue_Int): Integer    
+  UserOutputPinMode_Reg (UserOutputPinMode_Reg): Integer    
+  UserOutputStrobeOnOff_Bit (UserOutputStrobeOnOff_Bit): Integer    
+  UserOutput_Reg (UserOutput_Reg): Integer    
+  UserOutputValue_Int_ConvertTo (UserOutputValue_Int_ConvertTo): Integer    
+  UserOutputValue_Int_ConvertFrom (UserOutputValue_Int_ConvertFrom): Integer    
+  LUTSelector (LUT Selector): Enumeration    This enumeration the lookup table (LUT) to configure. Once a LUT has been selected, all changes to the LUT settings will be applied to the selected LUT.
+  LUTEnable (LUT Enable): Boolean    Activates the selected LUT.
+  LUTIndex (LUT Index): Integer    Control the index (offset) of the coefficient to access in the selected LUT.
+  LUTValue (LUT Value): Integer    Returns the Value at entry LUTIndex of the LUT selected by LUTSelector.
+  LUTValueAll (LUT Value All): Register    Accesses the entire content of the selected LUT in one chunk access.
+  LUTCtrl_InqPresence_Bit (LUTCtrl_InqPresence_Bit): Integer    
+  LUTSelector_Avl (LUTSelector_Avl): Integer    
+  EnumEntry_LUTSelector_Luminance (Luminance): EnumEntry    Selects the Luminace LUT.
+  EnumEntry_LUTSelector_Red (Red): EnumEntry    Selects the Red LUT.
+  LUT_RGB_InqPresence_Bit (LUT_RGB_InqPresence_Bit): Integer    
+  EnumEntry_LUTSelector_Green (Green): EnumEntry    Selects the Green LUT.
+  EnumEntry_LUTSelector_Blue (Blue): EnumEntry    Selects the Blue LUT.
+  LUTSelector_CtrlValue (LUTSelector_CtrlValue): Integer    
+  LUT_ChannelNumber_Reg (LUT_ChannelNumber_Reg): Integer    
+  LUTRegBaseAddress (LUTRegBaseAddress): Integer    
+  LUTRegOffset_Reg (LUTRegOffset_Reg): Integer    
+  LUTEnable_InqPresence_Bit (LUTEnable_InqPresence_Bit): Integer    
+  LUTEnable_Avl (LUTEnable_Avl): Integer    
+  LUTEnable_CtrlValue (LUTEnable_CtrlValue): Integer    
+  LUTEnableCtrl_Reg (LUTEnableCtrl_Reg): Integer    
+  LUTEnable_CtrlValue_ConvertTo (LUTEnable_CtrlValue_ConvertTo): Integer    
+  LUTEnable_CtrlValue_ConvertFrom (LUTEnable_CtrlValue_ConvertFrom): Integer    
+  LUTIndex_Avl (LUTIndex_Avl): Integer    
+  LUTIndex_CtrlValue (LUTIndex_CtrlValue): Integer    
+  LUTIndex_InqMax (LUTIndex_InqMax): Integer    
+  LUT_InputDataBitDepth_Reg (LUT_InputDataBitDepth_Reg): Integer    
+  LUTValue_Avl (LUTValue_Avl): Integer    
+  LUTValue_CtrlValue (LUTValue_CtrlValue): Integer    LutValues
+  LUTValue_InqMax (LUTValue_InqMax): Integer    
+  LUTValueOffset_int (LUTValueOffset_int): Integer    
+  LUT_OutputDataBitDepth_Reg (LUT_OutputDataBitDepth_Reg): Integer    
+  LUTRegChannelBaseAddress (LUTRegChannelBaseAddress): Integer    
+  LUTValueAll_InqLen (LUTValueAll_InqLen): Integer    
+  LUTRegBankBaseAddress (LUTRegBankBaseAddress): Integer    
+  LUTBankOffset_Reg (LUTBankOffset_Reg): Integer    
+  LUTCtrl_InqAvailable_Bit (LUTCtrl_InqAvailable_Bit): Integer    
+  LUTCtrl_OnOffAvailable_Bit (LUTCtrl_OnOffAvailable_Bit): Integer    
+  PixelFormat_LUT_Enable (PixelFormat_LUT_Enable): Integer    
+  U3VMaxDeviceResponseTime (Max Response Time): Integer    Max Resonse Time in ms.
+  U3VDeviceConfigurationHigh (Device Configuration High): Integer    Describes Device Configuration.
+  U3VDeviceConfigurationLow (Device Configuration Low): Integer    Describes Device Configuration.
+  U3VMessageChannelID (Message Channel): Integer    Channel ID Used For The Message Channel.
+  U3VAccessPrivilege (Access Privilege): Integer    Access Privilege.
+  U3VVersionMajor (U3V Version Major): Integer    U3V Version.
+  U3VVersionMinor (U3V Version Minor): Integer    U3V Version.
+  U3VCPCapability (U3V Capability): Integer    Indicates additional features on the control channel.
+  U3VCPSIRMAvailable (U3V SIRM Available): Boolean    Set if the device supports at least one device streaming interface.
+  U3VCPEIRMAvailable (U3V EIRM Available): Boolean    Set if the device supports at least one device event interface.
+  U3VCPIIDC2Available (U3V IIDC2 Available): Boolean    Set if the device supports IIDC2 register map.
+  U3VCPCapabilityHigh (U3V Capability High): Integer    Indicates additional features on the control channel.
+  U3VCPCapabilityLow (U3V Capability Low): Integer    Indicates additional features on the control channel.
+  U3VCPConfigurationHigh (U3V Configuration High): Integer    Configure additional features on the control channel.
+  U3VCPConfigurationLow (U3V Configuration Low): Integer    Configures additional features on the control channel.
+  U3VMaxCommandTransferLength (Max Command Transfer Length): Integer    Specifies the max suuported command transfer length of the device.
+  U3VMaxAcknowledgeTransferLength (Max Ack Transfer Length): Integer    Specifies the max suuported ack transfer length of the device.
+  U3VNumberOfStreamChannels (Number of Stream Channels): Integer    Number of Stream Channels and its Corresponding Streaming Interface Register Maps.
+  U3VCurrentSpeed (Current Speed): Enumeration    Specifies the current speed of the USB link.
+  PayloadSize (Payload Size): Integer    Number of bytes transferred for each image or chunk on the stream channel.
+  TransmitFailureCount (Transmit Failure Count): Integer    Number of failed frame transmissions that have occurred since the last reset.
+  TransmitFailureCountReset (Transmit Failure Count Reset): Command    Reset the transmit failure count.
+  USB3LinkRecoveryCount (USB3 Link Recovery Count): Integer    USB3 Link Recovery Count.
+  U3VMaxResponseTime_Reg (U3VMaxResponseTime_Reg): Integer    
+  DeviceConfigurationHigh_Reg (DeviceConfigurationHigh_Reg): Integer    
+  DeviceConfigurationLow_Reg (DeviceConfigurationLow_Reg): Integer    
+  MessageChannelID_Reg (MessageChannelID_Reg): Integer    
+  AccessPrivilege_reg (AccessPrivilege_reg): Integer    
+  U3VVersionMajor_Reg (U3VVersionMajor_Reg): Integer    
+  U3VVersionMinor_Reg (U3VVersionMinor_Reg): Integer    
+  U3VCPSIRMAvailable_Reg (U3VCPSIRMAvailable_Reg): Integer    
+  U3VCPEIRMAvailable_Reg (U3VCPEIRMAvailable_Reg): Integer    
+  U3VCPIIDC2Available_Reg (U3VCPIIDC2Available_Reg): Integer    
+  U3VCPCapabilityHigh_Reg (U3VCPCapabilityHigh_Reg): Integer    
+  U3VCPCapabilityLow_Reg (U3VCPCapabilityLow_Reg): Integer    
+  U3VCPConfigurationHigh_Reg (U3VCPConfigurationHigh_Reg): Integer    
+  U3VCPConfigurationLow_Reg (U3VCPConfigurationLow_Reg): Integer    
+  MaxCommandTansferLength_Reg (MaxCommandTansferLength_Reg): Integer    
+  MaxAcknowledgeTansferLength_Reg (MaxAcknowledgeTansferLength_Reg): Integer    
+  NumberOfStreamChannels_Reg (NumberOfStreamChannels_Reg): Integer    
+  EnumEntry_U3VCurrentSpeed_LowSpeed (Low Speed): EnumEntry    
+  EnumEntry_U3VCurrentSpeed_FullSpeed (Full Speed): EnumEntry    
+  EnumEntry_U3VCurrentSpeed_HighSpeed (High Speed): EnumEntry    
+  EnumEntry_U3VCurrentSpeed_SuperSpeed (Super Speed): EnumEntry    
+  CurrentSpeed_Int (CurrentSpeed_Int): Integer    
+  CurrentSpeed_Reg (CurrentSpeed_Reg): Integer    
+  PayloadSizeVal_Reg (PayloadSizeVal_Reg): Integer    
+  TransmitFailureCount_Imp (TransmitFailureCount_Imp): Integer    
+  TransmitFailureCount_Reg (TransmitFailureCount_Reg): Integer    
+  ChunkModeActive_Reg (ChunkModeActive_Reg): Integer    
+  ChunkSelector_Reg (ChunkSelector_Reg): Integer    
+  USB3LinkRecoveryCount_Reg (USB3LinkRecoveryCount_Reg): Integer    
+  ChunkModeActive (Chunk Mode Active): Boolean    Activates the inclusion of Chunk data in the payload of the image
+  ChunkSelector (Chunk Selector): Enumeration    Selects which chunk data to enable or control
+  ChunkEnable (Chunk Enable): Boolean    Enables the inclusion of the selected Chunk data in the payload of the image.
+  ChunkImage (Image): Integer    Returns the image payload.
+  ChunkCRC (Image CRC): Integer    Returns the CRC of the image payload.
+  ChunkFrameCounter (Frame Counter): Integer    Returns the image count.
+  ChunkOffsetX (Offset X): Integer    Returns the Offset X of the image included in the payload.
+  ChunkOffsetY (Offset Y): Integer    Returns the Offset Y of the image included in the payload.
+  ChunkWidth (Width): Integer    Returns the width of the image.
+  ChunkHeight (Height): Integer    Returns the height of the image.
+  ChunkExposureTime (Exposure Time): Float    Returns the exposure time used to capture the image.
+  ChunkGain (Gain): Float    Returns the gain used to capture the image.
+  ChunkBlackLevel (Black Level): Float    Returns the black level used to capture the image.
+  ChunkPixelFormat (Pixel Format): Enumeration    This enumeration lists the pixel formats that can be indicated by the pixel format chunk.
+  ChunkPixelDynamicRangeMin (Minimum Pixel Dynamic Range): Integer    Returns the Minimum range of the pixel
+  ChunkPixelDynamicRangeMax (Maximum Pixel Dynamic Range): Integer    Returns the Maximum range of the pixel
+  ChunkTransmitFrameCount (Transmit Frame Count): Integer    Returns the number of images transmitted from the camera.
+  ChunkTimestamp (Image Timestamp): Integer    Returns the Timestamp of the image.
+  ChunkDataControl_Inq (ChunkDataControl_Inq): Integer    
+  EnumEntry_ChunkSelector_Image (Image): EnumEntry    
+  ChunkImageImplemented_Int (ChunkImageImplemented_Int): Integer    
+  EnumEntry_ChunkSelector_CRC (Image CRC): EnumEntry    
+  ChunkCRCImplemented_Int (ChunkCRCImplemented_Int): Integer    
+  EnumEntry_ChunkSelector_FrameCounter (Frame Counter): EnumEntry    
+  ChunkFrameCounterImplemented_Int (ChunkFrameCounterImplemented_Int): Integer    
+  EnumEntry_ChunkSelector_OffsetX (Offset X): EnumEntry    
+  ChunkOffsetXImplemented_Int (ChunkOffsetXImplemented_Int): Integer    
+  EnumEntry_ChunkSelector_OffsetY (Offset Y): EnumEntry    
+  ChunkOffsetYImplemented_Int (ChunkOffsetYImplemented_Int): Integer    
+  EnumEntry_ChunkSelector_Width (Width): EnumEntry    
+  ChunkWidthImplemented_Int (ChunkWidthImplemented_Int): Integer    
+  EnumEntry_ChunkSelector_Height (Height): EnumEntry    
+  ChunkHeightImplemented_Int (ChunkHeightImplemented_Int): Integer    
+  EnumEntry_ChunkSelector_ExposureTime (Exposure Time): EnumEntry    
+  ChunkExposureTimeImplemented_Int (ChunkExposureTimeImplemented_Int): Integer    
+  EnumEntry_ChunkSelector_Gain (Gain): EnumEntry    
+  ChunkGainImplemented_Int (ChunkGainImplemented_Int): Integer    
+  EnumEntry_ChunkSelector_BlackLevel (Black Level): EnumEntry    
+  ChunkBlackLevelImplemented_Int (ChunkBlackLevelImplemented_Int): Integer    
+  EnumEntry_ChunkSelector_PixelFormat (Pixel Format): EnumEntry    
+  ChunkPixelFormatImplemented_Int (ChunkPixelFormatImplemented_Int): Integer    
+  EnumEntry_ChunkSelector_DynamicPixelRangeMin (Pixel Dynamic Range Min): EnumEntry    
+  ChunkPixRangeMinImplemented_Int (ChunkPixRangeMinImplemented_Int): Integer    
+  EnumEntry_ChunkSelector_DynamicPixelRangeMax (Pixel Dynamic Range Max): EnumEntry    
+  ChunkPixRangeMaxImplemented_Int (ChunkPixRangeMaxImplemented_Int): Integer    
+  EnumEntry_ChunkSelector_TransmitFrameCount (Transmit Frame Count): EnumEntry    
+  ChunkTransmitFrameCountImplemented_Int (ChunkTransmitFrameCountImplemented_Int): Integer    
+  EnumEntry_ChunkSelector_Timestamp (Image Timestamp): EnumEntry    
+  ChunkTimestampImplemented_Int (ChunkTimestampImplemented_Int): Integer    
+  ChunkEnableLocked_Int (ChunkEnableLocked_Int): Integer    
+  ChunkEnable_Reg (ChunkEnable_Reg): Integer    
+  ChunkImage_Reg (ChunkImage_Reg): Integer    
+  ChunkCRC_Reg (ChunkCRC_Reg): Integer    
+  ChunkFrameCounter_Reg (ChunkFrameCounter_Reg): Integer    
+  ChunkOffsetX_Reg (ChunkOffsetX_Reg): Integer    
+  ChunkOffsetY_Reg (ChunkOffsetY_Reg): Integer    
+  ChunkWidth_Reg (ChunkWidth_Reg): Integer    
+  ChunkHeight_Reg (ChunkHeight_Reg): Integer    
+  ExposureTime_us (ExposureTime_us): Float    
+  ExposureTime_Reg (ExposureTime_Reg): Float    
+  Gain_Reg (Gain_Reg): Float    
+  BlackLevel_Reg (BlackLevel_Reg): Float    
+  EnumEntry_ChunkPixelFormat_Mono8 (Mono 8): EnumEntry    This enumeration value indicates that the pixel data in the acquired image is in the Mono 8 format.
+  EnumEntry_ChunkPixelFormat_Mono10 (Mono 10): EnumEntry    This enumeration value indicates that the pixel data in the acquired image is in the Mono 10 format.
+  EnumEntry_ChunkPixelFormat_Mono12 (Mono 12): EnumEntry    This enumeration value indicates that the pixel data in the acquired image is in the Mono 12 format.
+  EnumEntry_ChunkPixelFormat_Mono12Packed (Mono 12 Packed): EnumEntry    This enumeration value indicates that the pixel data in the acquired image is in the Mono 12 Packed format.
+  EnumEntry_ChunkPixelFormat_BayerGR8 (Bayer GR 8): EnumEntry    This enumeration value indicates that the pixel data in the acquired image is in the Bayer GR 8 format.
+  EnumEntry_ChunkPixelFormat_BayerRG8 (Bayer RG 8): EnumEntry    This enumeration value indicates that the pixel data in the acquired image is in the Bayer RG 8 format.
+  EnumEntry_ChunkPixelFormat_BayerGB8 (Bayer GB 8): EnumEntry    This enumeration value indicates that the pixel data in the acquired image is in the Bayer GB 8 format.
+  EnumEntry_ChunkPixelFormat_BayerBG8 (Bayer BG 8): EnumEntry    This enumeration value indicates that the pixel data in the acquired image is in the Bayer BG 8 format.
+  EnumEntry_ChunkPixelFormat_BayerGR12 (Bayer GR 12): EnumEntry    This enumeration value indicates that the pixel data in the acquired image is in the Bayer GR 12 format.
+  EnumEntry_ChunkPixelFormat_BayerRG12 (Bayer RG 12): EnumEntry    This enumeration value indicates that the pixel data in the acquired image is in the Bayer RG 12 format.
+  EnumEntry_ChunkPixelFormat_BayerGB12 (Bayer GB 12): EnumEntry    This enumeration value indicates that the pixel data in the acquired image is in the Bayer GB 12 format.
+  EnumEntry_ChunkPixelFormat_BayerBG12 (Bayer BG 12): EnumEntry    This enumeration value indicates that the pixel data in the acquired image is in the Bayer GB 12 format.
+  EnumEntry_ChunkPixelFormat_YUV422Packed (YUV 422 Packed): EnumEntry    This enumeration value indicates that the pixel data in the acquired image is in the YUV 422 Packed format.
+  EnumEntry_ChunkPixelFormat_YUV422_YUYV_Packed (YUV 422 (YUYV) Packed): EnumEntry    This enumeration value indicates that the pixel data in the acquired image is in the YUV 422 (YUYV) Packed format.
+  EnumEntry_ChunkPixelFormat_BayerGB12Packed (Bayer GB 12 Packed): EnumEntry    This enumeration value indicates that the pixel data in the acquired image is in the Bayer GB 12 Packed  format.
+  EnumEntry_ChunkPixelFormat_BayerGR12Packed (Bayer GR 12 Packed): EnumEntry    This enumeration value indicates that the pixel data in the acquired image is in the Bayer GR 12 Packed format.
+  EnumEntry_ChunkPixelFormat_BayerRG12Packed (Bayer RG 12 Packed): EnumEntry    This enumeration value indicates that the pixel data in the acquired image is in the Bayer RG 12 Packed format.
+  EnumEntry_ChunkPixelFormat_BayerBG12Packed (Bayer BG 12 Packed): EnumEntry    This enumeration value indicates that the pixel data in the acquired image is in the Bayer BG 12 Packed format.
+  PixelFormat_Reg (PixelFormat_Reg): Integer    
+  ChunkPixelDynamicRangeMin_Reg (ChunkPixelDynamicRangeMin_Reg): Integer    
+  ChunkPixelDynamicRangeMax_Reg (ChunkPixelDynamicRangeMax_Reg): Integer    
+  ChunkTransmitFrameCount_Reg (ChunkTransmitFrameCount_Reg): Integer    
+  Timestamp_Reg (Timestamp_Reg): Integer    
+  ImagePort (ImagePort): Port    
+  CRCPort (CRCPort): Port    
+  FrameCounterPort (FrameCounterPort): Port    
+  OffsetXPort (OffsetXPort): Port    
+  OffsetYPort (OffsetYPort): Port    
+  WidthPort (WidthPort): Port    
+  HeightPort (HeightPort): Port    
+  ExposureTimePort (ExposureTimePort): Port    
+  GainPort (GainPort): Port    
+  BlackLevelPort (BlackLevelPort): Port    
+  PixelFormatPort (PixelFormatPort): Port    
+  PixelDynamicRangeMinPort (PixelDynamicRangeMinPort): Port    
+  PixelDynamicRangeMaxPort (PixelDynamicRangeMaxPort): Port    
+  TransmitFrameCountPort (TransmitFrameCountPort): Port    
+  TimestampPort (TimestampPort): Port    
+  EventSelector (Event Selector): Enumeration    Selects which Event to enable or control
+  EventNotification (Event Notification): Enumeration    Enables/Disables event.
+  EventAcquisitionStartData (Event Acquisition Start Data): Category    Category that contains all the data features related to the AcquisitionStart Event.
+  EventAcquisitionEndData (Event Acquisition End Data): Category    Category that contains all the data features related to the AcquisitionEnd Event.
+  EventExposureEndData (Event Exposure End Data): Category    Category that contains all the data features related to the ExposureEnd Event.
+  TriggerEventTest (Trigger Event Test): Command    This command sends a test event.
+  EventTestData (Event Test Data): Category    Category that contains all the data features related to the Test Event.
+  EventExposureEnd (Event Exposure End): Integer    Returns the unique identifier of the ExposureEnd type of Event.
+  EventExposureEndTimestamp (Event Exposure End Timestamp): Integer    Returns the Timestamp of the ExposureEnd Event.
+  EventExposureEndFrameID (Event Exposure End Frame ID): Integer    Returns the unique Identifier of the Frame (or image) that generated the ExposureEnd Event.
+  EventAcquisitionEnd (Event Acquisition End): Integer    Returns the unique identifier of the AcquisitionEnd type of Event.
+  EventAcquisitionEndTimestamp (Event Acquisition End Timestamp): Integer    Returns the Timestamp of the AcquisitionEnd Event.
+  EventAcquisitionEndFrameID (Event Acquisition End Frame ID): Integer    Returns the unique Identifier of the Frame (or image) that generated the AcquisitionEnd Event.
+  EventAcquisitionStart (Event Acquisition Start): Integer    Returns the unique identifier of the AcquisitionStart type of Event.
+  EventAcquisitionStartTimestamp (Event Acquisition Start Timestamp): Integer    Returns the Timestamp of the AcquisitionStart Event.
+  EventAcquisitionStartFrameID (Event Acquisition Start Frame ID): Integer    Returns the unique Identifier of the Frame (or image) that generated the AcquisitionStart Event.
+  EventControl_Inq (EventControl_Inq): Integer    
+  EnumEntry_EventSelector_AcquisitionStart (Acquisition Start): EnumEntry    
+  EventAcquisitionStartInq_Bit (EventAcquisitionStartInq_Bit): Integer    
+  EnumEntry_EventSelector_AcquisitionEnd (Acquisition End): EnumEntry    
+  EventAcquisitionEndInq_Bit (EventAcquisitionEndInq_Bit): Integer    
+  EnumEntry_EventSelector_ExposureStart (Exposure Start): EnumEntry    
+  EventExposureStartInq_Bit (EventExposureStartInq_Bit): Integer    
+  EnumEntry_EventSelector_ExposureEnd (Exposure End): EnumEntry    
+  EventExposureEndInq_Bit (EventExposureEndInq_Bit): Integer    
+  EventSelector_Reg (EventSelector_Reg): Integer    
+  EnumEntry_EventNotification_On (On): EnumEntry    
+  EnumEntry_EventNotification_Off (Off): EnumEntry    
+  EventNotification_Reg (EventNotification_Reg): Integer    
+  EventAcquisitionStartPort (EventAcquisitionStartPort): Port    
+  EventAcquisitionEndPort (EventAcquisitionEndPort): Port    
+  EventAcquisitionStart_Reg (EventAcquisitionStart_Reg): Integer    
+  EventAcquisitionStartTimestamp_Reg (EventAcquisitionStartTimestamp_Reg): Integer    
+  EventAcquisitionStartFrameID_Reg (EventAcquisitionStartFrameID_Reg): Integer    
+  EventAcquisitionEnd_Reg (EventAcquisitionEnd_Reg): Integer    
+  EventAcquisitionEndTimestamp_Reg (EventAcquisitionEndTimestamp_Reg): Integer    
+  EventAcquisitionEndFrameID_Reg (EventAcquisitionEndFrameID_Reg): Integer    
+  EventExposureStartPort (EventExposureStartPort): Port    
+  EventExposureEndPort (EventExposureEndPort): Port    
+  EventExposureStart (Event Exposure Start): Integer    Returns the unique identifier of the ExposureStart type of Event.
+  EventExposureStart_Reg (EventExposureStart_Reg): Integer    
+  EventExposureStartTimestamp (Event Exposure Start Timestamp): Integer    Returns the Timestamp of the ExposureStart Event.
+  EventExposureStartTimestamp_Reg (EventExposureStartTimestamp_Reg): Integer    
+  EventExposureStartFrameID (Event Exposure Start Frame ID): Integer    Returns the unique Identifier of the Frame (or image) that generated the ExposureStart Event.
+  EventExposureStartFrameID_Reg (EventExposureStartFrameID_Reg): Integer    
+  EventExposureEnd_Reg (EventExposureEnd_Reg): Integer    
+  EventExposureEndTimestamp_Reg (EventExposureEndTimestamp_Reg): Integer    
+  EventExposureEndFrameID_Reg (EventExposureEndFrameID_Reg): Integer    
+  EventTest (Event Test): Integer    Returns the unique identifier of the ExposureEnd type of Event.
+  EventTestTimestamp (Event Test Timestamp): Integer    Returns the Timestamp of the ExposureEnd Event.
+  EventTestFrameID (Event Test Frame ID): Integer    Returns the unique Identifier of the Frame (or image) that generated the Test Event.
+  TestEventPort (TestEventPort): Port    
+  TriggerEventTest_Reg (TriggerEventTest_Reg): Integer    
+  EventTest_Reg (EventTest_Reg): Integer    
+  EventTestTimestamp_Reg (EventTestTimestamp_Reg): Integer    
+  EventTestFrameID_Reg (EventTestFrameID_Reg): Integer    
+  ParameterSelector (Parameter Selector): Enumeration    Selects which parameter whose limit will be removed.
+  RemoveLimits (Remove Limits): Boolean    Specifies whether or not the parameter limit is removed.
+  EnumEntry_ParameterSelector_Gain (Gain): EnumEntry    
+  ParameterSelector_Reg (ParameterSelector_Reg): Integer    
+  RemoveLimits_Int (RemoveLimits_Int): Integer    
+  RemoveLimits_Int_ConvertTo (RemoveLimits_Int_ConvertTo): Integer    
+  RemoveLimits_Int_ConvertFrom (RemoveLimits_Int_ConvertFrom): Integer    
+  UserDefinedValueSelector (User Defined Value Selector): Enumeration    Used to select from a set of user defined values
+  UserDefinedValue (User Defined Value): Integer    User defined value.
+  EnumEntry_UserDefinedValueSelector_Value1 (Value 1): EnumEntry    User defined value1.
+  EnumEntry_UserDefinedValueSelector_Value2 (Value 2): EnumEntry    User defined value2.
+  EnumEntry_UserDefinedValueSelector_Value3 (Value 3): EnumEntry    User defined value3.
+  EnumEntry_UserDefinedValueSelector_Value4 (Value 4): EnumEntry    User defined value4.
+  EnumEntry_UserDefinedValueSelector_Value5 (Value 5): EnumEntry    User defined value5.
+  UserDefinedValueSelector_Reg (UserDefinedValueSelector_Reg): Integer    
+  UserDefinedValue_Reg (UserDefinedValue_Reg): Integer    

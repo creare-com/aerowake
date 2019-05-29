@@ -170,6 +170,9 @@ bool CameraLogger::initCamera(string settingsFilePath) {
                 }
                 cout << endl;
                 
+                // Shows available nodes.  Only really need this once per camera type.
+                // PrintAllNodes(nodeMap);
+                
                 if(settingsFilePath != "") {
                     ApplySpinnakerCsvSettingsFile(nodeMap, settingsFilePath);
                 } else {
@@ -319,6 +322,9 @@ bool CameraLogger::ApplySpinnakerCsvSettingsFile(INodeMap & nodeMap, const strin
     int lineNum = 0;
     while(getline(infile, line)) {
         lineNum++; // Needs to be at the start so we can say "continue" later on
+        
+        // cout << "Parsing line " << lineNum << ": '" << line << "'." << endl;
+        
         stringstream row(line);
         string nodeName;
         string nodeType;
@@ -339,22 +345,24 @@ bool CameraLogger::ApplySpinnakerCsvSettingsFile(INodeMap & nodeMap, const strin
             continue;
         }
         
-        if (nodeType == "enum") {
-            result = result && ApplySpinnakerEnumOption(nodeMap, nodeName, valueStr);
-        } else if (nodeType == "string") {
-            result = result && ApplySpinnakerStringOption(nodeMap, nodeName, valueStr);
-        } else if (nodeType == "integer") {
+        // cout << "Parsed. nodeName: '" << nodeName << "', nodeType: '" << nodeType << "', valueStr: '" << valueStr << "'." << endl;
+        
+        if (nodeType == "Enumeration") {
+            result = ApplySpinnakerEnumOption(nodeMap, nodeName, valueStr) && result;
+        } else if (nodeType == "String") {
+            result = ApplySpinnakerStringOption(nodeMap, nodeName, valueStr) && result;
+        } else if (nodeType == "Integer") {
             stringstream valueStream(valueStr);
             int value;
             valueStream >> value;
-            result = result && ApplySpinnakerIntOption(nodeMap, nodeName, value);
-        } else if (nodeType == "float") {
+            result = ApplySpinnakerIntOption(nodeMap, nodeName, value) && result;
+        } else if (nodeType == "Float") {
             stringstream valueStream(valueStr);
             double value;
             valueStream >> value;
-            result = result && ApplySpinnakerFloatOption(nodeMap, nodeName, value);
+            result = ApplySpinnakerFloatOption(nodeMap, nodeName, value) && result;
         } else {
-            cout << "Unrecognized node type: " << nodeType << " on line " << lineNum << endl;
+            cout << "Node type not presently supported: " << nodeType << " on line " << lineNum << endl;
             result = false;
         }
         
@@ -392,6 +400,7 @@ bool CameraLogger::ApplySpinnakerEnumOption(INodeMap & nodeMap, const string& no
         cout << "Error applying setting " << nodeName << " to camera: " << e.what() << endl;
         return false;
     }
+    
     // Success!
     return true;
 }
@@ -418,6 +427,7 @@ bool CameraLogger::ApplySpinnakerStringOption(INodeMap & nodeMap, const string& 
         cout << "Error applying setting " << nodeName << " to camera: " << e.what() << endl;
         return false;
     }
+
     // Success!
     return true;
 }
@@ -496,6 +506,45 @@ bool CameraLogger::ApplySpinnakerIntOption(INodeMap & nodeMap, const string& nod
     return true;
 }
 
+bool CameraLogger::PrintAllNodes(INodeMap & nodeMap) {
+    try {
+        // vector<INode> nodeList;
+        NodeList_t nodeList;
+        nodeMap.GetNodes(nodeList);
+        
+        if(nodeList.size() > 0) {
+            cout << "Nodes in map:" << endl;
+            for(INode * node : nodeList) {
+                string typeStr = "?";
+                switch (node->GetPrincipalInterfaceType()) {
+                    case EInterfaceType::intfIValue        : typeStr = "Value"      ; break;
+                    case EInterfaceType::intfIBase         : typeStr = "Base"       ; break;
+                    case EInterfaceType::intfIInteger      : typeStr = "Integer"    ; break;
+                    case EInterfaceType::intfIBoolean      : typeStr = "Boolean"    ; break;
+                    case EInterfaceType::intfICommand      : typeStr = "Command"    ; break;
+                    case EInterfaceType::intfIFloat        : typeStr = "Float"      ; break;
+                    case EInterfaceType::intfIString       : typeStr = "String"     ; break;
+                    case EInterfaceType::intfIRegister     : typeStr = "Register"   ; break;
+                    case EInterfaceType::intfICategory     : typeStr = "Category"   ; break;
+                    case EInterfaceType::intfIEnumeration  : typeStr = "Enumeration"; break;
+                    case EInterfaceType::intfIEnumEntry    : typeStr = "EnumEntry"  ; break;
+                    case EInterfaceType::intfIPort         : typeStr = "Port"       ; break;
+                }
+                
+                cout << "  " << node->GetName() << " (" << node->GetDisplayName() << "): " << typeStr << "    " << node->GetDescription() << endl;
+            }
+        } else {
+            cout << "Got no nodes from nodemap." << endl;
+        }
+    }
+    catch (Spinnaker::Exception &e)
+    {
+        cout << "Error getting nodes: " << e.what() << endl;
+        return false;
+    }
+    // Success!
+    return true;
+}
 
 
 

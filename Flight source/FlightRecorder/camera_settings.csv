@@ -1,0 +1,9 @@
+GainAuto,Enumeration,Off
+Gain,Float,0
+AcquisitionFrameRateAuto,Enumeration,Off
+AcquisitionFrameRate,Float,15
+ExposureAuto,Enumeration,Off
+ExposureMode,Enumeration,Timed
+ExposureTime,Float,15000
+pgrExposureCompensationAuto,Enumeration,Off
+pgrExposureCompensation,Float,-7.58496
