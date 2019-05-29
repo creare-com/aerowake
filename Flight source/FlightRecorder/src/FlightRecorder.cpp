@@ -12,6 +12,7 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <net/if.h>
+#include <signal.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/types.h>
@@ -25,6 +26,15 @@
 
 using namespace std;
 using namespace std::chrono;
+
+static volatile sig_atomic_t caught_exit = 0;
+
+extern "C" void handle_signal(int sig) {
+    if(sig == SIGINT) {
+        caught_exit = 1;
+    }
+}
+
 
 // Iterate through allBms and write a summary of benchmarkers
 // to the console
@@ -55,6 +65,7 @@ int main(int argc, char** argv)
     CLI11_PARSE(cmdOpts, argc, argv); // This will exit if the user said "-h" or "--help"
     
     int result = 0;
+    signal(SIGINT, handle_signal);
     
     // Print application build information
     cout << "Application build date: " << __DATE__ << " " << __TIME__ << endl << endl;
@@ -68,17 +79,30 @@ int main(int argc, char** argv)
     
     list<const Benchmarker *> allBms;
     Benchmarker bmWholeFrame("Entire frame");
+    Benchmarker bmSync("Sync filesystem");
     allBms.push_back(&bmWholeFrame);
+    allBms.push_back(&bmSync);
 
     CameraLogger camLogger(recordingDir, imageFilenameFormat, extension, allBms);
     camLogger.initCamera(cameraSettingsPath);
-
-    while(true) {
-        bmWholeFrame.start();
-        camLogger.captureAndLogImage();
-        bmWholeFrame.end();
-        summarizeBenchmarksToLog(allBms);
+    try {
+        while(caught_exit == 0) {
+            bmWholeFrame.start();
+            
+            camLogger.captureAndLogImage();
+            
+            bmSync.start();
+            sync();
+            bmSync.end();
+            
+            bmWholeFrame.end();
+        }
+        cout << "Exiting." << endl;
+    } catch (Exception e) {
+        cout << "Error in main loop: " << e.what() << endl;
     }
+    sync();
+    summarizeBenchmarksToLog(allBms);
 
     return result;
 
