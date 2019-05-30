@@ -54,7 +54,7 @@ int main(int argc, char** argv)
     CLI::App cmdOpts{"Wake Swarm Flight data recorder"};
     
     // Command line options
-    string extension = "bmp";
+    string extension = "png";
     cmdOpts.add_option("-x", extension, "File format, as an extension, such as \"bmp\" or \"png\" (omit the quotes).  Default is \"" + extension + "\".  Must be supported by OpenCV's imwrite(). \"bmp\" is fast (10ms), \"png\" is compact.");
     string dirFormat = "./%F_%H-%M-%S";
     cmdOpts.add_option("-d", dirFormat, "Pattern specifying the directory at which to save the recording. Default: \"" + dirFormat + "\".  Will substitute flags found here: https://howardhinnant.github.io/date/date.html#to_stream_formatting.  '/' characters are directory separators.  If no leading '/', will be relative to working directory.  Avoid any characters not supported by the filesystem, such as colons.");
@@ -79,9 +79,9 @@ int main(int argc, char** argv)
     
     list<const Benchmarker *> allBms;
     Benchmarker bmWholeFrame("Entire frame");
-    // Benchmarker bmSync("Sync filesystem");
+    Benchmarker bmSync("Sync filesystem");
     allBms.push_back(&bmWholeFrame);
-    // allBms.push_back(&bmSync);
+    allBms.push_back(&bmSync);
 
     CameraLogger camLogger(recordingDir, imageFilenameFormat, extension, allBms);
     camLogger.initCamera(cameraSettingsPath);
@@ -91,9 +91,9 @@ int main(int argc, char** argv)
             
             camLogger.captureAndLogImage();
             
-            // bmSync.start();
-            // sync();
-            // bmSync.end();
+            bmSync.start();
+            sync();
+            bmSync.end();
             
             bmWholeFrame.end();
         }
