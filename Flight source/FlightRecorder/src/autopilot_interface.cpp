@@ -193,7 +193,6 @@ Autopilot_Interface(Serial_Port *serial_port_)
 	write_count = 0;
 
 	reading_status = 0;      // whether the read thread is running
-	writing_status = 0;      // whether the write thread is running
 	control_status = 0;      // whether the autopilot is in offboard control mode
 	time_to_exit   = false;  // flag to signal thread exit
 
@@ -378,9 +377,9 @@ read_messages()
 				;
 
 		// give the write thread time to use the port
-		if ( writing_status > false ) {
-			usleep(100); // look for components of batches at 10kHz
-		}
+		//if ( writing_status > false ) {
+		//	usleep(100); // look for components of batches at 10kHz
+		//}
 
 	} // end: while not received all
 
@@ -623,58 +622,7 @@ start()
 		printf("GOT AUTOPILOT COMPONENT ID: %i\n", autopilot_id);
 		printf("\n");
 	}
-    
-    // Skip the write thread for now
-	return;
 
-	// --------------------------------------------------------------------------
-	//   GET INITIAL POSITION
-	// --------------------------------------------------------------------------
-
-	// Wait for initial position ned
-	while ( not ( current_messages.time_stamps.local_position_ned &&
-				  current_messages.time_stamps.attitude            )  )
-	{
-		if ( time_to_exit )
-			return;
-		usleep(500000);
-	}
-
-	// copy initial position ned
-	Mavlink_Messages local_data = current_messages;
-	initial_position.x        = local_data.local_position_ned.x;
-	initial_position.y        = local_data.local_position_ned.y;
-	initial_position.z        = local_data.local_position_ned.z;
-	initial_position.vx       = local_data.local_position_ned.vx;
-	initial_position.vy       = local_data.local_position_ned.vy;
-	initial_position.vz       = local_data.local_position_ned.vz;
-	initial_position.yaw      = local_data.attitude.yaw;
-	initial_position.yaw_rate = local_data.attitude.yawspeed;
-
-	printf("INITIAL POSITION XYZ = [ %.4f , %.4f , %.4f ] \n", initial_position.x, initial_position.y, initial_position.z);
-	printf("INITIAL POSITION YAW = %.4f \n", initial_position.yaw);
-	printf("\n");
-
-	// we need this before starting the write thread
-
-
-	// --------------------------------------------------------------------------
-	//   WRITE THREAD
-	// --------------------------------------------------------------------------
-	printf("START WRITE THREAD \n");
-
-	result = pthread_create( &write_tid, NULL, &start_autopilot_interface_write_thread, this );
-	if ( result ) throw result;
-
-	// wait for it to be started
-	while ( not writing_status )
-		usleep(100000); // 10Hz
-
-	// now we're streaming setpoint commands
-	printf("\n");
-
-
-	// Done!
 	return;
 
 }
@@ -727,27 +675,6 @@ start_read_thread()
 }
 
 
-// ------------------------------------------------------------------------------
-//   Write Thread
-// ------------------------------------------------------------------------------
-void
-Autopilot_Interface::
-start_write_thread(void)
-{
-	if ( not writing_status == false )
-	{
-		fprintf(stderr,"write thread already running\n");
-		return;
-	}
-
-	else
-	{
-		write_thread();
-		return;
-	}
-
-}
-
 
 // ------------------------------------------------------------------------------
 //   Quit Handler
@@ -792,48 +719,6 @@ read_thread()
 }
 
 
-// ------------------------------------------------------------------------------
-//   Write Thread
-// ------------------------------------------------------------------------------
-void
-Autopilot_Interface::
-write_thread(void)
-{
-	// signal startup
-	writing_status = 2;
-
-	// prepare an initial setpoint, just stay put
-	mavlink_set_position_target_local_ned_t sp;
-	sp.type_mask = MAVLINK_MSG_SET_POSITION_TARGET_LOCAL_NED_VELOCITY &
-				   MAVLINK_MSG_SET_POSITION_TARGET_LOCAL_NED_YAW_RATE;
-	sp.coordinate_frame = MAV_FRAME_LOCAL_NED;
-	sp.vx       = 0.0;
-	sp.vy       = 0.0;
-	sp.vz       = 0.0;
-	sp.yaw_rate = 0.0;
-
-	// set position target
-	current_setpoint = sp;
-
-	// write a message and signal writing
-	write_setpoint();
-	writing_status = true;
-
-	// Pixhawk needs to see off-board commands at minimum 2Hz,
-	// otherwise it will go into fail safe
-	while ( !time_to_exit )
-	{
-		usleep(250000);   // Stream at 4Hz
-		write_setpoint();
-	}
-
-	// signal end
-	writing_status = false;
-
-	return;
-
-}
-
 // End Autopilot_Interface
 
 
@@ -853,19 +738,4 @@ start_autopilot_interface_read_thread(void *args)
 	// done!
 	return NULL;
 }
-
-void*
-start_autopilot_interface_write_thread(void *args)
-{
-	// takes an autopilot object argument
-	Autopilot_Interface *autopilot_interface = (Autopilot_Interface *)args;
-
-	// run the object's read thread
-	autopilot_interface->start_write_thread();
-
-	// done!
-	return NULL;
-}
-
-
 

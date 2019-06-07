@@ -60,8 +60,11 @@
 #include <signal.h>
 #include <time.h>
 #include <sys/time.h>
+#include <atomic>
 
 #include <common/mavlink.h>
+
+using namespace std;
 
 // ------------------------------------------------------------------------------
 //   Defines
@@ -101,7 +104,7 @@
  *     MAVLINK_MSG_SET_POSITION_TARGET_LOCAL_NED_YAW_ANGLE;
  */
 
-                                                // bit number  876543210987654321
+												// bit number  876543210987654321
 #define MAVLINK_MSG_SET_POSITION_TARGET_LOCAL_NED_POSITION     0b0000110111111000
 #define MAVLINK_MSG_SET_POSITION_TARGET_LOCAL_NED_VELOCITY     0b0000110111000111
 #define MAVLINK_MSG_SET_POSITION_TARGET_LOCAL_NED_ACCELERATION 0b0000110000111111
@@ -245,12 +248,11 @@ public:
 	Autopilot_Interface(Serial_Port *serial_port_);
 	~Autopilot_Interface();
 
-	char reading_status;
-	char writing_status;
+	atomic_char reading_status;
 	char control_status;
-    uint64_t write_count;
+	uint64_t write_count;
 
-    int system_id;
+	int system_id;
 	int autopilot_id;
 	int companion_id;
 
@@ -277,7 +279,7 @@ private:
 
 	Serial_Port *serial_port;
 
-	bool time_to_exit;
+	atomic_bool time_to_exit;
 
 	pthread_t read_tid;
 	pthread_t write_tid;
@@ -285,7 +287,6 @@ private:
 	mavlink_set_position_target_local_ned_t current_setpoint;
 
 	void read_thread();
-	void write_thread(void);
 
 	int toggle_offboard_control( bool flag );
 	void write_setpoint();
