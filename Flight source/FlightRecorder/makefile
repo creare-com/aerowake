@@ -1,11 +1,11 @@
 # You must install Boost (sudo apt install libboost-all-dev)
 
 SRCS=$(wildcard src/*.cpp)
-INC=-I/usr/include/spinnaker -Iinclude/
+INC=-I/usr/include/spinnaker -Iinclude/ -Imavlink/include/mavlink/v2.0
 PROJ_INC=$(wildcard include/*.hpp include/*.h)
 OUTPUT=FlightRecorder
 OPTIONS=-std=c++11
-LIBS=-lSpinnaker -lopencv_core -lopencv_imgcodecs -lopencv_features2d -lopencv_imgproc
+LIBS=-lSpinnaker -lopencv_core -lopencv_imgcodecs -lopencv_features2d -lopencv_imgproc -lpthread
 
 all: $(OUTPUT)
 

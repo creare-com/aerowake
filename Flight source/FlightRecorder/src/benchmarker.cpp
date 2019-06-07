@@ -6,7 +6,7 @@
 	2016-12-23  JDW  Created.
 	2017-03-02  JDW  Moved into its own file.
 */
-#include "benchmarker.h"
+#include <benchmarker.hpp>
 using namespace std;
 using namespace chrono;
 
