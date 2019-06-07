@@ -1,3 +1,3 @@
-[submodule "Flight source/FlightRecorder/mavlink/include/mavlink/v2.0"]
+[submodule "mavlink"]
 	path = Flight source/FlightRecorder/include/mavlink/v2.0
 	url = http://github.com/mavlink/c_library_v2.git
