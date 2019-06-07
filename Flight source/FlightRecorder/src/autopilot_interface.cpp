@@ -623,7 +623,9 @@ start()
 		printf("GOT AUTOPILOT COMPONENT ID: %i\n", autopilot_id);
 		printf("\n");
 	}
-
+    
+    // Skip the write thread for now
+	return;
 
 	// --------------------------------------------------------------------------
 	//   GET INITIAL POSITION
