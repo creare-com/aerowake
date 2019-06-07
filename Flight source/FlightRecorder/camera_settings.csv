@@ -7,3 +7,6 @@ ExposureMode,Enumeration,Timed
 ExposureTime,Float,15000
 pgrExposureCompensationAuto,Enumeration,Off
 pgrExposureCompensation,Float,-7.58496
+VideoMode,Enumeration,Mode1
+BinningVertical,Integer,2
+BinningControl,Enumeration,Additive
