@@ -19,8 +19,10 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-#include <CameraLogger.hpp>
 #include <benchmarker.hpp>
+#include <serial_port.h>
+#include <autopilot_interface.h>
+#include <CameraLogger.hpp>
 #include <CLI11.hpp>
 #include <date.h>
 
@@ -68,6 +70,11 @@ int main(int argc, char** argv)
 	cout << "Storing recording at: " << recordingDir << endl;
 	// Single quotes make it slightly harder to route a bash command in this way
 	system(("mkdir -p '" + recordingDir + "'").c_str());
+	
+	
+	// Set up autopilot connection
+	Serial_Port apSerialPort(autopilotPort.c_str(), apBaudRate);
+	Autopilot_Interface apIntf(&apSerialPort);
 	
 	
 	list<const Benchmarker *> allBms;
