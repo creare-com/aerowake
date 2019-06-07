@@ -36,18 +36,6 @@ extern "C" void handle_signal(int sig) {
 }
 
 
-// Iterate through allBms and write a summary of benchmarkers
-// to the console
-void summarizeBenchmarksToLog(list<const Benchmarker *> allBms) {
-	for(auto bm = allBms.begin(); bm != allBms.end(); ++bm) {
-		cout << endl << (*bm)->getName() << ": "  << (*bm)->getAvgMs() << "ms avg";
-		if((*bm)->getAvgItemsProcessed() > 0) {
-			cout << ", " << (*bm)->getAvgItemsProcessed() << " avg items";
-		}
-		cout << " (" << (*bm)->getIterations() << " iterations).";
-	}
-    cout << endl;
-}
 
 int main(int argc, char** argv)
 {
@@ -102,7 +90,7 @@ int main(int argc, char** argv)
         cout << "Error in main loop: " << e.what() << endl;
     }
     sync();
-    summarizeBenchmarksToLog(allBms);
+    Benchmarker::summarizeBenchmarksToStream(allBms, cout);
 
     return result;
 

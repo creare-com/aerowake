@@ -1,45 +1,89 @@
 /*
-	benchmarker.hpp
-	
-	Class for profiling/benchmarking.
-	
-	2017-2-28	JDW	Created.
-	2019-6-7	JDW	Refactored into a header-only library
+ * benchmarker.hpp
+ * 
+ * Simple, very manually-controlled profiler object.
+ * 
+ * Usage example:
+ * 
+ * list<const Benchmarker *> myBms;
+ * Benchmarker bmAddition("Addition");
+ * Benchmarker bmMultiplication("Multiplication");
+ * myBms.push_back(&bmAddition);
+ * myBms.push_back(&bmMultiplication);
+ * 
+ * float accumAdd = 0;
+ * float accumMult = 1;
+ * 
+ * for(int i = 0; i < 1000; i++) {
+ *   bmAddition.start();
+ *   accumAdd += 5;
+ *   bmAddition.end();
+ * 
+ *   bmMultiplication.start();
+ *   accumMult *= 5;
+ *   bmMultiplication.end();
+ * }
+ * 
+ * Benchmarker::summarizeBenchmarksToStream(myBms, cout);
+ * 
+ * 
+ * 2017-02-28	JDW	Created.
+ * 2019-06-07	JDW	Refactored into a header-only library
 */
 
 #ifndef __BENCHMARKER_HPP__
 #define __BENCHMARKER_HPP__
 
 
+#include <ostream>
 #include <sstream>
 #include <map>
 #include <sys/time.h>
 #include <chrono> // C++11
+#include <list> // C++11
+
+using namespace std;
 
 class Benchmarker {
 private:
-	std::string name;
-	std::chrono::steady_clock::duration totalDuration;
+	string name;
+	chrono::steady_clock::duration totalDuration;
 	int numTimesRun;
 	int numItemsProcessed;
-	std::chrono::steady_clock::time_point startTime;
+	chrono::steady_clock::time_point startTime;
 
 public:
-	Benchmarker(std::string _name = "") :
+	/**
+	 * Constructor.
+	 * 
+	 * @param _name Human-readable name for the operation being measured
+	 * 
+	 */
+	Benchmarker(string _name = "") :
 		name(_name),
-		totalDuration(std::chrono::seconds(0)),
+		totalDuration(chrono::seconds(0)),
 		numTimesRun(0),
 		numItemsProcessed(0)
 	{;}
 	virtual ~Benchmarker() {;}
 
+	static void summarizeBenchmarksToStream(list<const Benchmarker *> allBms, ostream & stream) {
+		for(auto bm = allBms.begin(); bm != allBms.end(); ++bm) {
+			stream << endl << (*bm)->getName() << ": "  << (*bm)->getAvgMs() << "ms avg";
+			if((*bm)->getAvgItemsProcessed() > 0) {
+				stream << ", " << (*bm)->getAvgItemsProcessed() << " avg items";
+			}
+			stream << " (" << (*bm)->getIterations() << " iterations).";
+		}
+		stream << endl;
+	}
 	// An iteration of processing is about to begin
 	void start() {
-		startTime = std::chrono::steady_clock::now();
+		startTime = chrono::steady_clock::now();
 	}
 	// Processing of this type has paused, but processing for this iteration is not finished.
 	void pause(int items_processed = 0)	{
-		std::chrono::steady_clock::duration elapsed = (std::chrono::steady_clock::now() - startTime);
+		chrono::steady_clock::duration elapsed = (chrono::steady_clock::now() - startTime);
 		totalDuration += elapsed;
 		numItemsProcessed += items_processed;
 	}
@@ -60,17 +104,17 @@ public:
 		numTimesRun++; // End of this iteration
 	}
 	// Get the total time spent in processing, divided by the number of iterations ran.
-	std::chrono::steady_clock::duration getAvgTime() const {
-		return (numTimesRun > 0) ? (totalDuration / numTimesRun) : std::chrono::milliseconds(0);
+	chrono::steady_clock::duration getAvgTime() const {
+		return (numTimesRun > 0) ? (totalDuration / numTimesRun) : chrono::milliseconds(0);
 	}
 
 	// Get the total time spent in processing, divided by the number of iterations ran.
 	double getAvgMs() const {
-		return std::chrono::duration_cast<std::chrono::milliseconds>(getAvgTime()).count();
+		return chrono::duration_cast<chrono::milliseconds>(getAvgTime()).count();
 	}
 
-	void setName(std::string name) { this->name = name; }
-	std::string getName() const { return name; }
+	void setName(string name) { this->name = name; }
+	string getName() const { return name; }
 	double getAvgItemsProcessed() const { 
 		return numTimesRun > 0 ? numItemsProcessed / numTimesRun : 0; 
 	}
