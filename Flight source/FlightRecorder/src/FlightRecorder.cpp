@@ -45,6 +45,7 @@ int main(int argc, char** argv)
 	string extension = "png";
 	cmdOpts.add_option("-x", extension, "File format, as an extension, such as \"bmp\" or \"png\" (omit the quotes).  Default is \"" + extension + "\".  Must be supported by OpenCV's imwrite(). \"bmp\" is fast (10ms), \"png\" is compact.");
 	string dirFormat = "./%F_%H-%M-%S";
+	// WARNING: You can inject bash commands here.  For example, try: -d "'; echo hello; '"
 	cmdOpts.add_option("-d", dirFormat, "Pattern specifying the directory at which to save the recording. Default: \"" + dirFormat + "\".  Will substitute flags found here: https://howardhinnant.github.io/date/date.html#to_stream_formatting.  '/' characters are directory separators.  If no leading '/', will be relative to working directory.  Avoid any characters not supported by the filesystem, such as colons.");
 	string imageFilenameFormat = "img_%F_%H-%M-%S";
 	cmdOpts.add_option("-i", imageFilenameFormat, "Pattern specifying the base filename for images captured from camera. Default: \"" + imageFilenameFormat + "\".  Will substitute flags found here: https://howardhinnant.github.io/date/date.html#to_stream_formatting.  Extension will be supplied by another parameter.  Avoid any characters not supported by the filesystem, such as colons.");
@@ -65,7 +66,7 @@ int main(int argc, char** argv)
 	// Create directory to store recording
 	string recordingDir = date::format(dirFormat, date::floor<milliseconds>(system_clock::now()));
 	cout << "Storing recording at: " << recordingDir << endl;
-	// WARNING: do not remove the single quotes.  They prevent bash command injection.
+	// Single quotes make it slightly harder to route a bash command in this way
 	system(("mkdir -p '" + recordingDir + "'").c_str());
 	
 	
