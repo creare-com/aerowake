@@ -85,6 +85,22 @@ int main(int argc, char** argv)
 	apSerialPort.write_message(message);
 	cout << "Sent." << endl;
 	
+	// According to https://mavlink.io/en/messages/common.html#REQUEST_DATA_STREAM, 
+	// this message is ID 66 and was replaced in 2015 by message 511:
+	// https://mavlink.io/en/messages/common.html#MAV_CMD_SET_MESSAGE_INTERVAL
+	// However, mavlink v2.0 calls this message ID 244, and there is no message 511,
+	// nor any message called "CMD_SET_MESSAGE_INTERVAL".
+	mavlink_request_data_stream_t rateReq;
+	rateReq.req_message_rate = 10; /*< [Hz] The requested message rate*/
+	rateReq.target_system = 1; /*<  The target requested to send the message stream.*/
+	rateReq.target_component = 1; /*<  The target requested to send the message stream.*/
+	rateReq.req_stream_id = MAV_DATA_STREAM_RAW_CONTROLLER; /*<  The ID of the requested data stream*/
+	rateReq.start_stop = 1; /*<  1 to start sending, 0 to stop sending.*/
+	cout << "Requesting data at " << rateReq.req_message_rate << "Hz." << endl;
+	mavlink_msg_request_data_stream_encode(/*uint8_t system_id*/ 0, /*uint8_t component_id*/0, &message, &rateReq);
+	apSerialPort.write_message(message);
+	cout << "Sent." << endl;
+	
 	list<const Benchmarker *> allBms;
 	Benchmarker bmWholeFrame("Entire frame");
 	Benchmarker bmSync("Sync filesystem");
