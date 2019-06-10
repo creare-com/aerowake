@@ -351,6 +351,48 @@ read_messages()
 					break;
 				}
 
+				case MAVLINK_MSG_ID_COMMAND_ACK:
+				{
+					printf("MAVLINK_MSG_ID_COMMAND_ACK\n");
+					mavlink_command_ack_t ack;
+					mavlink_msg_command_ack_decode(&message, &ack);
+					switch(ack.result) {
+						case MAV_RESULT_ACCEPTED            : printf("Command ID %d ACCEPTED and EXECUTED",ack.command); break;  
+						case MAV_RESULT_TEMPORARILY_REJECTED: printf("Command ID %d TEMPORARY REJECTED/DENIED",ack.command); break;
+						case MAV_RESULT_DENIED              : printf("Command ID %d PERMANENTLY DENIED",ack.command); break;
+						case MAV_RESULT_UNSUPPORTED         : printf("Command ID %d UNKNOWN/UNSUPPORTED",ack.command); break;
+						case MAV_RESULT_FAILED              : printf("Command ID %d executed, but failed",ack.command); break;
+						case MAV_RESULT_IN_PROGRESS         : printf("Command ID %d being executed",ack.command); break;
+						default: printf("Command ID %d has unknown result %d.", ack.command, ack.result); break;
+					}
+					break;
+				}
+
+				case MAVLINK_MSG_ID_PARAM_VALUE:
+				{
+					printf("MAVLINK_MSG_ID_PARAM_VALUE\n");
+					mavlink_param_value_t paramValue;
+					mavlink_msg_param_value_decode(&message, &paramValue);
+					char nulltermParamId[17];
+					nulltermParamId[16] = 0; // https://mavlink.io/en/messages/common.html#PARAM_VALUE
+					memcpy(nulltermParamId, paramValue.param_id, 16);
+					printf("Value of parameter %d (%s) is: %f", paramValue.param_index, nulltermParamId, paramValue.param_value);
+					// switch(paramValue.param_type) {
+						// case: MAV_PARAM_TYPE_UINT8 : printf("Value of parameter %d (%s) is: %d", reinterpret_cast<uint8_t >(paramValue.param_value));break;
+						// case: MAV_PARAM_TYPE_INT8  : printf("Value of parameter %d (%s) is: %d", reinterpret_cast< int8_t >(paramValue.param_value));break;
+						// case: MAV_PARAM_TYPE_UINT16: printf("Value of parameter %d (%s) is: %d", reinterpret_cast<uint16_t>(paramValue.param_value));break;
+						// case: MAV_PARAM_TYPE_INT16 : printf("Value of parameter %d (%s) is: %d", reinterpret_cast< int16_t>(paramValue.param_value));break;
+						// case: MAV_PARAM_TYPE_UINT32: printf("Value of parameter %d (%s) is: %d", reinterpret_cast<uint32_t>(paramValue.param_value));break;
+						// case: MAV_PARAM_TYPE_INT32 : printf("Value of parameter %d (%s) is: %d", reinterpret_cast< int32_t>(paramValue.param_value));break;
+						//// case: MAV_PARAM_TYPE_UINT64: printf("Value of parameter %d (%s) is: %d", reinterpret_cast<uint64_t>(paramValue.param_value));break;
+						//// case: MAV_PARAM_TYPE_INT64 : printf("Value of parameter %d (%s) is: %d", reinterpret_cast< int64_t>(paramValue.param_value));break;
+						//case: MAV_PARAM_TYPE_REAL32: printf("Value of parameter %d (%s) is: %f", paramValue.param_value));break;
+						//// case: MAV_PARAM_TYPE_REAL64: printf("Value of parameter %d (%s) is: %d", reinterpret_cast<float64_t>(paramValue.param_value));break;
+						//default: printf("Value of parameter %d (%s) has unknown type %d", paramValue.param_type);break;
+					//}
+					break;
+				}
+
 				default:
 				{
 					printf("Warning, did not handle message id %i\n",message.msgid);
