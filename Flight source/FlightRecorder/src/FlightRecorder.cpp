@@ -78,7 +78,12 @@ int main(int argc, char** argv)
 	apSerialPort.start();
 	apIntf.start();
 	
-	
+	cout << "Sending heartbeat message" << endl;
+	mavlink_heartbeat_t heartbeat;
+	mavlink_message_t message;
+	mavlink_msg_heartbeat_encode(/*uint8_t system_id*/ 0, /*uint8_t component_id*/0, &message, &heartbeat);
+	apSerialPort.write_message(message);
+	cout << "Sent." << endl;
 	
 	list<const Benchmarker *> allBms;
 	Benchmarker bmWholeFrame("Entire frame");
