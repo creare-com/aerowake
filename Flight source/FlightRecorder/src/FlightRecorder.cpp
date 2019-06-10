@@ -99,7 +99,7 @@ int main(int argc, char** argv)
 
 	
 	
-	double messageRateHz = 10;
+	double messageRateHz = 1;
 	// mavlink_command_int_t intvlReq;
 	// memset(&intvlReq, 0, sizeof(intvlReq));
 	// intvlReq.target_system = 1;
