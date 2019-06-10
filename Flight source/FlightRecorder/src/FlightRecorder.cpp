@@ -105,11 +105,11 @@ int main(int argc, char** argv)
 	// intvlReq.target_system = 1;
 	// intvlReq.target_component = 1;
 	// intvlReq.frame = MAV_FRAME_GLOBAL;
-	// intvlReq.command = MAV_CMD_SET_MESSAGE_INTERVAL;
 	// intvlReq.current = 1;
 	// intvlReq.autocontinue = 0;
 	mavlink_command_long_t intvlReq;
 	memset(&intvlReq, 0, sizeof(intvlReq));
+	intvlReq.command = MAV_CMD_SET_MESSAGE_INTERVAL;
 	intvlReq.target_system = 1;
 	intvlReq.target_component = 1;
 	intvlReq.confirmation = 0;
