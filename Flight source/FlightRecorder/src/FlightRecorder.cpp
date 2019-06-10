@@ -87,6 +87,17 @@ int main(int argc, char** argv)
 	cout << "Sent." << endl;
 
 	
+	cout << "Sending param read message" << endl;
+	mavlink_param_request_read_t paramRead;
+	memset(&paramRead, 0, sizeof(paramRead));
+	paramRead.param_index = 1;
+	paramRead.target_system = 1;
+	paramRead.target_component = 1;
+	mavlink_msg_param_request_read_encode(/*uint8_t system_id*/ 1, /*uint8_t component_id*/0, &message, &paramRead);
+	apSerialPort.write_message(message);
+	cout << "Sent." << endl;
+
+	
 	
 	double messageRateHz = 10;
 	// mavlink_command_int_t intvlReq;
