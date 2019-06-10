@@ -78,21 +78,20 @@ int main(int argc, char** argv)
 	apSerialPort.start();
 	apIntf.start();
 	
-	cout << "Sending heartbeat message" << endl;
-	mavlink_heartbeat_t heartbeat;
 	mavlink_message_t message;
-	mavlink_msg_heartbeat_encode(/*uint8_t system_id*/ 0, /*uint8_t component_id*/0, &message, &heartbeat);
+	double messageRateHz = 10;
+	mavlink_command_int_t intvlReq;
+	intvlReq.command = MAV_CMD_SET_MESSAGE_INTERVAL;
+	intvlReq.target_system = 1;
+	intvlReq.target_component = 1;
+	intvlReq.param1 = MAVLINK_MSG_ID_HIGHRES_IMU; /* The MAVLink message ID */
+	// intvlReq.param1 = MAVLINK_MSG_ID_HEARTBEAT; /* The MAVLink message ID */
+	intvlReq.param2 = 1000000 / messageRateHz; /* 	The interval between two messages. Set to -1 to disable and 0 to request default rate. */
+	cout << "Requesting message ID " << intvlReq.param1 << " every " << intvlReq.param2 << "us." << endl;
+	mavlink_msg_command_int_encode(/*uint8_t system_id*/ 1, /*uint8_t component_id*/0, &message, &intvlReq);
 	apSerialPort.write_message(message);
 	cout << "Sent." << endl;
 	
-	double messageRateHz = 10;
-	mavlink_message_interval_t intvlReq;
-	intvlReq.interval_us = 1000000 / messageRateHz; /*< [us] The interval between two messages. A value of -1 indicates this stream is disabled, 0 indicates it is not available, > 0 indicates the interval at which it is sent.*/
-	intvlReq.message_id = MAVLINK_MSG_ID_HIGHRES_IMU; /*<  The ID of the requested MAVLink message. v1.0 is limited to 254 messages.*/
-	cout << "Requesting message ID " << intvlReq.message_id << " every " << intvlReq.interval_us << "us." << endl;
-	mavlink_msg_message_interval_encode(/*uint8_t system_id*/ 0, /*uint8_t component_id*/0, &message, &intvlReq);
-	apSerialPort.write_message(message);
-	cout << "Sent." << endl;
 	
 	list<const Benchmarker *> allBms;
 	Benchmarker bmWholeFrame("Entire frame");
@@ -112,6 +111,12 @@ int main(int argc, char** argv)
 			sync();
 			bmSync.end();
 			
+			cout << "Sending heartbeat message" << endl;
+			mavlink_heartbeat_t heartbeat;
+			mavlink_msg_heartbeat_encode(/*uint8_t system_id*/ 1, /*uint8_t component_id*/0, &message, &heartbeat);
+			apSerialPort.write_message(message);
+			cout << "Sent." << endl;
+
 			bmWholeFrame.end();
 		}
 		cout << "Exiting." << endl;
