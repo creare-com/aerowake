@@ -55,7 +55,7 @@ int main(int argc, char** argv)
 	cmdOpts.add_option("-c", cameraSettingsPath, "Path to camera settings file.  Default is " + cameraSettingsPath + ". Must follow a very specific CSV format - see example file.");
 	string autopilotPort = "/dev/ttyTHS1"; // UART0 on the Jetson TX2 with Auvidea J120's DTS
 	cmdOpts.add_option("-p", autopilotPort, "Port to which the Pixhawk Autopilot is connected.  Default is " + autopilotPort + ".");
-	int apBaudRate = 1500000;
+	int apBaudRate = 57600;
 	cmdOpts.add_option("-r", apBaudRate, "Baud rate for communicating with the Pixhawk Autopilot.  Default is 57600.");
 	CLI11_PARSE(cmdOpts, argc, argv); // This will exit if the user said "-h" or "--help"
 	
