@@ -98,6 +98,18 @@ int main(int argc, char** argv)
 	cout << "Sent." << endl;
 
 	
+	mavlink_command_long_t testCmd;
+	memset(&testCmd, 0, sizeof(testCmd));
+	testCmd.command = MAV_CMD_REQUEST_PROTOCOL_VERSION  ;
+	testCmd.target_system = 1;
+	testCmd.target_component = 1;
+	testCmd.confirmation = 0;
+	testCmd.param1 = 1;
+	cout << "Sending test command with ID " << testCmd.command << "." << endl;
+	mavlink_msg_command_long_encode(/*uint8_t system_id*/ 1, /*uint8_t component_id*/0, &message, &testCmd);
+	apSerialPort.write_message(message);
+	cout << "Sent." << endl;
+	
 	
 	double messageRateHz = 1;
 	// mavlink_command_int_t intvlReq;
@@ -110,18 +122,35 @@ int main(int argc, char** argv)
 	mavlink_command_long_t intvlReq;
 	memset(&intvlReq, 0, sizeof(intvlReq));
 	intvlReq.command = MAV_CMD_SET_MESSAGE_INTERVAL;
+	// intvlReq.command = MAV_CMD_REQUEST_MESSAGE ;
 	intvlReq.target_system = 1;
 	intvlReq.target_component = 1;
 	intvlReq.confirmation = 0;
-	intvlReq.param1 = MAVLINK_MSG_ID_RAW_IMU; /* The MAVLink message ID */
+	intvlReq.param1 = MAVLINK_MSG_ID_ATTITUDE_QUATERNION ; /* The MAVLink message ID */
+	// intvlReq.param1 = MAVLINK_MSG_ID_RAW_IMU; /* The MAVLink message ID */
 	// intvlReq.param1 = MAVLINK_MSG_ID_HEARTBEAT; /* The MAVLink message ID */
-	intvlReq.param2 = 1000000 / messageRateHz; /* 	The interval between two messages. Set to -1 to disable and 0 to request default rate. */
+	// intvlReq.param2 = 1000000 / messageRateHz; /* 	The interval between two messages. Set to -1 to disable and 0 to request default rate. */
+	intvlReq.param2 = 0; /* 	The interval between two messages. Set to -1 to disable and 0 to request default rate. */
 	cout << "Requesting message ID " << intvlReq.param1 << " every " << intvlReq.param2 << "us." << endl;
 	// mavlink_msg_command_int_encode(/*uint8_t system_id*/ 1, /*uint8_t component_id*/0, &message, &intvlReq);
 	mavlink_msg_command_long_encode(/*uint8_t system_id*/ 1, /*uint8_t component_id*/0, &message, &intvlReq);
 	apSerialPort.write_message(message);
 	cout << "Sent." << endl;
 	
+	memset(&intvlReq, 0, sizeof(intvlReq));
+	// intvlReq.command = MAV_CMD_SET_MESSAGE_INTERVAL;
+	intvlReq.command = MAV_CMD_REQUEST_MESSAGE ;
+	intvlReq.target_system = 1;
+	intvlReq.target_component = 1;
+	intvlReq.confirmation = 0;
+	intvlReq.param1 = MAVLINK_MSG_ID_ATTITUDE_QUATERNION ; /* The MAVLink message ID */
+	// intvlReq.param1 = MAVLINK_MSG_ID_RAW_IMU; /* The MAVLink message ID */
+	// intvlReq.param1 = MAVLINK_MSG_ID_HEARTBEAT; /* The MAVLink message ID */
+	cout << "Requesting message ID " << intvlReq.param1 << ", with index id " << intvlReq.param2 << "." << endl;
+	// mavlink_msg_command_int_encode(/*uint8_t system_id*/ 1, /*uint8_t component_id*/0, &message, &intvlReq);
+	mavlink_msg_command_long_encode(/*uint8_t system_id*/ 1, /*uint8_t component_id*/0, &message, &intvlReq);
+	apSerialPort.write_message(message);
+	cout << "Sent." << endl;
 	
 	list<const Benchmarker *> allBms;
 	Benchmarker bmWholeFrame("Entire frame");
