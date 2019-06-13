@@ -351,18 +351,52 @@ read_messages()
 					break;
 				}
 
+				case MAVLINK_MSG_ID_AUTOPILOT_VERSION:
+				{
+					// printf("AUTOPILOT_VERSION\n");
+					mavlink_autopilot_version_t ver;
+					mavlink_msg_autopilot_version_decode(&message, &ver);
+					if(ver.capabilities > 0) {
+						printf("Autopilot capabilities: \n");
+						
+						if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_MISSION_FLOAT) { printf("Autopilot supports MISSION float message type.\n"); }
+						if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_PARAM_FLOAT) { printf("Autopilot supports the new param float message type.\n"); }
+						if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_MISSION_INT) { printf("Autopilot supports MISSION_INT scaled integer message type.\n"); }
+						if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_COMMAND_INT) { printf("Autopilot supports COMMAND_INT scaled integer message type.\n"); }
+						if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_PARAM_UNION) { printf("Autopilot supports the new param union message type.\n"); }
+						if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_FTP) { printf("Autopilot supports the new FILE_TRANSFER_PROTOCOL message type.\n"); }
+						if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_SET_ATTITUDE_TARGET) { printf("Autopilot supports commanding attitude offboard.\n"); }
+						if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_SET_POSITION_TARGET_LOCAL_NED) { printf("Autopilot supports commanding position and velocity targets in local NED frame.\n"); }
+						if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_SET_POSITION_TARGET_GLOBAL_INT) { printf("Autopilot supports commanding position and velocity targets in global scaled integers.\n"); }
+						if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_TERRAIN) { printf("Autopilot supports terrain protocol / data handling.\n"); }
+						if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_SET_ACTUATOR_TARGET) { printf("Autopilot supports direct actuator control.\n"); }
+						if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_FLIGHT_TERMINATION) { printf("Autopilot supports the flight termination command.\n"); }
+						if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_COMPASS_CALIBRATION) { printf("Autopilot supports onboard compass calibration.\n"); }
+						if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_MAVLINK2) { printf("Autopilot supports MAVLink version 2.\n"); }
+						if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_MISSION_FENCE) { printf("Autopilot supports mission fence protocol.\n"); }
+						if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_MISSION_RALLY) { printf("Autopilot supports mission rally point protocol.\n"); }
+						if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_FLIGHT_INFORMATION) { printf("Autopilot supports the flight information protocol.\n"); }
+					} else {
+						printf("Autopilot reports no capabilities.\n");
+					}
+					printf("Autopilot UID: %lu\n", ver.uid);
+					printf("Autopilot firmware version: %08X\n", ver.flight_sw_version);
+					
+					break;
+				}
+
 				case MAVLINK_MSG_ID_COMMAND_ACK:
 				{
-					printf("MAVLINK_MSG_ID_COMMAND_ACK\n");
+					// printf("MAVLINK_MSG_ID_COMMAND_ACK\n");
 					mavlink_command_ack_t ack;
 					mavlink_msg_command_ack_decode(&message, &ack);
 					switch(ack.result) {
-						case MAV_RESULT_ACCEPTED            : printf("Command ID %d ACCEPTED and EXECUTED",ack.command); break;  
-						case MAV_RESULT_TEMPORARILY_REJECTED: printf("Command ID %d TEMPORARY REJECTED/DENIED",ack.command); break;
-						case MAV_RESULT_DENIED              : printf("Command ID %d PERMANENTLY DENIED",ack.command); break;
-						case MAV_RESULT_UNSUPPORTED         : printf("Command ID %d UNKNOWN/UNSUPPORTED",ack.command); break;
-						case MAV_RESULT_FAILED              : printf("Command ID %d executed, but failed",ack.command); break;
-						case MAV_RESULT_IN_PROGRESS         : printf("Command ID %d being executed",ack.command); break;
+						case MAV_RESULT_ACCEPTED            : printf("Command ID %d ACCEPTED and EXECUTED\n", ack.command); break;  
+						case MAV_RESULT_TEMPORARILY_REJECTED: printf("Command ID %d TEMPORARY REJECTED/DENIED\n", ack.command); break;
+						case MAV_RESULT_DENIED              : printf("Command ID %d PERMANENTLY DENIED\n", ack.command); break;
+						case MAV_RESULT_UNSUPPORTED         : printf("Command ID %d UNKNOWN/UNSUPPORTED\n", ack.command); break;
+						case MAV_RESULT_FAILED              : printf("Command ID %d executed, but failed\n", ack.command); break;
+						case MAV_RESULT_IN_PROGRESS         : printf("Command ID %d being executed\n", ack.command); break;
 						default: printf("Command ID %d has unknown result %d.", ack.command, ack.result); break;
 					}
 					break;
@@ -370,7 +404,7 @@ read_messages()
 
 				case MAVLINK_MSG_ID_PARAM_VALUE:
 				{
-					printf("MAVLINK_MSG_ID_PARAM_VALUE\n");
+					// printf("MAVLINK_MSG_ID_PARAM_VALUE\n");
 					mavlink_param_value_t paramValue;
 					mavlink_msg_param_value_decode(&message, &paramValue);
 					char nulltermParamId[17];

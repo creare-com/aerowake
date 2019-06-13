@@ -100,7 +100,7 @@ int main(int argc, char** argv)
 	
 	mavlink_command_long_t testCmd;
 	memset(&testCmd, 0, sizeof(testCmd));
-	testCmd.command = MAV_CMD_NAV_TAKEOFF   ;
+	testCmd.command = MAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES ;
 	testCmd.target_system = 1;
 	testCmd.target_component = 1;
 	testCmd.confirmation = 0;
