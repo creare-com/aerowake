@@ -10,8 +10,18 @@
 	auto col2 = myLogger.addColumn("bar");
 	myLogger.startNewLogFile();
 	
-	myLogger.logData(CsvLogger::cell(col1, 1));
-	myLogger.logData(vector({CsvLogger::cell(col1, 1), CsvLogger::cell(col1, 1)}));
+	myLogger.logData(CsvLogger::Cell(col1, 1));
+	myLogger.logData(vector<CsvLogger::Cell>({CsvLogger::Cell(col1, 2), CsvLogger::Cell(col2, 3)}));
+	myLogger.logData(vector<CsvLogger::Cell>({CsvLogger::Cell(col2, 5), CsvLogger::Cell(col1, 4)}));
+	
+	
+	
+	Contents of data_2019-06-13_14-50-48.210.csv:
+	
+	time,foo,bar
+	14:50:48.210,1,
+	14:50:48.210,2,3
+	14:50:48.210,4,5
 	
 	
 	2019-06-13	JDW	Created.
@@ -51,36 +61,47 @@ void CsvLogger::logData(Cell value) {
  * @param values Values to log
  */
 void CsvLogger::logData(vector<Cell> values) {
-	// Timestamp is always the first column
-	cout << date::format(timestampFormat, date::floor<milliseconds>(system_clock::now()));
-	cout <<',';
-	sort(values.begin(), values.end());
-	auto it = values.begin();
-	for(unsigned int col = 1; col < headers.size(); col++) {
-		if(it != values.end()) {
-			if(it->id == col) {
-				cout << it->value;
-				++it;
+	if(logFile.is_open()) {
+		// Timestamp is always the first column
+		logFile << date::format(timestampFormat, date::floor<milliseconds>(system_clock::now()));
+		logFile <<',';
+		sort(values.begin(), values.end());
+		auto it = values.begin();
+		for(unsigned int col = 1; col < headers.size(); col++) {
+			if(it != values.end()) {
+				if(it->id == col) {
+					logFile << it->value;
+					++it;
+				}
+			}
+			if(col < headers.size() - 1) {
+				logFile << ',';
 			}
 		}
-		if(col < headers.size() - 1) {
-			cout << ',';
-		}
+		logFile << endl;
 	}
-	cout << endl;
 }
 void CsvLogger::openFile() {
-	// TODO: open file
+	if(logFile.is_open()) {
+		closeFile();
+	}
+	
+	stringstream nameStream;
+	nameStream << recordingDir << '/' << date::format(logFilenameFormat, date::floor<milliseconds>(system_clock::now()));
+	curPath = nameStream.str();
+	logFile.open(curPath);
+	
 	for(unsigned int col = 0; col < headers.size(); col++) {
-		cout << headers[col];
+		logFile << headers[col];
 		if(col < headers.size() - 1) {
-			cout << ',';
+			logFile << ',';
 		}
 	}
-	cout << endl;
+	logFile << endl;
 }
 void CsvLogger::closeFile() {
-	
+	logFile.close();
+	curPath = "";
 }
 
 
@@ -93,6 +114,8 @@ int main() {
 	myLogger.logData(CsvLogger::Cell(col1, 1));
 	myLogger.logData(vector<CsvLogger::Cell>({CsvLogger::Cell(col1, 2), CsvLogger::Cell(col2, 3)}));
 	myLogger.logData(vector<CsvLogger::Cell>({CsvLogger::Cell(col2, 5), CsvLogger::Cell(col1, 4)}));
+	
+	cout << "Saved to " << myLogger.getCurPath() << endl;
 	
 	return 0;
 }

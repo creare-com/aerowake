@@ -88,11 +88,17 @@ public:
 	 */
 	void logData(vector<Cell> values);
 	
+	string getCurPath() { return curPath; }
+	
 private:
 	string recordingDir;
 	string logFilenameFormat;
 	string timestampFormat;
 	vector<string> headers;
+	string curPath = "";
+	
+	ofstream logFile;
+	
 	/**
 	 * Open a file based on the timestamp
 	 */
