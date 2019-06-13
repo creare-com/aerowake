@@ -19,6 +19,7 @@
 #include <CsvLogger.hpp>
 
 using namespace std;
+using namespace std::chrono;
 
 /**
  * Close old log file, if one was open.
@@ -50,9 +51,8 @@ void CsvLogger::logData(Cell value) {
  * @param values Values to log
  */
 void CsvLogger::logData(vector<Cell> values) {
-	// Timestamp
-	// TODO
-	cout << "now";
+	// Timestamp is always the first column
+	cout << date::format(timestampFormat, date::floor<milliseconds>(system_clock::now()));
 	cout <<',';
 	sort(values.begin(), values.end());
 	auto it = values.begin();
@@ -92,6 +92,7 @@ int main() {
 	
 	myLogger.logData(CsvLogger::Cell(col1, 1));
 	myLogger.logData(vector<CsvLogger::Cell>({CsvLogger::Cell(col1, 2), CsvLogger::Cell(col2, 3)}));
+	myLogger.logData(vector<CsvLogger::Cell>({CsvLogger::Cell(col2, 5), CsvLogger::Cell(col1, 4)}));
 	
 	return 0;
 }

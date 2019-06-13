@@ -20,13 +20,15 @@
 #ifndef __CSVLOGGER_HPP__
 #define __CSVLOGGER_HPP__
 
+#include <algorithm>
 #include <chrono>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string>
 #include <vector>
-#include <algorithm>
+
+#include <date.h>
 
 using namespace std;
 
@@ -73,7 +75,6 @@ public:
 		
 		Cell(unsigned int id, double value) : id(id), value(value) { ; }
 		friend bool operator< (const Cell &c1, const Cell &c2) { return c1.value < c2.value; }
-
 	};
 	
 	/**
