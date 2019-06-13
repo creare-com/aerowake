@@ -125,7 +125,7 @@ int main(int argc, char** argv)
 	rds.req_message_rate = 10; // Hz
 	rds.target_system = 1;
 	rds.target_component = 1;
-	rds.req_stream_id = MAV_DATA_STREAM_EXTRA2;
+	rds.req_stream_id = MAV_DATA_STREAM_EXTRA3;
 	rds.start_stop = 1; // start
 	cout << "Sending data stream request." << endl;
 	mavlink_msg_request_data_stream_encode(/*uint8_t system_id*/ 1, /*uint8_t component_id*/0, &message, &rds);
