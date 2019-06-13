@@ -52,11 +52,11 @@ void CsvLogger::logData(Cell value) {
 void CsvLogger::logData(vector<Cell> values) {
 	// Timestamp
 	// TODO
+	cout << "now";
 	cout <<',';
-	unsigned int col = 1; 
 	sort(values.begin(), values.end());
 	auto it = values.begin();
-	for(; col < headers.size(); col++) {
+	for(unsigned int col = 1; col < headers.size(); col++) {
 		if(it != values.end()) {
 			if(it->id == col) {
 				cout << it->value;
@@ -71,8 +71,11 @@ void CsvLogger::logData(vector<Cell> values) {
 }
 void CsvLogger::openFile() {
 	// TODO: open file
-	for (auto header : headers) {
-		cout << header << ",";
+	for(unsigned int col = 0; col < headers.size(); col++) {
+		cout << headers[col];
+		if(col < headers.size() - 1) {
+			cout << ',';
+		}
 	}
 	cout << endl;
 }
