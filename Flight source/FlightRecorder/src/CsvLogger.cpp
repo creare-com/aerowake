@@ -103,19 +103,3 @@ void CsvLogger::closeFile() {
 	logFile.close();
 	curPath = "";
 }
-
-
-int main() {
-	CsvLogger myLogger;
-	auto col1 = myLogger.addColumn("foo");
-	auto col2 = myLogger.addColumn("bar");
-	myLogger.startNewLogFile();
-	
-	myLogger.logData(CsvLogger::Cell(col1, 1));
-	myLogger.logData(vector<CsvLogger::Cell>({CsvLogger::Cell(col1, 2), CsvLogger::Cell(col2, 3)}));
-	myLogger.logData(vector<CsvLogger::Cell>({CsvLogger::Cell(col2, 5), CsvLogger::Cell(col1, 4)}));
-	
-	cout << "Saved to " << myLogger.getCurPath() << endl;
-	
-	return 0;
-}
