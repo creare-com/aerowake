@@ -106,7 +106,7 @@ int main(int argc, char** argv)
 	testCmd.confirmation = 0;
 	testCmd.param1 = 1;
 	cout << "Sending test command with ID " << testCmd.command << "." << endl;
-	mavlink_msg_command_long_encode(/*uint8_t system_id*/ 1, /*uint8_t component_id*/0, &message, &testCmd);
+	mavlink_msg_command_long_encode(/*uint8_t system_id*/ 1, /*uint8_t component_id*/42, &message, &testCmd);
 	apSerialPort.write_message(message);
 	cout << "Sent." << endl;
 	
