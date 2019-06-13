@@ -10,8 +10,18 @@
 	auto col2 = myLogger.addColumn("bar");
 	myLogger.startNewLogFile();
 	
-	myLogger.logData(CsvLogger::cell(col1, 1));
-	myLogger.logData(vector<CsvLogger::cell>({CsvLogger::cell(col1, 1), CsvLogger::cell(col1, 1)}));
+	myLogger.logData(CsvLogger::Cell(col1, 1));
+	myLogger.logData(vector<CsvLogger::Cell>({CsvLogger::Cell(col1, 2), CsvLogger::Cell(col2, 3)}));
+	myLogger.logData(vector<CsvLogger::Cell>({CsvLogger::Cell(col2, 5), CsvLogger::Cell(col1, 4)}));
+	
+	
+	
+	Contents of data_2019-06-13_14-50-48.210.csv:
+	
+	time,foo,bar
+	14:50:48.210,1,
+	14:50:48.210,2,3
+	14:50:48.210,4,5
 	
 	
 	2019-06-13	JDW	Created.
