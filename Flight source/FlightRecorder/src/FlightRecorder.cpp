@@ -111,10 +111,21 @@ int main(int argc, char** argv)
 	cout << "Sent." << endl;
 	
 	mavlink_request_data_stream_t rds;
+	memset(&rds, 0, sizeof(rds));
 	rds.req_message_rate = 10; // Hz
 	rds.target_system = 1;
 	rds.target_component = 1;
-	rds.req_stream_id = MAV_DATA_STREAM_POSITION;
+	rds.req_stream_id = MAV_DATA_STREAM_ALL;
+	rds.start_stop = 0; // stop
+	cout << "Stopping data streams." << endl;
+	mavlink_msg_request_data_stream_encode(/*uint8_t system_id*/ 1, /*uint8_t component_id*/0, &message, &rds);
+	apSerialPort.write_message(message);
+	cout << "Sent." << endl;
+	memset(&rds, 0, sizeof(rds));
+	rds.req_message_rate = 10; // Hz
+	rds.target_system = 1;
+	rds.target_component = 1;
+	rds.req_stream_id = MAV_DATA_STREAM_EXTENDED_STATUS;
 	rds.start_stop = 1; // start
 	cout << "Sending data stream request." << endl;
 	mavlink_msg_request_data_stream_encode(/*uint8_t system_id*/ 1, /*uint8_t component_id*/0, &message, &rds);
