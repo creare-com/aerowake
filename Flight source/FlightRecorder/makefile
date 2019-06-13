@@ -1,6 +1,9 @@
 # You must install Boost (sudo apt install libboost-all-dev)
 
-SRCS=$(wildcard src/*.cpp)
+SRC_DIR=src/
+SRCS=$(wildcard $(SRC_DIR)*.cpp)
+OBJ_DIR=obj/
+OBJ=$(patsubst $(SRC_DIR)%.cpp,$(OBJ_DIR)%.o,$(SRCS))
 INC=-I/usr/include/spinnaker -Iinclude/ -Iinclude/mavlink/v2.0/
 PROJ_INC=$(wildcard include/*.hpp include/*.h)
 OUTPUT=FlightRecorder
@@ -10,8 +13,13 @@ LIBS=-lSpinnaker -lopencv_core -lopencv_imgcodecs -lopencv_features2d -lopencv_i
 all: $(OUTPUT)
 
 # -f makes it return success when there's no file to delete
+.PHONY: clean
 clean: 
 	rm -f $(OUTPUT)
 	
-$(OUTPUT): $(SRCS) $(PROJ_INC)
-	g++ $(SRCS) -o $(OUTPUT) $(INC) $(LIBS) $(OPTIONS)
+$(OUTPUT): $(OBJ)
+	g++ $^ -o $(OUTPUT) $(INC) $(LIBS)
+
+$(OBJ_DIR)%.o: $(SRC_DIR)%.cpp $(PROJ_INC)
+	mkdir -p obj
+	g++ -c -o $@ $< $(INC) $(OPTIONS) 
