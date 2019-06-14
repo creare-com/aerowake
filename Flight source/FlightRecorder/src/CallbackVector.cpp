@@ -44,27 +44,3 @@ void CallbackVector<ArgType>::fireCallbacks(ArgType arg) {
 	}
 }
 
-
-class TestClass {
-public:
-	TestClass(int num) : num(num) { ; }
-	void callMeMember(int secondNum) {
-		cout << "TestClass object num " << num << " got: " << secondNum << endl;
-	}
-	static void callMeStatic (int secondNum) {
-		cout << "TestClass statically got: " << secondNum << endl;
-	}
-private:
-	int num;
-};
-
-int main() {
-	// Declare a callback vector, whose callbacks take one integer argument
-	CallbackVector<int> cbv;
-	cbv.registerCallback(TestClass::callMeStatic);
-	TestClass testObj(1);
-	cbv.registerCallback<TestClass>(&TestClass::callMeMember, &testObj);
-	cbv.fireCallbacks(2);
-	
-	return 0;
-}
