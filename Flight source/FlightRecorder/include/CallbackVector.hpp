@@ -14,7 +14,7 @@
 
 using namespace std;
 
-template <typename ArgType>
+// template <typename ArgType>
 class CallbackVector {
 public:
 	/**
@@ -41,13 +41,14 @@ public:
 	 * @param callback member function returning void and taking one argument
 	 * @param callbackOwner the `this` pointer for the member function
 	 */
-	void registerMemberCallback(const callbackFtnType &callback, void * callbackOwner);
+	void registerMemberCallback(const callbackFtnType *callback, void * callbackOwner);
 	
 	/**
 	 * Call all callbacks registered to this callback vector.
 	 * @param arg the argument to pass to each callback
 	 */
-	void fireCallbacks(ArgType arg);
+	// void fireCallbacks(ArgType arg);
+	void fireCallbacks(int arg);
 	
 private:
 	
