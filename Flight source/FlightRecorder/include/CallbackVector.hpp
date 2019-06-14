@@ -28,6 +28,7 @@ public:
 	}
 	
 	// Callbacks shall return void and take one argument
+	typedef void (*callbackType)(int);
 	typedef function<void(int)> callbackFtnType;
 	
 	/**
@@ -38,10 +39,12 @@ public:
 	void registerStaticCallback(const callbackFtnType &callback);
 	/**
 	 * Register a callback that is a non-static member function
+	 * @tparam OwnerClass the type of param callbackOwner
 	 * @param callback member function returning void and taking one argument
 	 * @param callbackOwner the `this` pointer for the member function
 	 */
-	void registerMemberCallback(const callbackFtnType *callback, void * callbackOwner);
+	template<typename OwnerClass>
+	void registerMemberCallback(void (OwnerClass::*callback)(int), OwnerClass * callbackOwner);
 	
 	/**
 	 * Call all callbacks registered to this callback vector.

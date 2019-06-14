@@ -37,8 +37,9 @@ void CallbackVector::registerStaticCallback(const CallbackVector::callbackFtnTyp
  * @param callback member function returning void and taking one argument
  * @param callbackOwner the `this` pointer for the member function
  */
-void CallbackVector::registerMemberCallback(const CallbackVector::callbackFtnType *callback, void * callbackOwner) {
-	
+template<typename OwnerClass>
+void CallbackVector::registerMemberCallback(void (OwnerClass::*callback)(int), OwnerClass * callbackOwner) {
+	registerStaticCallback(bind(callback, callbackOwner, placeholders::_1));
 }
 
 /**
@@ -58,9 +59,8 @@ int main() {
 	// CallbackVector<int> cbv;
 	CallbackVector cbv;
 	TestClass testObj(1);
-	cbv.registerStaticCallback(&TestClass::callMeStatic);
-	cbv.registerStaticCallback(bind(&TestClass::callMeMember, &testObj, placeholders::_1));
-	// cbv.registerMemberCallback(&TestClass::callMeMember, &testObj);
+	cbv.registerStaticCallback(TestClass::callMeStatic);
+	cbv.registerMemberCallback<TestClass>(&TestClass::callMeMember, &testObj);
 	cbv.fireCallbacks(2);
 	
 	return 0;
