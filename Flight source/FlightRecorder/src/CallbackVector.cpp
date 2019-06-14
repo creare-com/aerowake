@@ -39,7 +39,9 @@ void CallbackVector::registerStaticCallback(const CallbackVector::callbackFtnTyp
  */
 template<typename OwnerClass>
 void CallbackVector::registerMemberCallback(void (OwnerClass::*callback)(int), OwnerClass * callbackOwner) {
-	registerStaticCallback(bind(callback, callbackOwner, placeholders::_1));
+	if(callback != NULL) {
+		registerStaticCallback(bind(callback, callbackOwner, placeholders::_1));
+	}
 }
 
 /**
