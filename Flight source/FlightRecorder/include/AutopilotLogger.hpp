@@ -24,15 +24,14 @@ public:
 	 * Constructor. 
 	 */
 	AutopilotLogger(string recordingDir, string logFilenameFormat, string autopilotPort, int apBaudRate) :
-		recordingDir(recordingDir),
-		logFilenameFormat(logFilenameFormat),
+		logger(recordingDir, logFilenameFormat),
 		apSerialPort(autopilotPort.c_str(), apBaudRate),
 		apIntf(&apSerialPort)
 	{ 
 		
 	}
 	virtual ~AutopilotLogger() {
-		
+		stopLogging();
 	}
 	
 	void startLogging();
@@ -41,8 +40,8 @@ public:
 private:
 	Serial_Port apSerialPort;
 	Autopilot_Interface apIntf;
-	string recordingDir;
-	string logFilenameFormat;
+
+	CsvLogger logger;
 };
 
 #endif // __AUTOPILOTLOGGER_HPP__

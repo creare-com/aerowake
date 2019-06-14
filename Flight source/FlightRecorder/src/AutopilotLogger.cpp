@@ -12,6 +12,50 @@ using namespace std;
 
 void AutopilotLogger::startLogging() {
 	apIntf.registerAnnouncementCallbacks();
+	
+	
+	
+	// Set up log
+	unsigned int logIdApTime      = logger.addColumn("ap_time_ms");
+	unsigned int logIdRoll        = logger.addColumn("roll");
+	unsigned int logIdPitch       = logger.addColumn("pitch");
+	unsigned int logIdYaw         = logger.addColumn("yaw");
+	unsigned int logIdRollSpeed   = logger.addColumn("roll_speed");
+	unsigned int logIdPitchSpeed  = logger.addColumn("pitch_speed");
+	unsigned int logIdYawSpeed    = logger.addColumn("yaw_speed");
+	// Add all columns before this
+	logger.startNewLogFile();
+	
+	// Use lambda functions to log whenever a message arrives.
+	// This will happen on the reader thread.
+	apIntf.cbReg_attitude_t(
+		[
+			this,
+			logIdApTime    ,
+			logIdRoll      ,
+			logIdPitch     ,
+			logIdYaw       ,
+			logIdRollSpeed ,
+			logIdPitchSpeed,
+			logIdYawSpeed  
+		](mavlink_attitude_t& att) {
+		logger.logData(vector<CsvLogger::Cell>({
+			CsvLogger::Cell(logIdApTime    , att.time_boot_ms),
+			CsvLogger::Cell(logIdRoll      , att.roll        ),
+			CsvLogger::Cell(logIdPitch     , att.pitch       ),
+			CsvLogger::Cell(logIdYaw       , att.yaw         ),
+			CsvLogger::Cell(logIdRollSpeed , att.rollspeed   ),
+			CsvLogger::Cell(logIdPitchSpeed, att.pitchspeed  ),
+			CsvLogger::Cell(logIdYawSpeed  , att.yawspeed    ),
+		}));
+	});
+	
+	
+	
+	
+	
+	
+	
 	apSerialPort.start();
 	apIntf.start();
 	
@@ -62,7 +106,7 @@ void AutopilotLogger::startLogging() {
 	rds.req_message_rate = 1; // Hz
 	rds.target_system = 1;
 	rds.target_component = 1;
-	rds.req_stream_id = MAV_DATA_STREAM_EXTENDED_STATUS;
+	rds.req_stream_id = MAV_DATA_STREAM_EXTRA1;
 	rds.start_stop = 1; // start
 	cout << "Sending data stream request." << endl;
 	mavlink_msg_request_data_stream_encode(/*uint8_t system_id*/ 1, /*uint8_t component_id*/0, &message, &rds);
@@ -112,11 +156,20 @@ void AutopilotLogger::startLogging() {
 	
 }
 void AutopilotLogger::stopLogging() {
+	mavlink_request_data_stream_t rds;
+	memset(&rds, 0, sizeof(rds));
+	rds.target_system = 1;
+	rds.target_component = 1;
+	rds.req_stream_id = MAV_DATA_STREAM_ALL;
+	rds.start_stop = 0; // stop
+	cout << "Stopping data streams." << endl;
+	mavlink_message_t message;
+	mavlink_msg_request_data_stream_encode(/*uint8_t system_id*/ 1, /*uint8_t component_id*/0, &message, &rds);
+	apSerialPort.write_message(message);
+	cout << "Sent." << endl;
+
 	// De-initialize autopilot connection
 	apIntf.disable_offboard_control();
 	apIntf.stop();
 	apSerialPort.stop();
-
-
-
 }
