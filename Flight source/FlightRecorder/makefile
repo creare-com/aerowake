@@ -5,6 +5,7 @@ SRCS=$(wildcard $(SRC_DIR)*.cpp)
 OBJ_DIR=obj/
 OBJ=$(patsubst $(SRC_DIR)%.cpp,$(OBJ_DIR)%.o,$(SRCS))
 INC=-I/usr/include/spinnaker -Iinclude/ -Iinclude/mavlink/v2.0/
+# This makes it so that a change to any project-specific header file causes all .o files to rebuild
 PROJ_INC=$(wildcard include/*.hpp include/*.h)
 OUTPUT=FlightRecorder
 OPTIONS=-std=c++11
