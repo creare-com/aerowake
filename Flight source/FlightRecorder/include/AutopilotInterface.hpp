@@ -270,10 +270,28 @@ public:
 	void stop();
 
 	void start_read_thread();
-	void start_write_thread(void);
 
 	void handle_quit( int sig );
 
+	// Call this once to announce all messages that arrive
+	void registerAnnouncementCallbacks();
+	
+	// Use the functions below to register callbacks whenever a message is received.
+	// Callbacks should return quickly, as they run on the message reader thread.
+	template<typename OwnerClass> void cbReg_heartbeat_t                 (void (OwnerClass::*callback)(mavlink_heartbeat_t                 &), OwnerClass * callbackOwner) { cbv_heartbeat_t                 .registerCallback<OwnerClass>(callback, callbackOwner); }
+	template<typename OwnerClass> void cbReg_sys_status_t                (void (OwnerClass::*callback)(mavlink_sys_status_t                &), OwnerClass * callbackOwner) { cbv_sys_status_t                .registerCallback<OwnerClass>(callback, callbackOwner); }
+	template<typename OwnerClass> void cbReg_battery_status_t            (void (OwnerClass::*callback)(mavlink_battery_status_t            &), OwnerClass * callbackOwner) { cbv_battery_status_t            .registerCallback<OwnerClass>(callback, callbackOwner); }
+	template<typename OwnerClass> void cbReg_radio_status_t              (void (OwnerClass::*callback)(mavlink_radio_status_t              &), OwnerClass * callbackOwner) { cbv_radio_status_t              .registerCallback<OwnerClass>(callback, callbackOwner); }
+	template<typename OwnerClass> void cbReg_local_position_ned_t        (void (OwnerClass::*callback)(mavlink_local_position_ned_t        &), OwnerClass * callbackOwner) { cbv_local_position_ned_t        .registerCallback<OwnerClass>(callback, callbackOwner); }
+	template<typename OwnerClass> void cbReg_global_position_int_t       (void (OwnerClass::*callback)(mavlink_global_position_int_t       &), OwnerClass * callbackOwner) { cbv_global_position_int_t       .registerCallback<OwnerClass>(callback, callbackOwner); }
+	template<typename OwnerClass> void cbReg_position_target_local_ned_t (void (OwnerClass::*callback)(mavlink_position_target_local_ned_t &), OwnerClass * callbackOwner) { cbv_position_target_local_ned_t .registerCallback<OwnerClass>(callback, callbackOwner); }
+	template<typename OwnerClass> void cbReg_position_target_global_int_t(void (OwnerClass::*callback)(mavlink_position_target_global_int_t&), OwnerClass * callbackOwner) { cbv_position_target_global_int_t.registerCallback<OwnerClass>(callback, callbackOwner); }
+	template<typename OwnerClass> void cbReg_highres_imu_t               (void (OwnerClass::*callback)(mavlink_highres_imu_t               &), OwnerClass * callbackOwner) { cbv_highres_imu_t               .registerCallback<OwnerClass>(callback, callbackOwner); }
+	template<typename OwnerClass> void cbReg_attitude_t                  (void (OwnerClass::*callback)(mavlink_attitude_t                  &), OwnerClass * callbackOwner) { cbv_attitude_t                  .registerCallback<OwnerClass>(callback, callbackOwner); }
+	template<typename OwnerClass> void cbReg_autopilot_version_t         (void (OwnerClass::*callback)(mavlink_autopilot_version_t         &), OwnerClass * callbackOwner) { cbv_autopilot_version_t         .registerCallback<OwnerClass>(callback, callbackOwner); }
+	template<typename OwnerClass> void cbReg_command_ack_t               (void (OwnerClass::*callback)(mavlink_command_ack_t               &), OwnerClass * callbackOwner) { cbv_command_ack_t               .registerCallback<OwnerClass>(callback, callbackOwner); }
+	template<typename OwnerClass> void cbReg_param_value_t               (void (OwnerClass::*callback)(mavlink_param_value_t               &), OwnerClass * callbackOwner) { cbv_param_value_t               .registerCallback<OwnerClass>(callback, callbackOwner); }
+	
 
 private:
 
@@ -291,6 +309,35 @@ private:
 	int toggle_offboard_control( bool flag );
 	void write_setpoint();
 
+
+	// Callback vector for every supported message type
+	CallbackVector<mavlink_heartbeat_t                 > cbv_heartbeat_t                 ;
+	CallbackVector<mavlink_sys_status_t                > cbv_sys_status_t                ;
+	CallbackVector<mavlink_battery_status_t            > cbv_battery_status_t            ;
+	CallbackVector<mavlink_radio_status_t              > cbv_radio_status_t              ;
+	CallbackVector<mavlink_local_position_ned_t        > cbv_local_position_ned_t        ;
+	CallbackVector<mavlink_global_position_int_t       > cbv_global_position_int_t       ;
+	CallbackVector<mavlink_position_target_local_ned_t > cbv_position_target_local_ned_t ;
+	CallbackVector<mavlink_position_target_global_int_t> cbv_position_target_global_int_t;
+	CallbackVector<mavlink_highres_imu_t               > cbv_highres_imu_t               ;
+	CallbackVector<mavlink_attitude_t                  > cbv_attitude_t                  ;
+	CallbackVector<mavlink_autopilot_version_t         > cbv_autopilot_version_t         ;
+	CallbackVector<mavlink_command_ack_t               > cbv_command_ack_t               ;
+	CallbackVector<mavlink_param_value_t               > cbv_param_value_t               ;
+
+	void announce_heartbeat_t                  (mavlink_heartbeat_t                 &);
+	void announce_sys_status_t                 (mavlink_sys_status_t                &);
+	void announce_battery_status_t             (mavlink_battery_status_t            &);
+	void announce_radio_status_t               (mavlink_radio_status_t              &);
+	void announce_local_position_ned_t         (mavlink_local_position_ned_t        &);
+	void announce_global_position_int_t        (mavlink_global_position_int_t       &);
+	void announce_position_target_local_ned_t  (mavlink_position_target_local_ned_t &);
+	void announce_position_target_global_int_t (mavlink_position_target_global_int_t&);
+	void announce_highres_imu_t                (mavlink_highres_imu_t               &);
+	void announce_attitude_t                   (mavlink_attitude_t                  &);
+	void announce_autopilot_version_t          (mavlink_autopilot_version_t         &);
+	void announce_command_ack_t                (mavlink_command_ack_t               &);
+	void announce_param_value_t                (mavlink_param_value_t               &);
 };
 
 

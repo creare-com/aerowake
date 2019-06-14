@@ -262,167 +262,130 @@ read_messages()
 
 				case MAVLINK_MSG_ID_HEARTBEAT:
 				{
-					printf("MAVLINK_MSG_ID_HEARTBEAT\n");
 					mavlink_msg_heartbeat_decode(&message, &(current_messages.heartbeat));
 					current_messages.time_stamps.heartbeat = get_time_usec();
 					this_timestamps.heartbeat = current_messages.time_stamps.heartbeat;
+					
+					// Notify listeners
+					cbv_heartbeat_t.fireCallbacks(current_messages.heartbeat);
 					break;
 				}
 
 				case MAVLINK_MSG_ID_SYS_STATUS:
 				{
-					printf("MAVLINK_MSG_ID_SYS_STATUS\n");
 					mavlink_msg_sys_status_decode(&message, &(current_messages.sys_status));
 					current_messages.time_stamps.sys_status = get_time_usec();
 					this_timestamps.sys_status = current_messages.time_stamps.sys_status;
+
+					// Notify listeners
+					cbv_sys_status_t.fireCallbacks(current_messages.sys_status);
 					break;
 				}
-
 				case MAVLINK_MSG_ID_BATTERY_STATUS:
 				{
-					printf("MAVLINK_MSG_ID_BATTERY_STATUS\n");
 					mavlink_msg_battery_status_decode(&message, &(current_messages.battery_status));
 					current_messages.time_stamps.battery_status = get_time_usec();
 					this_timestamps.battery_status = current_messages.time_stamps.battery_status;
+					// Notify listeners
+					cbv_battery_status_t.fireCallbacks(current_messages.battery_status);
 					break;
 				}
 
 				case MAVLINK_MSG_ID_RADIO_STATUS:
 				{
-					printf("MAVLINK_MSG_ID_RADIO_STATUS\n");
 					mavlink_msg_radio_status_decode(&message, &(current_messages.radio_status));
 					current_messages.time_stamps.radio_status = get_time_usec();
 					this_timestamps.radio_status = current_messages.time_stamps.radio_status;
+					// Notify listeners
+					cbv_radio_status_t.fireCallbacks(current_messages.radio_status);
 					break;
 				}
 
 				case MAVLINK_MSG_ID_LOCAL_POSITION_NED:
 				{
-					printf("MAVLINK_MSG_ID_LOCAL_POSITION_NED\n");
 					mavlink_msg_local_position_ned_decode(&message, &(current_messages.local_position_ned));
 					current_messages.time_stamps.local_position_ned = get_time_usec();
 					this_timestamps.local_position_ned = current_messages.time_stamps.local_position_ned;
+					// Notify listeners
+					cbv_local_position_ned_t.fireCallbacks(current_messages.local_position_ned);
 					break;
 				}
 
 				case MAVLINK_MSG_ID_GLOBAL_POSITION_INT:
 				{
-					printf("MAVLINK_MSG_ID_GLOBAL_POSITION_INT\n");
 					mavlink_msg_global_position_int_decode(&message, &(current_messages.global_position_int));
 					current_messages.time_stamps.global_position_int = get_time_usec();
 					this_timestamps.global_position_int = current_messages.time_stamps.global_position_int;
+					// Notify listeners
+					cbv_global_position_int_t.fireCallbacks(current_messages.global_position_int);
 					break;
 				}
 
 				case MAVLINK_MSG_ID_POSITION_TARGET_LOCAL_NED:
 				{
-					printf("MAVLINK_MSG_ID_POSITION_TARGET_LOCAL_NED\n");
 					mavlink_msg_position_target_local_ned_decode(&message, &(current_messages.position_target_local_ned));
 					current_messages.time_stamps.position_target_local_ned = get_time_usec();
 					this_timestamps.position_target_local_ned = current_messages.time_stamps.position_target_local_ned;
+					// Notify listeners
+					cbv_position_target_local_ned_t.fireCallbacks(current_messages.position_target_local_ned);
 					break;
 				}
 
 				case MAVLINK_MSG_ID_POSITION_TARGET_GLOBAL_INT:
 				{
-					printf("MAVLINK_MSG_ID_POSITION_TARGET_GLOBAL_INT\n");
 					mavlink_msg_position_target_global_int_decode(&message, &(current_messages.position_target_global_int));
 					current_messages.time_stamps.position_target_global_int = get_time_usec();
 					this_timestamps.position_target_global_int = current_messages.time_stamps.position_target_global_int;
+					// Notify listeners
+					cbv_position_target_global_int_t.fireCallbacks(current_messages.position_target_global_int);
 					break;
 				}
 
 				case MAVLINK_MSG_ID_HIGHRES_IMU:
 				{
-					printf("MAVLINK_MSG_ID_HIGHRES_IMU\n");
 					mavlink_msg_highres_imu_decode(&message, &(current_messages.highres_imu));
 					current_messages.time_stamps.highres_imu = get_time_usec();
 					this_timestamps.highres_imu = current_messages.time_stamps.highres_imu;
+					// Notify listeners
+					cbv_highres_imu_t.fireCallbacks(current_messages.highres_imu);
 					break;
 				}
 
 				case MAVLINK_MSG_ID_ATTITUDE:
 				{
-					printf("MAVLINK_MSG_ID_ATTITUDE\n");
 					mavlink_msg_attitude_decode(&message, &(current_messages.attitude));
 					current_messages.time_stamps.attitude = get_time_usec();
 					this_timestamps.attitude = current_messages.time_stamps.attitude;
+					// Notify listeners
+					cbv_attitude_t.fireCallbacks(current_messages.attitude);
 					break;
 				}
 
 				case MAVLINK_MSG_ID_AUTOPILOT_VERSION:
 				{
-					// printf("AUTOPILOT_VERSION\n");
 					mavlink_autopilot_version_t ver;
 					mavlink_msg_autopilot_version_decode(&message, &ver);
-					if(ver.capabilities > 0) {
-						printf("Autopilot capabilities: \n");
-						
-						if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_MISSION_FLOAT) { printf("Autopilot supports MISSION float message type.\n"); }
-						if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_PARAM_FLOAT) { printf("Autopilot supports the new param float message type.\n"); }
-						if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_MISSION_INT) { printf("Autopilot supports MISSION_INT scaled integer message type.\n"); }
-						if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_COMMAND_INT) { printf("Autopilot supports COMMAND_INT scaled integer message type.\n"); }
-						if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_PARAM_UNION) { printf("Autopilot supports the new param union message type.\n"); }
-						if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_FTP) { printf("Autopilot supports the new FILE_TRANSFER_PROTOCOL message type.\n"); }
-						if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_SET_ATTITUDE_TARGET) { printf("Autopilot supports commanding attitude offboard.\n"); }
-						if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_SET_POSITION_TARGET_LOCAL_NED) { printf("Autopilot supports commanding position and velocity targets in local NED frame.\n"); }
-						if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_SET_POSITION_TARGET_GLOBAL_INT) { printf("Autopilot supports commanding position and velocity targets in global scaled integers.\n"); }
-						if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_TERRAIN) { printf("Autopilot supports terrain protocol / data handling.\n"); }
-						if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_SET_ACTUATOR_TARGET) { printf("Autopilot supports direct actuator control.\n"); }
-						if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_FLIGHT_TERMINATION) { printf("Autopilot supports the flight termination command.\n"); }
-						if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_COMPASS_CALIBRATION) { printf("Autopilot supports onboard compass calibration.\n"); }
-						if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_MAVLINK2) { printf("Autopilot supports MAVLink version 2.\n"); }
-						if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_MISSION_FENCE) { printf("Autopilot supports mission fence protocol.\n"); }
-						if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_MISSION_RALLY) { printf("Autopilot supports mission rally point protocol.\n"); }
-						if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_FLIGHT_INFORMATION) { printf("Autopilot supports the flight information protocol.\n"); }
-					} else {
-						printf("Autopilot reports no capabilities.\n");
-					}
-					printf("Autopilot UID: %lu\n", ver.uid);
-					printf("Autopilot firmware version: %08X\n", ver.flight_sw_version);
 					
+					// Notify listeners
+					cbv_autopilot_version_t.fireCallbacks(ver);
 					break;
 				}
 
 				case MAVLINK_MSG_ID_COMMAND_ACK:
 				{
-					// printf("MAVLINK_MSG_ID_COMMAND_ACK\n");
 					mavlink_command_ack_t ack;
 					mavlink_msg_command_ack_decode(&message, &ack);
-					switch(ack.result) {
-						case MAV_RESULT_ACCEPTED            : printf("Command ID %d ACCEPTED and EXECUTED\n", ack.command); break;  
-						case MAV_RESULT_TEMPORARILY_REJECTED: printf("Command ID %d TEMPORARY REJECTED/DENIED\n", ack.command); break;
-						case MAV_RESULT_DENIED              : printf("Command ID %d PERMANENTLY DENIED\n", ack.command); break;
-						case MAV_RESULT_UNSUPPORTED         : printf("Command ID %d UNKNOWN/UNSUPPORTED\n", ack.command); break;
-						case MAV_RESULT_FAILED              : printf("Command ID %d executed, but failed\n", ack.command); break;
-						case MAV_RESULT_IN_PROGRESS         : printf("Command ID %d being executed\n", ack.command); break;
-						default: printf("Command ID %d has unknown result %d.", ack.command, ack.result); break;
-					}
+					// Notify listeners
+					cbv_command_ack_t.fireCallbacks(ack);
 					break;
 				}
 
 				case MAVLINK_MSG_ID_PARAM_VALUE:
 				{
-					// printf("MAVLINK_MSG_ID_PARAM_VALUE\n");
 					mavlink_param_value_t paramValue;
 					mavlink_msg_param_value_decode(&message, &paramValue);
-					char nulltermParamId[17];
-					nulltermParamId[16] = 0; // https://mavlink.io/en/messages/common.html#PARAM_VALUE
-					memcpy(nulltermParamId, paramValue.param_id, 16);
-					printf("Value of parameter %d (%s) is: %f", paramValue.param_index, nulltermParamId, paramValue.param_value);
-					// switch(paramValue.param_type) {
-						// case: MAV_PARAM_TYPE_UINT8 : printf("Value of parameter %d (%s) is: %d", reinterpret_cast<uint8_t >(paramValue.param_value));break;
-						// case: MAV_PARAM_TYPE_INT8  : printf("Value of parameter %d (%s) is: %d", reinterpret_cast< int8_t >(paramValue.param_value));break;
-						// case: MAV_PARAM_TYPE_UINT16: printf("Value of parameter %d (%s) is: %d", reinterpret_cast<uint16_t>(paramValue.param_value));break;
-						// case: MAV_PARAM_TYPE_INT16 : printf("Value of parameter %d (%s) is: %d", reinterpret_cast< int16_t>(paramValue.param_value));break;
-						// case: MAV_PARAM_TYPE_UINT32: printf("Value of parameter %d (%s) is: %d", reinterpret_cast<uint32_t>(paramValue.param_value));break;
-						// case: MAV_PARAM_TYPE_INT32 : printf("Value of parameter %d (%s) is: %d", reinterpret_cast< int32_t>(paramValue.param_value));break;
-						//// case: MAV_PARAM_TYPE_UINT64: printf("Value of parameter %d (%s) is: %d", reinterpret_cast<uint64_t>(paramValue.param_value));break;
-						//// case: MAV_PARAM_TYPE_INT64 : printf("Value of parameter %d (%s) is: %d", reinterpret_cast< int64_t>(paramValue.param_value));break;
-						//case: MAV_PARAM_TYPE_REAL32: printf("Value of parameter %d (%s) is: %f", paramValue.param_value));break;
-						//// case: MAV_PARAM_TYPE_REAL64: printf("Value of parameter %d (%s) is: %d", reinterpret_cast<float64_t>(paramValue.param_value));break;
-						//default: printf("Value of parameter %d (%s) has unknown type %d", paramValue.param_type);break;
-					//}
+					// Notify listeners
+					cbv_param_value_t.fireCallbacks(paramValue);
 					break;
 				}
 
@@ -813,4 +776,120 @@ start_autopilot_interface_read_thread(void *args)
 	// done!
 	return NULL;
 }
+
+
+
+
+
+
+
+
+// ------------------------------------------------------------------------------
+//  Message callback functions
+// ------------------------------------------------------------------------------
+
+void Autopilot_Interface::registerAnnouncementCallbacks() {
+	
+	cbReg_heartbeat_t                 (&Autopilot_Interface::announce_heartbeat_t                  ,this);
+	cbReg_sys_status_t                (&Autopilot_Interface::announce_sys_status_t                 ,this);
+	cbReg_battery_status_t            (&Autopilot_Interface::announce_battery_status_t             ,this);
+	cbReg_radio_status_t              (&Autopilot_Interface::announce_radio_status_t               ,this);
+	cbReg_local_position_ned_t        (&Autopilot_Interface::announce_local_position_ned_t         ,this);
+	cbReg_global_position_int_t       (&Autopilot_Interface::announce_global_position_int_t        ,this);
+	cbReg_position_target_local_ned_t (&Autopilot_Interface::announce_position_target_local_ned_t  ,this);
+	cbReg_position_target_global_int_t(&Autopilot_Interface::announce_position_target_global_int_t ,this);
+	cbReg_highres_imu_t               (&Autopilot_Interface::announce_highres_imu_t                ,this);
+	cbReg_attitude_t                  (&Autopilot_Interface::announce_attitude_t                   ,this);
+	cbReg_autopilot_version_t         (&Autopilot_Interface::announce_autopilot_version_t          ,this);
+	cbReg_command_ack_t               (&Autopilot_Interface::announce_command_ack_t                ,this);
+	cbReg_param_value_t               (&Autopilot_Interface::announce_param_value_t                ,this);
+}
+
+void Autopilot_Interface::announce_heartbeat_t                  (mavlink_heartbeat_t                 &) {
+	printf("Received: MAVLINK_MSG_ID_HEARTBEAT\n");
+}
+
+void Autopilot_Interface::announce_sys_status_t                 (mavlink_sys_status_t                &) {
+	printf("Received: MAVLINK_MSG_ID_SYS_STATUS\n");
+}
+
+void Autopilot_Interface::announce_battery_status_t             (mavlink_battery_status_t            &) {
+	printf("Received: MAVLINK_MSG_ID_BATTERY_STATUS\n");
+}
+
+void Autopilot_Interface::announce_radio_status_t               (mavlink_radio_status_t              &) {
+	printf("Received: MAVLINK_MSG_ID_RADIO_STATUS\n");
+}
+
+void Autopilot_Interface::announce_local_position_ned_t         (mavlink_local_position_ned_t        &) {
+	printf("Received: MAVLINK_MSG_ID_LOCAL_POSITION_NED\n");
+}
+
+void Autopilot_Interface::announce_global_position_int_t        (mavlink_global_position_int_t       &) {
+	printf("Received: MAVLINK_MSG_ID_GLOBAL_POSITION_INT\n");
+}
+
+void Autopilot_Interface::announce_position_target_local_ned_t  (mavlink_position_target_local_ned_t &) {
+	printf("Received: MAVLINK_MSG_ID_POSITION_TARGET_LOCAL_NED\n");
+}
+
+void Autopilot_Interface::announce_position_target_global_int_t (mavlink_position_target_global_int_t&) {
+	printf("Received: MAVLINK_MSG_ID_POSITION_TARGET_GLOBAL_INT\n");
+}
+
+void Autopilot_Interface::announce_highres_imu_t                (mavlink_highres_imu_t               &) {
+	printf("Received: MAVLINK_MSG_ID_HIGHRES_IMU\n");
+}
+
+void Autopilot_Interface::announce_attitude_t                   (mavlink_attitude_t                  &) {
+	printf("Received: MAVLINK_MSG_ID_ATTITUDE\n");
+}
+
+void Autopilot_Interface::announce_autopilot_version_t          (mavlink_autopilot_version_t         & ver) {
+	if(ver.capabilities > 0) {
+		printf("Autopilot capabilities: \n");
+		
+		if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_MISSION_FLOAT) { printf("Autopilot supports MISSION float message type.\n"); }
+		if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_PARAM_FLOAT) { printf("Autopilot supports the new param float message type.\n"); }
+		if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_MISSION_INT) { printf("Autopilot supports MISSION_INT scaled integer message type.\n"); }
+		if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_COMMAND_INT) { printf("Autopilot supports COMMAND_INT scaled integer message type.\n"); }
+		if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_PARAM_UNION) { printf("Autopilot supports the new param union message type.\n"); }
+		if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_FTP) { printf("Autopilot supports the new FILE_TRANSFER_PROTOCOL message type.\n"); }
+		if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_SET_ATTITUDE_TARGET) { printf("Autopilot supports commanding attitude offboard.\n"); }
+		if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_SET_POSITION_TARGET_LOCAL_NED) { printf("Autopilot supports commanding position and velocity targets in local NED frame.\n"); }
+		if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_SET_POSITION_TARGET_GLOBAL_INT) { printf("Autopilot supports commanding position and velocity targets in global scaled integers.\n"); }
+		if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_TERRAIN) { printf("Autopilot supports terrain protocol / data handling.\n"); }
+		if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_SET_ACTUATOR_TARGET) { printf("Autopilot supports direct actuator control.\n"); }
+		if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_FLIGHT_TERMINATION) { printf("Autopilot supports the flight termination command.\n"); }
+		if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_COMPASS_CALIBRATION) { printf("Autopilot supports onboard compass calibration.\n"); }
+		if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_MAVLINK2) { printf("Autopilot supports MAVLink version 2.\n"); }
+		if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_MISSION_FENCE) { printf("Autopilot supports mission fence protocol.\n"); }
+		if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_MISSION_RALLY) { printf("Autopilot supports mission rally point protocol.\n"); }
+		if(ver.capabilities & MAV_PROTOCOL_CAPABILITY_FLIGHT_INFORMATION) { printf("Autopilot supports the flight information protocol.\n"); }
+	} else {
+		printf("Autopilot reports no capabilities.\n");
+	}
+	printf("Autopilot UID: %lu\n", ver.uid);
+	printf("Autopilot firmware version: %08X\n", ver.flight_sw_version);
+}
+
+void Autopilot_Interface::announce_command_ack_t                (mavlink_command_ack_t               &ack) {
+	switch(ack.result) {
+		case MAV_RESULT_ACCEPTED            : printf("Command ID %d ACCEPTED and EXECUTED\n", ack.command); break;  
+		case MAV_RESULT_TEMPORARILY_REJECTED: printf("Command ID %d TEMPORARY REJECTED/DENIED\n", ack.command); break;
+		case MAV_RESULT_DENIED              : printf("Command ID %d PERMANENTLY DENIED\n", ack.command); break;
+		case MAV_RESULT_UNSUPPORTED         : printf("Command ID %d UNKNOWN/UNSUPPORTED\n", ack.command); break;
+		case MAV_RESULT_FAILED              : printf("Command ID %d executed, but failed\n", ack.command); break;
+		case MAV_RESULT_IN_PROGRESS         : printf("Command ID %d being executed\n", ack.command); break;
+		default: printf("Command ID %d has unknown result %d.", ack.command, ack.result); break;
+	}
+}
+
+void Autopilot_Interface::announce_param_value_t                (mavlink_param_value_t               &paramValue) {
+	char nulltermParamId[17];
+	nulltermParamId[16] = 0; // https://mavlink.io/en/messages/common.html#PARAM_VALUE
+	memcpy(nulltermParamId, paramValue.param_id, 16);
+	printf("Value of parameter %d (%s) is: %f", paramValue.param_index, nulltermParamId, paramValue.param_value);
+}
+
 

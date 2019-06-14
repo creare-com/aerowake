@@ -75,6 +75,7 @@ int main(int argc, char** argv)
 	// Set up autopilot connection
 	Serial_Port apSerialPort(autopilotPort.c_str(), apBaudRate);
 	Autopilot_Interface apIntf(&apSerialPort);
+	apIntf.registerAnnouncementCallbacks();
 	apSerialPort.start();
 	apIntf.start();
 	
