@@ -58,7 +58,7 @@ public:
 	}
 	
 	// Callbacks shall return void and take one argument
-	typedef function<void(ArgType)> callbackFtnType;
+	typedef function<void(ArgType&)> callbackFtnType;
 	
 	/**
 	 * Register a callback without any `this` pointer.  (a static method,
@@ -87,7 +87,7 @@ public:
 	 * @param callbackOwner the `this` pointer for the member function
 	 */
 	template<typename OwnerClass>
-	void registerCallback(void (OwnerClass::*callback)(ArgType), OwnerClass * callbackOwner){
+	void registerCallback(void (OwnerClass::*callback)(ArgType&), OwnerClass * callbackOwner){
 		if(callback != NULL) {
 			registerCallback(bind(callback, callbackOwner, placeholders::_1));
 		}
@@ -99,7 +99,7 @@ public:
 	 * so it could take a while.
 	 * @param arg the argument to pass to each callback
 	 */
-	void fireCallbacks(ArgType arg){
+	void fireCallbacks(ArgType &arg){
 		for(auto callback : callbackVector) {
 			callback(arg);
 		}
