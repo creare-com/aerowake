@@ -71,7 +71,9 @@ public:
 	 * 
 	 * @param callback function returning void and taking one argument
 	 */
-	void registerCallback(const callbackFtnType &callback);
+	void registerCallback(const callbackFtnType &callback) {
+		callbackVector.push_back(callback);
+	}
 	/**
 	 * Register a callback that is a non-static member function
 	 * 
@@ -85,7 +87,11 @@ public:
 	 * @param callbackOwner the `this` pointer for the member function
 	 */
 	template<typename OwnerClass>
-	void registerCallback(void (OwnerClass::*callback)(ArgType), OwnerClass * callbackOwner);
+	void registerCallback(void (OwnerClass::*callback)(ArgType), OwnerClass * callbackOwner){
+		if(callback != NULL) {
+			registerCallback(bind(callback, callbackOwner, placeholders::_1));
+		}
+	}
 	
 	/**
 	 * Call all callbacks registered to this callback vector.
@@ -93,7 +99,11 @@ public:
 	 * so it could take a while.
 	 * @param arg the argument to pass to each callback
 	 */
-	void fireCallbacks(ArgType arg);
+	void fireCallbacks(ArgType arg){
+		for(auto callback : callbackVector) {
+			callback(arg);
+		}
+	}
 	
 private:
 	vector<callbackFtnType> callbackVector;
