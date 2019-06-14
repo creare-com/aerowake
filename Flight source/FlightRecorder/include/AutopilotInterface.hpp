@@ -61,6 +61,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include <atomic>
+#include <functional>
 
 #include <common/mavlink.h>
 
@@ -277,20 +278,21 @@ public:
 	void registerAnnouncementCallbacks();
 	
 	// Use the functions below to register callbacks whenever a message is received.
+	// Lambdas work well for these, but note that CallbackVector supports object member functions too.
 	// Callbacks should return quickly, as they run on the message reader thread.
-	template<typename OwnerClass> void cbReg_heartbeat_t                 (void (OwnerClass::*callback)(mavlink_heartbeat_t                 &), OwnerClass * callbackOwner) { cbv_heartbeat_t                 .registerCallback<OwnerClass>(callback, callbackOwner); }
-	template<typename OwnerClass> void cbReg_sys_status_t                (void (OwnerClass::*callback)(mavlink_sys_status_t                &), OwnerClass * callbackOwner) { cbv_sys_status_t                .registerCallback<OwnerClass>(callback, callbackOwner); }
-	template<typename OwnerClass> void cbReg_battery_status_t            (void (OwnerClass::*callback)(mavlink_battery_status_t            &), OwnerClass * callbackOwner) { cbv_battery_status_t            .registerCallback<OwnerClass>(callback, callbackOwner); }
-	template<typename OwnerClass> void cbReg_radio_status_t              (void (OwnerClass::*callback)(mavlink_radio_status_t              &), OwnerClass * callbackOwner) { cbv_radio_status_t              .registerCallback<OwnerClass>(callback, callbackOwner); }
-	template<typename OwnerClass> void cbReg_local_position_ned_t        (void (OwnerClass::*callback)(mavlink_local_position_ned_t        &), OwnerClass * callbackOwner) { cbv_local_position_ned_t        .registerCallback<OwnerClass>(callback, callbackOwner); }
-	template<typename OwnerClass> void cbReg_global_position_int_t       (void (OwnerClass::*callback)(mavlink_global_position_int_t       &), OwnerClass * callbackOwner) { cbv_global_position_int_t       .registerCallback<OwnerClass>(callback, callbackOwner); }
-	template<typename OwnerClass> void cbReg_position_target_local_ned_t (void (OwnerClass::*callback)(mavlink_position_target_local_ned_t &), OwnerClass * callbackOwner) { cbv_position_target_local_ned_t .registerCallback<OwnerClass>(callback, callbackOwner); }
-	template<typename OwnerClass> void cbReg_position_target_global_int_t(void (OwnerClass::*callback)(mavlink_position_target_global_int_t&), OwnerClass * callbackOwner) { cbv_position_target_global_int_t.registerCallback<OwnerClass>(callback, callbackOwner); }
-	template<typename OwnerClass> void cbReg_highres_imu_t               (void (OwnerClass::*callback)(mavlink_highres_imu_t               &), OwnerClass * callbackOwner) { cbv_highres_imu_t               .registerCallback<OwnerClass>(callback, callbackOwner); }
-	template<typename OwnerClass> void cbReg_attitude_t                  (void (OwnerClass::*callback)(mavlink_attitude_t                  &), OwnerClass * callbackOwner) { cbv_attitude_t                  .registerCallback<OwnerClass>(callback, callbackOwner); }
-	template<typename OwnerClass> void cbReg_autopilot_version_t         (void (OwnerClass::*callback)(mavlink_autopilot_version_t         &), OwnerClass * callbackOwner) { cbv_autopilot_version_t         .registerCallback<OwnerClass>(callback, callbackOwner); }
-	template<typename OwnerClass> void cbReg_command_ack_t               (void (OwnerClass::*callback)(mavlink_command_ack_t               &), OwnerClass * callbackOwner) { cbv_command_ack_t               .registerCallback<OwnerClass>(callback, callbackOwner); }
-	template<typename OwnerClass> void cbReg_param_value_t               (void (OwnerClass::*callback)(mavlink_param_value_t               &), OwnerClass * callbackOwner) { cbv_param_value_t               .registerCallback<OwnerClass>(callback, callbackOwner); }
+	void cbReg_heartbeat_t                 (function<void(mavlink_heartbeat_t                 &)> callback) { cbv_heartbeat_t                 .registerCallback(callback); }
+	void cbReg_sys_status_t                (function<void(mavlink_sys_status_t                &)> callback) { cbv_sys_status_t                .registerCallback(callback); }
+	void cbReg_battery_status_t            (function<void(mavlink_battery_status_t            &)> callback) { cbv_battery_status_t            .registerCallback(callback); }
+	void cbReg_radio_status_t              (function<void(mavlink_radio_status_t              &)> callback) { cbv_radio_status_t              .registerCallback(callback); }
+	void cbReg_local_position_ned_t        (function<void(mavlink_local_position_ned_t        &)> callback) { cbv_local_position_ned_t        .registerCallback(callback); }
+	void cbReg_global_position_int_t       (function<void(mavlink_global_position_int_t       &)> callback) { cbv_global_position_int_t       .registerCallback(callback); }
+	void cbReg_position_target_local_ned_t (function<void(mavlink_position_target_local_ned_t &)> callback) { cbv_position_target_local_ned_t .registerCallback(callback); }
+	void cbReg_position_target_global_int_t(function<void(mavlink_position_target_global_int_t&)> callback) { cbv_position_target_global_int_t.registerCallback(callback); }
+	void cbReg_highres_imu_t               (function<void(mavlink_highres_imu_t               &)> callback) { cbv_highres_imu_t               .registerCallback(callback); }
+	void cbReg_attitude_t                  (function<void(mavlink_attitude_t                  &)> callback) { cbv_attitude_t                  .registerCallback(callback); }
+	void cbReg_autopilot_version_t         (function<void(mavlink_autopilot_version_t         &)> callback) { cbv_autopilot_version_t         .registerCallback(callback); }
+	void cbReg_command_ack_t               (function<void(mavlink_command_ack_t               &)> callback) { cbv_command_ack_t               .registerCallback(callback); }
+	void cbReg_param_value_t               (function<void(mavlink_param_value_t               &)> callback) { cbv_param_value_t               .registerCallback(callback); }
 	
 
 private:
@@ -325,19 +327,19 @@ private:
 	CallbackVector<mavlink_command_ack_t               > cbv_command_ack_t               ;
 	CallbackVector<mavlink_param_value_t               > cbv_param_value_t               ;
 
-	void announce_heartbeat_t                  (mavlink_heartbeat_t                 &);
-	void announce_sys_status_t                 (mavlink_sys_status_t                &);
-	void announce_battery_status_t             (mavlink_battery_status_t            &);
-	void announce_radio_status_t               (mavlink_radio_status_t              &);
-	void announce_local_position_ned_t         (mavlink_local_position_ned_t        &);
-	void announce_global_position_int_t        (mavlink_global_position_int_t       &);
-	void announce_position_target_local_ned_t  (mavlink_position_target_local_ned_t &);
-	void announce_position_target_global_int_t (mavlink_position_target_global_int_t&);
-	void announce_highres_imu_t                (mavlink_highres_imu_t               &);
-	void announce_attitude_t                   (mavlink_attitude_t                  &);
-	void announce_autopilot_version_t          (mavlink_autopilot_version_t         &);
-	void announce_command_ack_t                (mavlink_command_ack_t               &);
-	void announce_param_value_t                (mavlink_param_value_t               &);
+	static void announce_heartbeat_t                  (mavlink_heartbeat_t                 &);
+	static void announce_sys_status_t                 (mavlink_sys_status_t                &);
+	static void announce_battery_status_t             (mavlink_battery_status_t            &);
+	static void announce_radio_status_t               (mavlink_radio_status_t              &);
+	static void announce_local_position_ned_t         (mavlink_local_position_ned_t        &);
+	static void announce_global_position_int_t        (mavlink_global_position_int_t       &);
+	static void announce_position_target_local_ned_t  (mavlink_position_target_local_ned_t &);
+	static void announce_position_target_global_int_t (mavlink_position_target_global_int_t&);
+	static void announce_highres_imu_t                (mavlink_highres_imu_t               &);
+	static void announce_attitude_t                   (mavlink_attitude_t                  &);
+	static void announce_autopilot_version_t          (mavlink_autopilot_version_t         &);
+	static void announce_command_ack_t                (mavlink_command_ack_t               &);
+	static void announce_param_value_t                (mavlink_param_value_t               &);
 };
 
 

@@ -790,19 +790,19 @@ start_autopilot_interface_read_thread(void *args)
 
 void Autopilot_Interface::registerAnnouncementCallbacks() {
 	
-	cbReg_heartbeat_t                 (&Autopilot_Interface::announce_heartbeat_t                  ,this);
-	cbReg_sys_status_t                (&Autopilot_Interface::announce_sys_status_t                 ,this);
-	cbReg_battery_status_t            (&Autopilot_Interface::announce_battery_status_t             ,this);
-	cbReg_radio_status_t              (&Autopilot_Interface::announce_radio_status_t               ,this);
-	cbReg_local_position_ned_t        (&Autopilot_Interface::announce_local_position_ned_t         ,this);
-	cbReg_global_position_int_t       (&Autopilot_Interface::announce_global_position_int_t        ,this);
-	cbReg_position_target_local_ned_t (&Autopilot_Interface::announce_position_target_local_ned_t  ,this);
-	cbReg_position_target_global_int_t(&Autopilot_Interface::announce_position_target_global_int_t ,this);
-	cbReg_highres_imu_t               (&Autopilot_Interface::announce_highres_imu_t                ,this);
-	cbReg_attitude_t                  (&Autopilot_Interface::announce_attitude_t                   ,this);
-	cbReg_autopilot_version_t         (&Autopilot_Interface::announce_autopilot_version_t          ,this);
-	cbReg_command_ack_t               (&Autopilot_Interface::announce_command_ack_t                ,this);
-	cbReg_param_value_t               (&Autopilot_Interface::announce_param_value_t                ,this);
+	cbReg_heartbeat_t                 (Autopilot_Interface::announce_heartbeat_t                  );
+	cbReg_sys_status_t                (Autopilot_Interface::announce_sys_status_t                 );
+	cbReg_battery_status_t            (Autopilot_Interface::announce_battery_status_t             );
+	cbReg_radio_status_t              (Autopilot_Interface::announce_radio_status_t               );
+	cbReg_local_position_ned_t        (Autopilot_Interface::announce_local_position_ned_t         );
+	cbReg_global_position_int_t       (Autopilot_Interface::announce_global_position_int_t        );
+	cbReg_position_target_local_ned_t (Autopilot_Interface::announce_position_target_local_ned_t  );
+	cbReg_position_target_global_int_t(Autopilot_Interface::announce_position_target_global_int_t );
+	cbReg_highres_imu_t               (Autopilot_Interface::announce_highres_imu_t                );
+	cbReg_attitude_t                  (Autopilot_Interface::announce_attitude_t                   );
+	cbReg_autopilot_version_t         (Autopilot_Interface::announce_autopilot_version_t          );
+	cbReg_command_ack_t               (Autopilot_Interface::announce_command_ack_t                );
+	cbReg_param_value_t               (Autopilot_Interface::announce_param_value_t                );
 }
 
 void Autopilot_Interface::announce_heartbeat_t                  (mavlink_heartbeat_t                 &) {
@@ -889,7 +889,7 @@ void Autopilot_Interface::announce_param_value_t                (mavlink_param_v
 	char nulltermParamId[17];
 	nulltermParamId[16] = 0; // https://mavlink.io/en/messages/common.html#PARAM_VALUE
 	memcpy(nulltermParamId, paramValue.param_id, 16);
-	printf("Value of parameter %d (%s) is: %f", paramValue.param_index, nulltermParamId, paramValue.param_value);
+	printf("Value of parameter %d (%s) is: %f\n", paramValue.param_index, nulltermParamId, paramValue.param_value);
 }
 
 
