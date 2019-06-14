@@ -59,7 +59,7 @@ int main() {
 	CallbackVector cbv;
 	TestClass testObj(1);
 	cbv.registerStaticCallback(&TestClass::callMeStatic);
-	bind(&TestClass::callMeMember, &testObj, placeholders::_1);
+	cbv.registerStaticCallback(bind(&TestClass::callMeMember, &testObj, placeholders::_1));
 	// cbv.registerMemberCallback(&TestClass::callMeMember, &testObj);
 	cbv.fireCallbacks(2);
 	
