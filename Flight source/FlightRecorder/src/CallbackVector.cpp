@@ -30,7 +30,7 @@ private:
  * @param callback function returning void and taking one argument
  */
 void CallbackVector::registerStaticCallback(const CallbackVector::callbackFtnType &callback) {
-	
+	callbackVector.push_back(callback);
 }
 /**
  * Register a callback that is a non-static member function
@@ -47,7 +47,9 @@ void CallbackVector::registerMemberCallback(const CallbackVector::callbackFtnTyp
  */
 // void CallbackVector::fireCallbacks(ArgType arg) {
 void CallbackVector::fireCallbacks(int arg) {
-	
+	for(auto callback : callbackVector) {
+		callback(arg);
+	}
 }
 
 

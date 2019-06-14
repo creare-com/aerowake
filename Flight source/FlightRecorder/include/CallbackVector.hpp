@@ -51,7 +51,7 @@ public:
 	void fireCallbacks(int arg);
 	
 private:
-	
+	vector<callbackFtnType> callbackVector;
 };
 
 #endif // __CALLBACKVECTOR_HPP__
