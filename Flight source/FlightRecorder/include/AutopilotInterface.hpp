@@ -55,7 +55,7 @@
 //   Includes
 // ------------------------------------------------------------------------------
 #include "CallbackVector.hpp"
-#include "serial_port.h"
+#include "SerialPort.hpp"
 
 #include <signal.h>
 #include <time.h>

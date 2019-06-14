@@ -20,8 +20,8 @@
 #include <unistd.h>
 
 #include <benchmarker.hpp>
-#include <serial_port.h>
-#include <autopilot_interface.h>
+#include <SerialPort.hpp>
+#include <AutopilotInterface.hpp>
 #include <CameraLogger.hpp>
 #include <CLI11.hpp>
 #include <date.h>

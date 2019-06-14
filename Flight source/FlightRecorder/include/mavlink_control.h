@@ -69,8 +69,8 @@ using namespace std;
 
 #include <common/mavlink.h>
 
-#include "autopilot_interface.h"
-#include "serial_port.h"
+#include "AutopilotInterface.hpp"
+#include "SerialPort.hpp"
 
 
 // ------------------------------------------------------------------------------
