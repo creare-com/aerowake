@@ -14,7 +14,7 @@
 
 using namespace std;
 
-// template <typename ArgType>
+template <typename ArgType>
 class CallbackVector {
 public:
 	/**
@@ -28,8 +28,7 @@ public:
 	}
 	
 	// Callbacks shall return void and take one argument
-	typedef void (*callbackType)(int);
-	typedef function<void(int)> callbackFtnType;
+	typedef function<void(ArgType)> callbackFtnType;
 	
 	/**
 	 * Register a callback lacking a this pointer.
@@ -40,18 +39,17 @@ public:
 	/**
 	 * Register a callback that is a non-static member function
 	 * @tparam OwnerClass the type of param callbackOwner
-	 * @param callback member function returning void and taking one argument
+	 * @param callback pointer to a member function returning void and taking one argument
 	 * @param callbackOwner the `this` pointer for the member function
 	 */
 	template<typename OwnerClass>
-	void registerMemberCallback(void (OwnerClass::*callback)(int), OwnerClass * callbackOwner);
+	void registerMemberCallback(void (OwnerClass::*callback)(ArgType), OwnerClass * callbackOwner);
 	
 	/**
 	 * Call all callbacks registered to this callback vector.
 	 * @param arg the argument to pass to each callback
 	 */
-	// void fireCallbacks(ArgType arg);
-	void fireCallbacks(int arg);
+	void fireCallbacks(ArgType arg);
 	
 private:
 	vector<callbackFtnType> callbackVector;

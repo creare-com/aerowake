@@ -29,7 +29,8 @@ private:
  * That is, a static method, or a function that is not a class method, or a lambda.
  * @param callback function returning void and taking one argument
  */
-void CallbackVector::registerStaticCallback(const CallbackVector::callbackFtnType &callback) {
+template <typename ArgType>
+void CallbackVector<ArgType>::registerStaticCallback(const CallbackVector<ArgType>::callbackFtnType &callback) {
 	callbackVector.push_back(callback);
 }
 /**
@@ -37,8 +38,9 @@ void CallbackVector::registerStaticCallback(const CallbackVector::callbackFtnTyp
  * @param callback member function returning void and taking one argument
  * @param callbackOwner the `this` pointer for the member function
  */
-template<typename OwnerClass>
-void CallbackVector::registerMemberCallback(void (OwnerClass::*callback)(int), OwnerClass * callbackOwner) {
+template <typename ArgType>
+template <typename OwnerClass>
+void CallbackVector<ArgType>::registerMemberCallback(void (OwnerClass::*callback)(ArgType), OwnerClass * callbackOwner) {
 	if(callback != NULL) {
 		registerStaticCallback(bind(callback, callbackOwner, placeholders::_1));
 	}
@@ -48,8 +50,8 @@ void CallbackVector::registerMemberCallback(void (OwnerClass::*callback)(int), O
  * Call all callbacks registered to this callback vector.
  * @param arg the argument to pass to each callback
  */
-// void CallbackVector::fireCallbacks(ArgType arg) {
-void CallbackVector::fireCallbacks(int arg) {
+template <typename ArgType>
+void CallbackVector<ArgType>::fireCallbacks(ArgType arg) {
 	for(auto callback : callbackVector) {
 		callback(arg);
 	}
@@ -57,11 +59,10 @@ void CallbackVector::fireCallbacks(int arg) {
 
 
 int main() {
-	
-	// CallbackVector<int> cbv;
-	CallbackVector cbv;
-	TestClass testObj(1);
+	// Declare a callback vector, whose callbacks take one integer argument
+	CallbackVector<int> cbv;
 	cbv.registerStaticCallback(TestClass::callMeStatic);
+	TestClass testObj(1);
 	cbv.registerMemberCallback<TestClass>(&TestClass::callMeMember, &testObj);
 	cbv.fireCallbacks(2);
 	
