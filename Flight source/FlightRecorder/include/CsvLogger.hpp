@@ -41,6 +41,7 @@
 #include <date.h>
 
 using namespace std;
+using namespace std::chrono;
 
 class CsvLogger {
 public:
@@ -50,11 +51,13 @@ public:
 	 * @param recordingDir The directory in which to save the file(s)
 	 * @param logFilenameFormat Pattern specifying the filename for log data. Will substitute flags found here: https://howardhinnant.github.io/date/date.html#to_stream_formatting.  Avoid any characters not supported by the filesystem, such as colons.
 	 * @param timestampFormat Pattern specifying the timestamp in the first column. Will substitute flags found here: https://howardhinnant.github.io/date/date.html#to_stream_formatting.
+	 * @param streamPrecision Number of places after the decimal point to save
 	 */
-	CsvLogger(string recordingDir = ".", string logFilenameFormat = "data_%F_%H-%M-%S.csv", string timestampFormat = "%H:%M:%S") :
+	CsvLogger(string recordingDir = ".", string logFilenameFormat = "data_%F_%H-%M-%S.csv", string timestampFormat = "%H:%M:%S", unsigned int streamPrecision = 20) :
 		recordingDir      (recordingDir     ),
 		logFilenameFormat (logFilenameFormat),
-		timestampFormat   (timestampFormat  )
+		timestampFormat   (timestampFormat  ),
+		streamPrecision   (streamPrecision  )
 	{ 
 		headers.push_back("time");
 	}
@@ -90,7 +93,7 @@ public:
 		double value;
 		
 		Cell(unsigned int id, double value) : id(id), value(value) { ; }
-		friend bool operator< (const Cell &c1, const Cell &c2) { return c1.value < c2.value; }
+		friend bool operator< (const Cell &c1, const Cell &c2) { return c1.id < c2.id; }
 	};
 	
 	/**
@@ -110,13 +113,15 @@ public:
 			logFile << date::format(timestampFormat, date::floor<milliseconds>(system_clock::now()));
 			logFile <<',';
 			sort(values.begin(), values.end());
+			// cout << "Sorted values: ";
+			// for(auto value : values) {
+				// cout << value.id << ": " << value.value << ", ";
+			// }
+			// cout << endl;
 			auto it = values.begin();
 			for(unsigned int col = 1; col < headers.size(); col++) {
 				if(it != values.end()) {
 					if(it->id == col) {
-						if(isnan(it->value)) {
-							cout << "Warning: NaN for column " << headers[col] << endl;
-						}
 						logFile << it->value;
 						++it;
 					}
@@ -135,6 +140,7 @@ private:
 	string recordingDir;
 	string logFilenameFormat;
 	string timestampFormat;
+	unsigned int streamPrecision;
 	vector<string> headers;
 	string curPath = "";
 	
@@ -152,6 +158,7 @@ private:
 		nameStream << recordingDir << '/' << date::format(logFilenameFormat, date::floor<milliseconds>(system_clock::now()));
 		curPath = nameStream.str();
 		logFile.open(curPath);
+		logFile.precision(streamPrecision);
 		
 		for(unsigned int col = 0; col < headers.size(); col++) {
 			logFile << headers[col];
