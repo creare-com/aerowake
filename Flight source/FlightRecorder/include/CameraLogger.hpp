@@ -38,12 +38,12 @@ public:
     
     /**
      * Find the first USB camera, configure it, and tell it to begin acquisition
-     * Returns true for success, false otherwise
+     * @return true for success, false otherwise
      */
     bool initCamera(string settingsFilePath = "");
     /**
      * Pull one frame from the camera and save it to disk at the configured location
-     * Returns true for success, false otherwise
+     * @return true for success, false otherwise
      */
     bool captureAndLogImage();
     
