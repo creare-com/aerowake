@@ -66,14 +66,20 @@ public:
 	 * Close old log file, if one was open.
 	 * Open a new log file for subsequent calls to logData().
 	 */
-	void startNewLogFile();
+	void startNewLogFile() {
+		openFile();
+	}
 	
 	/**
 	 * Call this before logging data.
 	 * @param header Single-token header
 	 * @return the column ID
 	 */
-	unsigned int addColumn(string header);
+	unsigned int addColumn(string header) {
+		headers.push_back(header);
+		// Column ID just happens to be the index
+		return headers.size() - 1;
+	}
 	
 	/**
 	 * A cell in a CSV table
@@ -91,12 +97,37 @@ public:
 	 * Log one timestamped value on its own line.
 	 * @param value Value to log
 	 */
-	void logData(Cell value);
+	void logData(Cell value) {
+		logData(vector<Cell>({value}));
+	}
 	/**
 	 * Log a timestamped line with several values
 	 * @param values Values to log
 	 */
-	void logData(vector<Cell> values);
+	void logData(vector<Cell> values) {
+		if(logFile.is_open()) {
+			// Timestamp is always the first column
+			logFile << date::format(timestampFormat, date::floor<milliseconds>(system_clock::now()));
+			logFile <<',';
+			sort(values.begin(), values.end());
+			auto it = values.begin();
+			for(unsigned int col = 1; col < headers.size(); col++) {
+				if(it != values.end()) {
+					if(it->id == col) {
+						if(isnan(it->value)) {
+							cout << "Warning: NaN for column " << headers[col] << endl;
+						}
+						logFile << it->value;
+						++it;
+					}
+				}
+				if(col < headers.size() - 1) {
+					logFile << ',';
+				}
+			}
+			logFile << endl;
+		}
+	}
 	
 	string getCurPath() { return curPath; }
 	
@@ -112,8 +143,29 @@ private:
 	/**
 	 * Open a file based on the timestamp
 	 */
-	void openFile();
-	void closeFile();
+	void openFile() {
+		if(logFile.is_open()) {
+			closeFile();
+		}
+		
+		stringstream nameStream;
+		nameStream << recordingDir << '/' << date::format(logFilenameFormat, date::floor<milliseconds>(system_clock::now()));
+		curPath = nameStream.str();
+		logFile.open(curPath);
+		
+		for(unsigned int col = 0; col < headers.size(); col++) {
+			logFile << headers[col];
+			if(col < headers.size() - 1) {
+				logFile << ',';
+			}
+		}
+		logFile << endl;
+	}
+	void closeFile() {
+		logFile.close();
+		curPath = "";
+	}
+
 };
 
 #endif // __CSVLOGGER_HPP__
