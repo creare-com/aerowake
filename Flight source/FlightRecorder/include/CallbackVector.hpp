@@ -31,22 +31,36 @@ public:
 	typedef function<void(ArgType)> callbackFtnType;
 	
 	/**
-	 * Register a callback lacking a this pointer.
-	 * That is, a static method, or a function that is not a class method, or a lambda.
+	 * Register a callback without any `this` pointer.  (a static method,
+	 * or a function that is not a class method, or a lambda.
+	 * 
+	 * Callbacks will be called on the same thread that calls fireCallbacks().
+	 * Be careful about writing callbacks that acquire locks, or conduct 
+	 * long-running operations such as IO, because when the callbacks
+	 * are fired, they will occupy the thread that calls fireCallbacks().
+	 * 
 	 * @param callback function returning void and taking one argument
 	 */
-	void registerStaticCallback(const callbackFtnType &callback);
+	void registerCallback(const callbackFtnType &callback);
 	/**
 	 * Register a callback that is a non-static member function
+	 * 
+	 * Callbacks will be called on the same thread that calls fireCallbacks().
+	 * Be careful about writing callbacks that acquire locks, or conduct 
+	 * long-running operations such as IO, because when the callbacks
+	 * are fired, they will occupy the thread that calls fireCallbacks().
+	 * 
 	 * @tparam OwnerClass the type of param callbackOwner
 	 * @param callback pointer to a member function returning void and taking one argument
 	 * @param callbackOwner the `this` pointer for the member function
 	 */
 	template<typename OwnerClass>
-	void registerMemberCallback(void (OwnerClass::*callback)(ArgType), OwnerClass * callbackOwner);
+	void registerCallback(void (OwnerClass::*callback)(ArgType), OwnerClass * callbackOwner);
 	
 	/**
 	 * Call all callbacks registered to this callback vector.
+	 * Remember this won't return until all callbacks have finished,
+	 * so it could take a while.
 	 * @param arg the argument to pass to each callback
 	 */
 	void fireCallbacks(ArgType arg);

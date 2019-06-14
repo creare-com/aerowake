@@ -11,26 +11,13 @@
 
 using namespace std;
 
-class TestClass {
-public:
-	TestClass(int num) : num(num) { ; }
-	void callMeMember(int secondNum) {
-		cout << "TestClass object num " << num << " got: " << secondNum << endl;
-	}
-	static void callMeStatic (int secondNum) {
-		cout << "TestClass statically got: " << secondNum << endl;
-	}
-private:
-	int num;
-};
-
 /**
  * Register a callback lacking a this pointer.
  * That is, a static method, or a function that is not a class method, or a lambda.
  * @param callback function returning void and taking one argument
  */
 template <typename ArgType>
-void CallbackVector<ArgType>::registerStaticCallback(const CallbackVector<ArgType>::callbackFtnType &callback) {
+void CallbackVector<ArgType>::registerCallback(const CallbackVector<ArgType>::callbackFtnType &callback) {
 	callbackVector.push_back(callback);
 }
 /**
@@ -40,9 +27,9 @@ void CallbackVector<ArgType>::registerStaticCallback(const CallbackVector<ArgTyp
  */
 template <typename ArgType>
 template <typename OwnerClass>
-void CallbackVector<ArgType>::registerMemberCallback(void (OwnerClass::*callback)(ArgType), OwnerClass * callbackOwner) {
+void CallbackVector<ArgType>::registerCallback(void (OwnerClass::*callback)(ArgType), OwnerClass * callbackOwner) {
 	if(callback != NULL) {
-		registerStaticCallback(bind(callback, callbackOwner, placeholders::_1));
+		registerCallback(bind(callback, callbackOwner, placeholders::_1));
 	}
 }
 
@@ -58,12 +45,25 @@ void CallbackVector<ArgType>::fireCallbacks(ArgType arg) {
 }
 
 
+class TestClass {
+public:
+	TestClass(int num) : num(num) { ; }
+	void callMeMember(int secondNum) {
+		cout << "TestClass object num " << num << " got: " << secondNum << endl;
+	}
+	static void callMeStatic (int secondNum) {
+		cout << "TestClass statically got: " << secondNum << endl;
+	}
+private:
+	int num;
+};
+
 int main() {
 	// Declare a callback vector, whose callbacks take one integer argument
 	CallbackVector<int> cbv;
-	cbv.registerStaticCallback(TestClass::callMeStatic);
+	cbv.registerCallback(TestClass::callMeStatic);
 	TestClass testObj(1);
-	cbv.registerMemberCallback<TestClass>(&TestClass::callMeMember, &testObj);
+	cbv.registerCallback<TestClass>(&TestClass::callMeMember, &testObj);
 	cbv.fireCallbacks(2);
 	
 	return 0;
