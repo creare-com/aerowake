@@ -1,7 +1,7 @@
 # Setup on configurator laptop
 
 1. Obtain laptop with Ubuntu 18.04
-2. Copy contents of `\\olympus\Projects\6614-Wake-Swarm-II\Technical Work\Software\2019-6-18 Jetson setup prerequisites` to ~/Downloads
+2. Copy contents of `\\olympus\Projects\6614-Wake-Swarm-II\Technical Work\SoftwareandDrivers\Jetson setup prerequisites` to `~/Downloads/`
 3. Run:
 ````bash
 cd ~/Downloads
@@ -40,8 +40,9 @@ sudo ./apply_binaries.sh
 # Setup on Jetson
 
 1. SSH into the Jetson.
-2. Install required libraries and tools: `sudo apt install -y git libboost-all-dev screen`
+2. Install required libraries and tools: `sudo apt install -y git libboost-all-dev screen device-tree-compiler`
 3. Install useful tools: `sudo apt install -y tree python nc socat python-pip`
+4. Upgrade: `supo apt update; sudo apt -y upgrade`
 
 ## Spinnaker setup
 
