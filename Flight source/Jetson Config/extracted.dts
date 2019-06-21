@@ -5422,6 +5422,16 @@
 		status = "okay";
 		linux,phandle = <0x18f>;
 		phandle = <0x18f>;
+		spi@0 {
+			compatible = "spidev";
+			reg = <0x0>;
+			spi-max-frequency = <0x1312D00>;
+			nvidia,enable-hw-based-cs;
+			nvidia,cs-setup-clk-count = <0x1e>;
+			nvidia,cs-hold-clk-count = <0x1e>;
+			nvidia,rx-clk-tap-delay = <0x1f>;
+			nvidia,tx-clk-tap-delau = <0x0>;
+		};
 	};
 
 	spi@3270000 {
