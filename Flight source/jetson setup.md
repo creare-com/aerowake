@@ -41,7 +41,7 @@ sudo ./apply_binaries.sh
 
 1. SSH into the Jetson.
 2. Install required libraries and tools: `sudo apt install -y git libboost-all-dev screen device-tree-compiler`
-3. Install useful tools: `sudo apt install -y tree python nc socat python-pip`
+3. Install useful tools: `sudo apt install -y tree python netcat socat python-pip`
 4. Upgrade: `supo apt update; sudo apt -y upgrade`
 
 ## Spinnaker setup
