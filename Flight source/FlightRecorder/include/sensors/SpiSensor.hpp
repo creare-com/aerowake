@@ -6,6 +6,11 @@
 	2019-06-24	JDW	Created.
 */
 
+#ifndef __SPISENSOR_HPP__
+#define __SPISENSOR_HPP__
+
+#include <linux/spi/spidev.h>
+
 class SpiSensor {
 	
 public:
@@ -17,12 +22,11 @@ public:
 	 * Supports use of the spidev driver only.
 	 * 
 	 * @param devName the name of the spidev device as a null-terminated cstring, eg "/dev/spidev0.0"
-	 * @param maxClockRate maximum bus serial clock rate, in Hz
-	 * @param mode (CPHA << 1) |  CPOL
+	 * @param clockRateHz desired bus serial clock rate, in Hz
+	 * @param mode SPI mode, where bit 0 is CPHA and bit 1 is CPOL.
 	 */
-	void open(const char * devName, unsigned int maxClockRate, unsigned int mode) {
-		spiPortFd = openPort(devName);
-		configurePort(maxClockRate);
+	void open(const char * devName, unsigned int clockRateHz = 500000, unsigned int mode = 0) {
+		spiPortFd = openPort(devName, clockRateHz, mode);
 	}
 	
 	/**
@@ -33,6 +37,7 @@ public:
 	/**
 	 * Use a port that has been opened already by open() on another device or SpiSensor::openPort()
 	 * Supports use of the spidev driver only.
+	 * Will still configure the port accordingly, so make sure you only use this with compatible sensors.
 	 * 
 	 * @param fd
 	 */
@@ -45,10 +50,11 @@ public:
 	 * Supports use of the spidev driver only.
 	 * 
 	 * @param devName the name of the spidev device as a null-terminated cstring, eg "/dev/spidev0.0"
-	 * @param maxClockRate maximum bus serial clock rate, in Hz
+	 * @param clockRateHz desired bus serial clock rate, in Hz
 	 */
-	static int openPort(const char * devName) {
+	static int openPort(const char * devName, unsigned int clockRateHz = 500000, unsigned int mode = 0) {
 		// TODO
+		configurePort(clockRateHz, mode);
 	}
 	
 	/**
@@ -60,19 +66,70 @@ public:
 		// TODO
 	}
 	
-	void write(const char * data, unsigned int len) {
-		// TODO
+	void write(const char * dataOut, unsigned int len) {
+		transfer(NULL, dataOut, len);
 	}
-	void read(char * data, unsigned int len) {
-		// TODO
+	
+	void read(char * dataIn, unsigned int len) {
+		transfer(dataIn, NULL, len);
 	}
-	void transfer(char * data, unsigned int len) {
-		// TODO
+	
+	void transfer(char * dataIn, const char * dataOut, unsigned int len) {
+		// Initialize transfer settings with 0s
+		spi_ioc_transfer xfer;
+		memset(&xfer, 0, sizeof(xfer));
+		xfer.tx_buf = dataOut;
+		xfer.rx_buf = dataIn;
+		xfer.len = len;
+		xfer.speed_hz = targetClockRateHz;
+		xfer.bits_per_word = 8;
+		
+		// Currently unused fields:
+		// xfer.delay_usecs; // If nonzero, how long to delay after the last bit transfer before optionally deselecting the device before the next transfer.
+		// xfer.cs_change; //True to deselect device before starting the next transfer.
+		// xfer.tx_nbits;  // ??? Do we need to do anything with this?
+		// xfer.rx_nbits;  // ??? Do we need to do anything with this?
+		
+		if (ioctl(spiPortFd, SPI_IOC_MESSAGE(0), &xfer) < 0) {
+			throw new runtime_exception("Failed to transfer on SPI port.");
+		}
 	}
 	
 private:
 	int spiPortFd = -1;
-	void configurePort(unsigned int maxClockRate, unsigned int mode) {
-		// TODO
+	unsigned int targetClockRateHz;
+	void configurePort(unsigned int clockRateHz, unsigned int mode) {
+		targetClockRateHz = clockRateHz;
+		uint8_t mode8bit = mode;
+		
+		// Speed
+		if (ioctl(spiPortFd, SPI_IOC_RD_MAX_SPEED_HZ, &targetClockRateHz) < 0) {
+			throw new runtime_exception("Failed to set SPI port read max clock rate.");
+		}
+		if (ioctl(spiPortFd, SPI_IOC_WR_MAX_SPEED_HZ, &targetClockRateHz) < 0) {
+			throw new runtime_exception("Failed to set SPI port write max clock rate.");
+		}
+		// SPI mode (CPHA|CPOL)
+		if (ioctl(spiPortFd, SPI_IOC_RD_MODE, &mode8bit) < 0) {
+			throw new runtime_exception("Failed to set SPI port read mode.");
+		}
+		if (ioctl(spiPortFd, SPI_IOC_WR_MODE, &mode8bit) < 0) {
+			throw new runtime_exception("Failed to set SPI port write mode.");
+		}
+		
+		// Other available settings not presently implemented:
+		
+		// SPI_CS_HIGH		
+		// SPI_LSB_FIRST	
+		// SPI_3WIRE		
+		// SPI_LOOP		
+		// SPI_NO_CS		
+		// SPI_READY		
+		// SPI_TX_DUAL		
+		// SPI_TX_QUAD		
+		// SPI_RX_DUAL		
+		// SPI_RX_QUAD		
 	}
 }
+
+#endif // __SPISENSOR_HPP__
