@@ -10,6 +10,7 @@
 #include <benchmarker.hpp>
 #include <AutopilotLogger.hpp>
 #include <CameraLogger.hpp>
+#include <WindProbeLogger.hpp>
 #include <CLI11.hpp>
 #include <date.h>
 
@@ -38,14 +39,16 @@ int main(int argc, char** argv)
 	cmdOpts.add_option("-d", dirFormat, "Pattern specifying the directory at which to save the recording. Default: \"" + dirFormat + "\".  Will substitute flags found here: https://howardhinnant.github.io/date/date.html#to_stream_formatting.  '/' characters are directory separators.  If no leading '/', will be relative to working directory.  Avoid any characters not supported by the filesystem, such as colons.");
 	string imageFilenameFormat = "img_%F_%H-%M-%S";
 	cmdOpts.add_option("-i", imageFilenameFormat, "Pattern specifying the base filename for images captured from camera. Default: \"" + imageFilenameFormat + "\".  Will substitute flags found here: https://howardhinnant.github.io/date/date.html#to_stream_formatting.  Extension will be supplied by another parameter.  Avoid any characters not supported by the filesystem, such as colons.");
-	string apLogFilenameFormat = "ap_%F_%H-%M-%S.csv";
-	cmdOpts.add_option("-a", apLogFilenameFormat, "Pattern specifying the filename for data captured from the autopilot. Default: \"" + apLogFilenameFormat + "\".  Will substitute flags found here: https://howardhinnant.github.io/date/date.html#to_stream_formatting.  Extension should be included here.  Avoid any characters not supported by the filesystem, such as colons.");
 	string cameraSettingsPath = "camera_settings.csv";
 	cmdOpts.add_option("-c", cameraSettingsPath, "Path to camera settings file.  Default is " + cameraSettingsPath + ". Must follow a very specific CSV format - see example file.");
+	string apLogFilenameFormat = "ap_%F_%H-%M-%S.csv";
+	cmdOpts.add_option("-a", apLogFilenameFormat, "Pattern specifying the filename for data captured from the autopilot. Default: \"" + apLogFilenameFormat + "\".  Will substitute flags found here: https://howardhinnant.github.io/date/date.html#to_stream_formatting.  Extension should be included here.  Avoid any characters not supported by the filesystem, such as colons.");
 	string autopilotPort = "/dev/ttyTHS1"; // UART0 on the Jetson TX2 with Auvidea J120's DTS
 	cmdOpts.add_option("-p", autopilotPort, "Port to which the Pixhawk Autopilot is connected.  Default is " + autopilotPort + ".");
 	int apBaudRate = 57600;
 	cmdOpts.add_option("-r", apBaudRate, "Baud rate for communicating with the Pixhawk Autopilot.  Default is 57600.");
+	string wpLogFilenameFormat = "wp_%F_%H-%M-%S.csv";
+	cmdOpts.add_option("-w", wpLogFilenameFormat, "Pattern specifying the filename for data captured from the wind probe. Default: \"" + apLogFilenameFormat + "\".  Will substitute flags found here: https://howardhinnant.github.io/date/date.html#to_stream_formatting.  Extension should be included here.  Avoid any characters not supported by the filesystem, such as colons.");
 	CLI11_PARSE(cmdOpts, argc, argv); // This will exit if the user said "-h" or "--help"
 	
 	int result = 0;
@@ -63,6 +66,9 @@ int main(int argc, char** argv)
 	// Start logging data from the autopilot in another thread
 	AutopilotLogger apLogger(recordingDir, apLogFilenameFormat, autopilotPort, apBaudRate);
 	apLogger.startLogging();
+	
+	// Setup wind probe logger
+	WindProbeLogger wpLogger(recordingDir, apLogFilenameFormat, autopilotPort, apBaudRate);
 	
 	list<const Benchmarker *> allBms;
 	Benchmarker bmWholeFrame("Entire frame");

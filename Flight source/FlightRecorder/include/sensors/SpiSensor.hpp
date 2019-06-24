@@ -8,8 +8,14 @@
 
 #ifndef __SPISENSOR_HPP__
 #define __SPISENSOR_HPP__
-
+#include <string.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <linux/types.h>
 #include <linux/spi/spidev.h>
+#include <stdexcept>
+
+using namespace std;
 
 class SpiSensor {
 	
@@ -25,8 +31,8 @@ public:
 	 * @param clockRateHz desired bus serial clock rate, in Hz
 	 * @param mode SPI mode, where bit 0 is CPHA and bit 1 is CPOL.
 	 */
-	void open(const char * devName, unsigned int clockRateHz = 500000, unsigned int mode = 0) {
-		spiPortFd = openPort(devName, clockRateHz, mode);
+	void openPort(const char * devName, unsigned int clockRateHz = 500000, unsigned int mode = 0) {
+		spiPortFd = openPortStatic(devName, clockRateHz, mode);
 	}
 	
 	/**
@@ -35,13 +41,13 @@ public:
 	 */
 	int getFd() { return spiPortFd; }
 	/**
-	 * Use a port that has been opened already by open() on another device or SpiSensor::openPort()
+	 * Use a port that has been opened already by openPort() on another device or SpiSensor::openPortStatic()
 	 * Supports use of the spidev driver only.
 	 * Will not configure the port, so make sure you only use this with compatible sensors.
 	 * 
 	 * @param fd
 	 */
-	void open(int fd, unsigned int clockRateOverrideHz = 0) {
+	void openPort(int fd, unsigned int clockRateOverrideHz = 0) {
 		spiPortFd = fd;
 		clockRateOverrideHz = clockRateOverrideHz;
 	}
@@ -54,10 +60,10 @@ public:
 	 * @param clockRateHz desired bus serial clock rate, in Hz
 	 * @returns the file descriptor of the configured spidev port
 	 */
-	static int openPort(const char * devName, unsigned int clockRateHz = 500000, unsigned int mode = 0) {
+	static int openPortStatic(const char * devName, unsigned int clockRateHz = 500000, unsigned int mode = 0) {
 		int fd;
 		if((fd = open(devName, O_RDWR)) < 0) {
-			throw new runtime_exception("Failed to open SPI port.");
+			throw runtime_error("Failed to open SPI port.");
 		}
 		configurePort(fd, clockRateHz, mode);
 		return fd;
@@ -84,8 +90,8 @@ public:
 		// Initialize transfer settings with 0s
 		spi_ioc_transfer xfer;
 		memset(&xfer, 0, sizeof(xfer));
-		xfer.tx_buf = dataOut;
-		xfer.rx_buf = dataIn;
+		xfer.tx_buf = (__u64)dataOut;
+		xfer.rx_buf = (__u64)dataIn;
 		xfer.len = len;
 		xfer.speed_hz = clockRateOverrideHz;
 		xfer.bits_per_word = 8;
@@ -97,7 +103,7 @@ public:
 		// xfer.rx_nbits;  // ??? Do we need to do anything with this?
 		
 		if (ioctl(spiPortFd, SPI_IOC_MESSAGE(0), &xfer) < 0) {
-			throw new runtime_exception("Failed to transfer on SPI port.");
+			throw runtime_error("Failed to transfer on SPI port.");
 		}
 	}
 	
@@ -109,17 +115,17 @@ private:
 		
 		// Speed
 		if (ioctl(fd, SPI_IOC_RD_MAX_SPEED_HZ, &clockRateHz) < 0) {
-			throw new runtime_exception("Failed to set SPI port read max clock rate.");
+			throw runtime_error("Failed to set SPI port read max clock rate.");
 		}
 		if (ioctl(fd, SPI_IOC_WR_MAX_SPEED_HZ, &clockRateHz) < 0) {
-			throw new runtime_exception("Failed to set SPI port write max clock rate.");
+			throw runtime_error("Failed to set SPI port write max clock rate.");
 		}
 		// SPI mode (CPHA|CPOL)
 		if (ioctl(fd, SPI_IOC_RD_MODE, &mode8bit) < 0) {
-			throw new runtime_exception("Failed to set SPI port read mode.");
+			throw runtime_error("Failed to set SPI port read mode.");
 		}
 		if (ioctl(fd, SPI_IOC_WR_MODE, &mode8bit) < 0) {
-			throw new runtime_exception("Failed to set SPI port write mode.");
+			throw runtime_error("Failed to set SPI port write mode.");
 		}
 		
 		// Other available settings not presently implemented:
@@ -135,6 +141,6 @@ private:
 		// SPI_RX_DUAL		
 		// SPI_RX_QUAD		
 	}
-}
+};
 
 #endif // __SPISENSOR_HPP__
