@@ -18,8 +18,9 @@ public:
 	 * 
 	 * @param devName the name of the spidev device as a null-terminated cstring, eg "/dev/spidev0.0"
 	 * @param maxClockRate maximum bus serial clock rate, in Hz
+	 * @param mode (CPHA << 1) |  CPOL
 	 */
-	void open(const char * devName, unsigned int maxClockRate) {
+	void open(const char * devName, unsigned int maxClockRate, unsigned int mode) {
 		spiPortFd = openPort(devName);
 		configurePort(maxClockRate);
 	}
@@ -50,9 +51,28 @@ public:
 		// TODO
 	}
 	
+	/**
+	 * Call this when the CS line should remain asserted for several transactions.
+	 * @param latch true to start asserting CS.  false to reset the state of the CS line so it is 
+	 *   only asserted during read/write/transfer operations.
+	 */
+	void latchCs(bool latch) {
+		// TODO
+	}
+	
+	void write(const char * data, unsigned int len) {
+		// TODO
+	}
+	void read(char * data, unsigned int len) {
+		// TODO
+	}
+	void transfer(char * data, unsigned int len) {
+		// TODO
+	}
+	
 private:
 	int spiPortFd = -1;
-	void configurePort(unsigned int maxClockRate) {
+	void configurePort(unsigned int maxClockRate, unsigned int mode) {
 		// TODO
 	}
 }
