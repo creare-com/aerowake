@@ -37,12 +37,13 @@ public:
 	/**
 	 * Use a port that has been opened already by open() on another device or SpiSensor::openPort()
 	 * Supports use of the spidev driver only.
-	 * Will still configure the port accordingly, so make sure you only use this with compatible sensors.
+	 * Will not configure the port, so make sure you only use this with compatible sensors.
 	 * 
 	 * @param fd
 	 */
-	void open(int fd) {
+	void open(int fd, unsigned int clockRateOverrideHz = 0) {
 		spiPortFd = fd;
+		clockRateOverrideHz = clockRateOverrideHz;
 	}
 	
 	/**
@@ -51,10 +52,15 @@ public:
 	 * 
 	 * @param devName the name of the spidev device as a null-terminated cstring, eg "/dev/spidev0.0"
 	 * @param clockRateHz desired bus serial clock rate, in Hz
+	 * @returns the file descriptor of the configured spidev port
 	 */
 	static int openPort(const char * devName, unsigned int clockRateHz = 500000, unsigned int mode = 0) {
-		// TODO
-		configurePort(clockRateHz, mode);
+		int fd;
+		if((fd = open(devName, O_RDWR)) < 0) {
+			throw new runtime_exception("Failed to open SPI port.");
+		}
+		configurePort(fd, clockRateHz, mode);
+		return fd;
 	}
 	
 	/**
@@ -81,7 +87,7 @@ public:
 		xfer.tx_buf = dataOut;
 		xfer.rx_buf = dataIn;
 		xfer.len = len;
-		xfer.speed_hz = targetClockRateHz;
+		xfer.speed_hz = clockRateOverrideHz;
 		xfer.bits_per_word = 8;
 		
 		// Currently unused fields:
@@ -97,23 +103,22 @@ public:
 	
 private:
 	int spiPortFd = -1;
-	unsigned int targetClockRateHz;
-	void configurePort(unsigned int clockRateHz, unsigned int mode) {
-		targetClockRateHz = clockRateHz;
+	unsigned int clockRateOverrideHz = 0;
+	static void configurePort(int fd, unsigned int clockRateHz, unsigned int mode) {
 		uint8_t mode8bit = mode;
 		
 		// Speed
-		if (ioctl(spiPortFd, SPI_IOC_RD_MAX_SPEED_HZ, &targetClockRateHz) < 0) {
+		if (ioctl(fd, SPI_IOC_RD_MAX_SPEED_HZ, &clockRateHz) < 0) {
 			throw new runtime_exception("Failed to set SPI port read max clock rate.");
 		}
-		if (ioctl(spiPortFd, SPI_IOC_WR_MAX_SPEED_HZ, &targetClockRateHz) < 0) {
+		if (ioctl(fd, SPI_IOC_WR_MAX_SPEED_HZ, &clockRateHz) < 0) {
 			throw new runtime_exception("Failed to set SPI port write max clock rate.");
 		}
 		// SPI mode (CPHA|CPOL)
-		if (ioctl(spiPortFd, SPI_IOC_RD_MODE, &mode8bit) < 0) {
+		if (ioctl(fd, SPI_IOC_RD_MODE, &mode8bit) < 0) {
 			throw new runtime_exception("Failed to set SPI port read mode.");
 		}
-		if (ioctl(spiPortFd, SPI_IOC_WR_MODE, &mode8bit) < 0) {
+		if (ioctl(fd, SPI_IOC_WR_MODE, &mode8bit) < 0) {
 			throw new runtime_exception("Failed to set SPI port write mode.");
 		}
 		
