@@ -64,7 +64,16 @@ sudo ./apply_binaries.sh
 
 ### Install
 
-1. Copy spinnaker-1.23.0.27-arm64-Ubuntu18.04-pkg.tar.gz to `~/Downloads/` on the Jetson.
-2. Run `cd ~/Downloads`
+1. Copy spinnaker-1.23.0.27-arm64-Ubuntu18.04-pkg.tar.gz to `/home/creare` on the Jetson.
+2. Run `cd`
 3. Run `tar -xzvf spinnaker-1.23.0.27-arm64-Ubuntu18.04-pkg.tar.gz`
-4. Run `cd `
+4. Run `cd spinnaker-1.23.0.27-arm64/`
+5. Run `printf "y\ny\ncreare\ny\ny\ny\nn\n" | ./install_spinnaker_arm.sh`
+6. Make sure it worked by running `SpinView_QT` (if you have X windows forwarding working)
+
+## Creare software setup
+Mount sd card
+add to fstab
+`git clone`
+`git submodule update`
+Automatic startup script when you write that
