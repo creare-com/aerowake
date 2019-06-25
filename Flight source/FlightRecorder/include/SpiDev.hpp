@@ -64,6 +64,10 @@ public:
 		closePortStatic(spiPortFd);
 	}
 	
+	bool isOpen() {
+		return spiPortFd >= 0;
+	}
+	
 	/**
 	 * Open and setup the port (on this machine) but don't associate it with any device yet.
 	 * Supports use of the spidev driver only.
