@@ -18,6 +18,8 @@ using namespace std;
  * We use templated values for the sensor parameters so that each sensor PN is
  * distinct at compile time, without writing a trivial class for each one.
  * 
+ * @tparam OSdigx10 10x Digital offset
+ *   We can't do floating-point template values, but the DLHR line only has increments of 0.1 for this.
  */
 template <unsigned int OSdigx10>
 class DlhrPressureSensor {
@@ -38,7 +40,7 @@ public:
 	virtual ~DlhrPressureSensor() {
 		
 	}
-	
+
 	enum MeasurementType {
 		Single    = 0xAA,
 		Average2  = 0xAC,
@@ -106,7 +108,7 @@ private:
 	const char READING_LEN_B = 7;
 	const char STATUS_BUSY = 0x20;
 	const unsigned int adcBitWidth = 24;
-	const double FSSinH2O = 0.8 * (1 << 24);
+	const double FSSinH2O = 0.8 * (1 << adcBitWidth);
 	SpiDev & port; // will not be destructed at destruction of DlhrPressureSensor
 	
 	
