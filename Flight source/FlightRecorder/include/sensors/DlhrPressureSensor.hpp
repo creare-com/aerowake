@@ -68,7 +68,24 @@ private:
 	}
 };
 
-typedef DlhrPressureSensor<(5 * (1 << 24)), (8 * (1 << 24))> DLHR_L01D;
+typedef DlhrPressureSensor<(5 * (1 << 24)), (4 * (1 << 24))> DlhrPressureSensorDiff;
+typedef DlhrPressureSensor<(1 * (1 << 24)), (8 * (1 << 24))> DlhrPressureSensorGage;
+
+typedef DlhrPressureSensorDiff DLHR_F50D;
+typedef DlhrPressureSensorDiff DLHR_L01D;
+typedef DlhrPressureSensorDiff DLHR_L02D;
+typedef DlhrPressureSensorDiff DLHR_L05D;
+typedef DlhrPressureSensorDiff DLHR_L10D;
+typedef DlhrPressureSensorDiff DLHR_L20D;
+typedef DlhrPressureSensorDiff DLHR_L30D;
+typedef DlhrPressureSensorDiff DLHR_L60D;
+typedef DlhrPressureSensorGage DLHR_L01G;
+typedef DlhrPressureSensorGage DLHR_L02G;
+typedef DlhrPressureSensorGage DLHR_L05G;
+typedef DlhrPressureSensorGage DLHR_L10G;
+typedef DlhrPressureSensorGage DLHR_L20G;
+typedef DlhrPressureSensorGage DLHR_L30G;
+typedef DlhrPressureSensorGage DLHR_L60G;
 
 
 #endif // __DLHRPRESSURESENSOR_HPP__
