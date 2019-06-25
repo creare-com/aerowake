@@ -12,6 +12,7 @@
 #include <string>
 
 #include <sensors/DlhrPressureSensor.hpp>
+#include <sensors/DlvPressureSensor.hpp>
 #include <Adg725.hpp>
 #include <SpiDev.hpp>
 #include <CsvLogger.hpp>
@@ -28,8 +29,9 @@ public:
 		logger(recordingDir, logFilenameFormat)
 	{ 
 		SpiDev port;
-		DLHR_L01D sensor(port);
+		DLHR_L01D probeSensor(port);
 		Adg725 mux(port);
+		DLV_030A absSensor(port);
 	}
 	virtual ~WindProbeLogger() {
 		stopLogging();
