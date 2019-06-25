@@ -11,7 +11,7 @@
 
 #include <string>
 
-#include <SpiDev.hpp>
+#include <sensors/DlhrPressureSensor.hpp>
 #include <CsvLogger.hpp>
 
 
@@ -25,7 +25,7 @@ public:
 	WindProbeLogger(string recordingDir, string logFilenameFormat, string autopilotPort, int apBaudRate) :
 		logger(recordingDir, logFilenameFormat)
 	{ 
-		
+		DLHR_L01D_E1NJ_I_NAV8 sensor;
 	}
 	virtual ~WindProbeLogger() {
 		stopLogging();
