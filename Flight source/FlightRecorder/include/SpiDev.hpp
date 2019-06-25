@@ -8,20 +8,25 @@
 
 #ifndef __SPIDEV_HPP__
 #define __SPIDEV_HPP__
-#include <string.h>
 #include <fcntl.h>
-#include <sys/ioctl.h>
-#include <linux/types.h>
 #include <linux/spi/spidev.h>
+#include <linux/types.h>
 #include <stdexcept>
+#include <string.h>
+#include <sys/ioctl.h>
+#include <unistd.h>
 
 using namespace std;
 
 class SpiDev {
 	
 public:
-	SpiDev();
-	virtual ~SpiDev();
+	SpiDev() {}
+	SpiDev(const SpiDev&) = default;
+	SpiDev & operator=(const SpiDev&) = default;
+	virtual ~SpiDev() {
+		closePort();
+	}
 	
 	/**
 	 * Open and setup the port (on this machine) connected to the device.
@@ -53,6 +58,13 @@ public:
 	}
 	
 	/**
+	 * Close the port.
+	 */
+	void closePort() {
+		closePortStatic(spiPortFd);
+	}
+	
+	/**
 	 * Open and setup the port (on this machine) but don't associate it with any device yet.
 	 * Supports use of the spidev driver only.
 	 * 
@@ -67,6 +79,14 @@ public:
 		}
 		configurePort(fd, clockRateHz, mode);
 		return fd;
+	}
+	
+	/**
+	 * Close the port.
+	 */
+	static void closePortStatic(int & fd) {
+		close(fd);
+		fd = -1;
 	}
 	
 	void write(const char * dataOut, unsigned int len) {
