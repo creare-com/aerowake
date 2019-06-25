@@ -18,12 +18,8 @@ using namespace std;
  * We use templated values for the sensor parameters so that each sensor PN is
  * distinct at compile time, without writing a trivial class for each one.
  * 
- * @tparam OSdigx10 10x Digital offset
- *   We can't do floating-point template values, but the DLHR line only has increments of 0.1 for this.
- * @tparam FSSinH2O 10x the Full sensor span, in inches of water.  
- *   We can't do floating-point template values, but the DLHR line only has increments of 0.1 for this.
  */
-template <unsigned int OSdigx10, unsigned int FSSinH2Ox10>
+template <unsigned int OSdigx10>
 class DlhrPressureSensor {
 	
 public:
@@ -45,6 +41,7 @@ public:
 	
 private:
 	const unsigned int adcBitWidth = 24;
+	const double FSSinH2O = 0.8 * (1 << 24);
 	SpiDev & port; // will not be destructed at destruction of DlhrPressureSensor
 	
 	/**
@@ -54,7 +51,7 @@ private:
 	 */
 	virtual double computePressureFromAdcWord(unsigned int pOutDig) {
 		// This equation is from the DLHR series datasheet, DS-0350_Rev_B
-		return 1.25 * ((pOutDig - (OSdigx10 / 10.0)) / (1 << adcBitWidth)) * (FSSinH2Ox10 / 10.0);
+		return 1.25 * ((pOutDig - (OSdigx10 / 10.0)) / (1 << adcBitWidth)) * FSSinH2O;
 	}
 	
 	/**
@@ -68,8 +65,8 @@ private:
 	}
 };
 
-typedef DlhrPressureSensor<(5 * (1 << 24)), (4 * (1 << 24))> DlhrPressureSensorDiff;
-typedef DlhrPressureSensor<(1 * (1 << 24)), (8 * (1 << 24))> DlhrPressureSensorGage;
+typedef DlhrPressureSensor<(5 * (1 << 24))> DlhrPressureSensorDiff;
+typedef DlhrPressureSensor<(1 * (1 << 24))> DlhrPressureSensorGage;
 
 typedef DlhrPressureSensorDiff DLHR_F50D;
 typedef DlhrPressureSensorDiff DLHR_L01D;
