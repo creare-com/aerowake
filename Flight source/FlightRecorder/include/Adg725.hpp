@@ -59,7 +59,7 @@ public:
 				
 				port.write(&command, 1);
 			} else {
-				command = COMMAND_EN; // Setting the EN# bit disables the device's output pins
+				command = COMMAND_EN; // Setting the EN# bit disables the device's switch connections
 			}
 		}
 	}
