@@ -117,8 +117,23 @@ public:
 		// xfer.tx_nbits;  // ??? Do we need to do anything with this?
 		// xfer.rx_nbits;  // ??? Do we need to do anything with this?
 		
+		if(dataOut != NULL) {
+			printf("SpiDev (%d): writing: ", spiPortFd);
+			for(unsigned int i = 0; i < len; ++i) {
+				printf("%02X ", dataOut[i]);
+			}
+			printf("\n");
+		}
+		
 		if (ioctl(spiPortFd, SPI_IOC_MESSAGE(0), &xfer) < 0) {
 			throw runtime_error("Failed to transfer on SPI port.");
+		}
+		if(dataIn != NULL) {
+			printf("SpiDev (%d): read: ", spiPortFd);
+			for(unsigned int i = 0; i < len; ++i) {
+				printf("%02X ", dataIn[i]);
+			}
+			printf("\n");
 		}
 	}
 	
