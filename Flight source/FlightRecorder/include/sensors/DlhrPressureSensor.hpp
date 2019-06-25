@@ -12,18 +12,18 @@
 
 using namespace std;
 
-typedef DLHR_L01D_E1NJ_I_NAV8 DlhrPressureSensor<24, (1 << 24) >> 1, 0.8 * (1 << 24)>
 
 /**
  * Class for the DLHR line of sensors from AllSensors.
+ * We use templated values for the sensor parameters so that each sensor PN is
+ * distinct at compile time, without writing a trivial class for each one.
  * 
- * @tparam adcBitWidth Number of bits in the ADC words
- * @tparam OSdig Digital offset
- * @tparam FSSinH2O Full sensor scale, in inches of water
+ * @tparam OSdigx10 10x Digital offset
+ *   We can't do floating-point template values, but the DLHR line only has increments of 0.1 for this.
+ * @tparam FSSinH2O 10x the Full sensor span, in inches of water.  
+ *   We can't do floating-point template values, but the DLHR line only has increments of 0.1 for this.
  */
-template <unsigned int adcBitWidth,
-		unsigned int OSdig,
-		double FSSinH2O>
+template <unsigned int OSdigx10, unsigned int FSSinH2Ox10>
 class DlhrPressureSensor {
 	
 public:
@@ -33,18 +33,18 @@ public:
 	 * Do not destruct port before destructing this DlhrPressureSensor.
 	 * 
 	 * @param port an open SPI port
-	 * @param adcBitWidth Number of bits in the ADC words
-	 * @param OSdig Digital offset
-	 * @param FSSinH2O Full sensor scale, in inches of water
 	 */
 	DlhrPressureSensor(SpiDev& port) : 
 		port(port)
 	{
 		
 	}
-	virtual ~DlhrPressureSensor();
+	virtual ~DlhrPressureSensor() {
+		
+	}
 	
 private:
+	const unsigned int adcBitWidth = 24;
 	SpiDev & port; // will not be destructed at destruction of DlhrPressureSensor
 	
 	/**
@@ -54,7 +54,7 @@ private:
 	 */
 	virtual double computePressureFromAdcWord(unsigned int pOutDig) {
 		// This equation is from the DLHR series datasheet, DS-0350_Rev_B
-		return 1.25 * ((pOutDig - OSdig) / (1 << adcBitWidth)) * FSSinH2O;
+		return 1.25 * ((pOutDig - (OSdigx10 / 10.0)) / (1 << adcBitWidth)) * (FSSinH2Ox10 / 10.0);
 	}
 	
 	/**
@@ -66,6 +66,9 @@ private:
 		// This equation is from the DLHR series datasheet, DS-0350_Rev_B
 		return ((tOutDig * 125) / (1 << adcBitWidth)) - 40;
 	}
-}
+};
+
+typedef DlhrPressureSensor<(5 * (1 << 24)), (8 * (1 << 24))> DLHR_L01D;
+
 
 #endif // __DLHRPRESSURESENSOR_HPP__
