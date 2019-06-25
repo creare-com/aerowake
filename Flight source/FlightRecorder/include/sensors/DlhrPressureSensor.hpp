@@ -39,10 +39,76 @@ public:
 		
 	}
 	
+	enum MeasurementType {
+		Single    = 0xAA,
+		Average2  = 0xAC,
+		Average4  = 0xAD,
+		Average8  = 0xAE,
+		Average16 = 0xAF,
+	};
+	
+	struct Reading {
+		double temperatureC;
+		double pressureInH20;
+	};
+	
+	/**
+	 * Tell the sensor to begin a measurement.
+	 * 
+	 * @param type the type of measurement (see datasheet)
+	 */
+	void commandReading(MeasurementType type = MeasurementType::Single) {
+		if(port.isOpen()) {
+			
+		}
+	}
+	
+	/**
+	 * @returns true if the sensor is taking a reading, false otherwise
+	 */
+	bool isBusy() {
+		if(port.isOpen()) {
+			char command = READ_STATUS_COMMAND;
+			char status = 0;
+			port.transfer(&status, &command, 1);
+			return ((status & STATUS_BUSY) != 0);
+		} else {
+			return true;
+		}
+	}
+	
+	/**
+	 * @returns pressure and temperature if the sensor is not busy. {0,0} otherwise.
+	 */
+	Reading retrieveReading() {
+		Reading reading = {0,0};
+		if(!isBusy()) {
+			char inbuf[READING_LEN_B];
+			char outbuf[READING_LEN_B];
+			memset(inbuf, 0, sizeof(inbuf));
+			memset(outbuf, 0, sizeof(outbuf));
+			outbuf[0] = READ_STATUS_COMMAND; // required
+			port.transfer(&inbuf, &outbuf, READING_LEN_B);
+			
+			// Parse the response
+			if((inbuf[0] & STATUS_BUSY) == 0) {
+				unsigned int pOutDig = (inbuf[1] << 16) | (inbuf[2] << 8) | (inbuf[3] << 0);
+				unsigned int tOutDig = (inbuf[4] << 16) | (inbuf[5] << 8) | (inbuf[6] << 0);
+				reading.pressureInH20 = computePressureFromAdcWord(tOutDig);
+				reading.temperatureC = computeTemperatureFromAdcWord(tOutDig);
+			}
+		}
+		return reading;
+	}
+	
 private:
+	const char READ_STATUS_COMMAND = 0xF0;
+	const char READING_LEN_B = 7;
+	const char STATUS_BUSY = 0x20;
 	const unsigned int adcBitWidth = 24;
 	const double FSSinH2O = 0.8 * (1 << 24);
 	SpiDev & port; // will not be destructed at destruction of DlhrPressureSensor
+	
 	
 	/**
 	 * Convert from the sensor's pressure output word to pressure, in inches of water
