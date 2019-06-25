@@ -1,13 +1,13 @@
 /*
-	SpiSensor.hpp
+	SpiDev.hpp
 	
-	Base class for all sensors accessed via the SPI port
+	Wrapper for the spidev kernel driver for SPI ports.
 	
 	2019-06-24	JDW	Created.
 */
 
-#ifndef __SPISENSOR_HPP__
-#define __SPISENSOR_HPP__
+#ifndef __SPIDEV_HPP__
+#define __SPIDEV_HPP__
 #include <string.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
@@ -17,11 +17,11 @@
 
 using namespace std;
 
-class SpiSensor {
+class SpiDev {
 	
 public:
-	SpiSensor();
-	virtual ~SpiSensor();
+	SpiDev();
+	virtual ~SpiDev();
 	
 	/**
 	 * Open and setup the port (on this machine) connected to the device.
@@ -41,7 +41,7 @@ public:
 	 */
 	int getFd() { return spiPortFd; }
 	/**
-	 * Use a port that has been opened already by openPort() on another device or SpiSensor::openPortStatic()
+	 * Use a port that has been opened already by openPort() on another device or SpiDev::openPortStatic()
 	 * Supports use of the spidev driver only.
 	 * Will not configure the port, so make sure you only use this with compatible sensors.
 	 * 
@@ -67,15 +67,6 @@ public:
 		}
 		configurePort(fd, clockRateHz, mode);
 		return fd;
-	}
-	
-	/**
-	 * Call this when the CS line should remain asserted for several transactions.
-	 * @param latch true to start asserting CS.  false to reset the state of the CS line so it is 
-	 *   only asserted during read/write/transfer operations.
-	 */
-	void latchCs(bool latch) {
-		// TODO
 	}
 	
 	void write(const char * dataOut, unsigned int len) {
@@ -143,4 +134,4 @@ private:
 	}
 };
 
-#endif // __SPISENSOR_HPP__
+#endif // __SPIDEV_HPP__

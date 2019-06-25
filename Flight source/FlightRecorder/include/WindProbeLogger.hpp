@@ -11,7 +11,7 @@
 
 #include <string>
 
-#include <sensors/SpiSensor.hpp>
+#include <SpiDev.hpp>
 #include <CsvLogger.hpp>
 
 
