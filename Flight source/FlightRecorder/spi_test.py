@@ -1,6 +1,6 @@
 import spidev
 
-test_busses = [(1,0), (2,0), (2,1), (3,0), (3,1)]
+test_busses = [(1,0)]
 
 for dev in test_busses:
     try:
@@ -22,5 +22,5 @@ for dev in test_busses:
         print("Closing.")
         spi.close()
         
-    except e:
+    except Exception as e:
         print("Caught: " + repr(e))
