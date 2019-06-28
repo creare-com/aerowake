@@ -1,6 +1,6 @@
 import spidev
 
-test_busses = [(1,0)]
+test_busses = [(0,0)]
 
 for dev in test_busses:
     try:
@@ -8,7 +8,9 @@ for dev in test_busses:
         print("Opening /dev/spidev%d.%d"%dev)
         bus,device = dev
         spi.open(*dev)
-        while True:
+        spi.max_speed_hz = 5000
+        # while True:
+        if True:
             outbound = [1,2,3,4]
             inbound = spi.xfer(outbound)
             print("spi.xfer(outbound) results in: outbound: " + repr(outbound) + ", inbound: " + repr(inbound))
