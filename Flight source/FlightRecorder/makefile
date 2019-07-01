@@ -27,4 +27,4 @@ $(OBJ_DIR)%.o: $(SRC_DIR)%.cpp $(PROJ_INC)
 	g++ -c -o $@ $< $(INC) $(OPTIONS) 
 
 SpiSensorTest: $(SRC_DIR)SpiSensorTest.cpp $(PROJ_INC)
-	g++ $(SRC_DIR)SpiSensorTest.cpp -o SpiSensorTest $(OPTIONS) $(INC)
+	g++ $(SRC_DIR)SpiSensorTest.cpp -o SpiSensorTest $(OPTIONS) -Iinclude/

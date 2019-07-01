@@ -44,9 +44,8 @@ int main() {
 	Adg725 mux(muxPort);
 
 	// Sensor port is routed by the mux
-	SpiDev sensorPort;
-	DLHR_L01D probeSensor(sensorPort);
-	DLV_030A absSensor(sensorPort);
+	SpiDev probeSensorPort;
+	DLHR_L01D probeSensor(probeSensorPort);
 	const unsigned int NUM_PROBE_CH = 12;
 	// mux port on which each probe channel sensor resides
 	unsigned char probChMuxNum[NUM_PROBE_CH] = {
@@ -65,14 +64,21 @@ int main() {
 	};
 	
 	// const unsigned int MUX_PORT_HZ = 30000000;
-	// const unsigned int SENSOR_PORT_HZ = 5000000;
+	// const unsigned int PROBE_SENSOR_PORT_HZ = 5000000;
+	// const unsigned int ABS_SENSOR_PORT_HZ = 800000;
 	const unsigned int MUX_PORT_HZ = 30000;
-	const unsigned int SENSOR_PORT_HZ = 5000;
+	const unsigned int PROBE_SENSOR_PORT_HZ = 5000;
+	const unsigned int ABS_SENSOR_PORT_HZ = 800;
 	muxPort.openPort("/dev/spidev0.0", MUX_PORT_HZ);
-	sensorPort.openPort("/dev/spidev0.1", SENSOR_PORT_HZ);
+	probeSensorPort.openPort("/dev/spidev0.1", PROBE_SENSOR_PORT_HZ);
+	// Set up a version of this port that uses the same port, just a different clock rate
+	SpiDev absSensorPort;
+	absSensorPort.openPort(probeSensorPort.getFd(), ABS_SENSOR_PORT_HZ);
+	DLV_030A absSensor(absSensorPort);
 	
+	// Take readings from the probe sensors
 	const unsigned int MAX_WAIT_MILLIS = 500;
-	DLHR_L01D::Reading reading[NUM_PROBE_CH];
+	DLHR_L01D::Reading probeReading[NUM_PROBE_CH];
 	for(unsigned int ch; ch < NUM_PROBE_CH; ch++) {
 		mux.setMux(probChMuxNum[ch]);
 		probeSensor.commandReading();
@@ -84,7 +90,7 @@ int main() {
 			}
 		}
 		if(!probeSensor.isBusy()) {
-			reading[ch] = probeSensor.retrieveReading();
+			probeReading[ch] = probeSensor.retrieveReading();
 		} else {
 			printf("Timeout waiting for probe channel %d (1-indexed).\n", ch+1);
 		}
@@ -93,12 +99,17 @@ int main() {
 	printf("Probe channel readings: \n");
 	printf("Pressure (inH2O): ");
 	for(unsigned int ch; ch < NUM_PROBE_CH; ch++) {
-		printf("%3.8f ", reading[ch].pressureInH20);
+		printf("%3.8f ", probeReading[ch].pressureInH20);
 	}
 	printf("\nTemperature(C): ");
 	for(unsigned int ch; ch < NUM_PROBE_CH; ch++) {
-		printf("%8.3f ", reading[ch].temperatureC);
+		printf("%8.3f ", probeReading[ch].temperatureC);
 	}
 	printf("\n");
+
+	// Take readings from the other sensors
+	DLV_030A::Reading absReading = absSensor.retrieveReading();
+	printf("Absolute pressure sensor reading: Pressure (PSI): %3.8f Temperature (C): %8.3f\n", absReading.pressurePsi, absReading.temperatureC);
+	
 }
 

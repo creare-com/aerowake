@@ -54,7 +54,7 @@ public:
 		if(port.isOpen()) {
 			char inbuf[READING_LEN_B];
 			memset(inbuf, 0, sizeof(inbuf));
-			port.read(&inbuf, READING_LEN_B);
+			port.read(inbuf, READING_LEN_B);
 			
 			// Parse the response
 			unsigned char status =  (inbuf[0] >> 6) & 0x03;
