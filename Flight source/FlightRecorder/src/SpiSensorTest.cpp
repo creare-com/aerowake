@@ -67,9 +67,9 @@ int main() {
 	// const unsigned int MUX_PORT_HZ = 30000000;
 	// const unsigned int PROBE_SENSOR_PORT_HZ = 5000000;
 	// const unsigned int ABS_SENSOR_PORT_HZ = 800000;
-	const unsigned int MUX_PORT_HZ = 5000;
-	const unsigned int PROBE_SENSOR_PORT_HZ = 5000;
-	const unsigned int ABS_SENSOR_PORT_HZ = 5000;
+	const unsigned int MUX_PORT_HZ = 50000;
+	const unsigned int PROBE_SENSOR_PORT_HZ = 50000;
+	const unsigned int ABS_SENSOR_PORT_HZ = 50000;
 	muxPort.openPort("/dev/spidev0.0", MUX_PORT_HZ);
 	probeSensorPort.openPort("/dev/spidev0.1", PROBE_SENSOR_PORT_HZ);
 	// Set up a version of this port that uses the same port, just a different clock rate
@@ -117,9 +117,11 @@ int main() {
 	printf("\n");
 
 	// Take readings from the other sensors
+	mux.setMux(ABS_PRESS);
 	DLV_030A::Reading absReading = absSensor.retrieveReading();
 	printf("Absolute pressure sensor reading: Pressure (PSI): %3.8f Temperature (C): %8.3f\n", absReading.pressurePsi, absReading.temperatureC);
 	
+	mux.setMux(TEMPERATURE);
 	int Dout = thermistor.getAdcValue();
 	printf("Thermistor ADC (Dout) value: %d\n", Dout);
 }
