@@ -64,8 +64,12 @@ int main() {
 		PROBE_CH_12
 	};
 	
-	muxPort.openPort("/dev/spidev0.0");
-	sensorPort.openPort("/dev/spidev0.1");
+	// const unsigned int MUX_PORT_HZ = 30000000;
+	// const unsigned int SENSOR_PORT_HZ = 5000000;
+	const unsigned int MUX_PORT_HZ = 30000;
+	const unsigned int SENSOR_PORT_HZ = 5000;
+	muxPort.openPort("/dev/spidev0.0", MUX_PORT_HZ);
+	sensorPort.openPort("/dev/spidev0.1", SENSOR_PORT_HZ);
 	
 	const unsigned int MAX_WAIT_MILLIS = 500;
 	DLHR_L01D::Reading reading[NUM_PROBE_CH];
