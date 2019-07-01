@@ -38,6 +38,7 @@ public:
 	 */
 	void openPort(const char * devName, unsigned int clockRateHz = 500000, unsigned int mode = 0) {
 		spiPortFd = openPortStatic(devName, clockRateHz, mode);
+		clockRateOverrideHz = clockRateOverrideHz;
 	}
 	
 	/**
@@ -52,7 +53,7 @@ public:
 	 * 
 	 * @param fd
 	 */
-	void openPort(int fd, unsigned int clockRateOverrideHz = 0) {
+	void openPort(int fd, unsigned int clockRateOverrideHz = 500000) {
 		spiPortFd = fd;
 		clockRateOverrideHz = clockRateOverrideHz;
 	}
@@ -137,6 +138,14 @@ public:
 		}
 	}
 	
+	unsigned int getClockRate() {
+		__u32 clockRateHz;
+		if (ioctl(spiPortFd, SPI_IOC_RD_MAX_SPEED_HZ, &clockRateHz) < 0) {
+			throw runtime_error("Failed to get SPI port read max clock rate.");
+		}
+		return clockRateHz;
+	}
+	
 private:
 	int spiPortFd = -1;
 	unsigned int clockRateOverrideHz = 0;
@@ -144,11 +153,11 @@ private:
 		uint8_t mode8bit = mode;
 		
 		// Speed
-		if (ioctl(fd, SPI_IOC_RD_MAX_SPEED_HZ, &clockRateHz) < 0) {
-			throw runtime_error("Failed to set SPI port read max clock rate.");
-		}
 		if (ioctl(fd, SPI_IOC_WR_MAX_SPEED_HZ, &clockRateHz) < 0) {
 			throw runtime_error("Failed to set SPI port write max clock rate.");
+		}
+		if (ioctl(fd, SPI_IOC_RD_MAX_SPEED_HZ, &clockRateHz) < 0) {
+			throw runtime_error("Failed to set SPI port read max clock rate.");
 		}
 		// SPI mode (CPHA|CPOL)
 		if (ioctl(fd, SPI_IOC_RD_MODE, &mode8bit) < 0) {

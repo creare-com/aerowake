@@ -67,9 +67,9 @@ int main() {
 	// const unsigned int MUX_PORT_HZ = 30000000;
 	// const unsigned int PROBE_SENSOR_PORT_HZ = 5000000;
 	// const unsigned int ABS_SENSOR_PORT_HZ = 800000;
-	const unsigned int MUX_PORT_HZ = 1000;
-	const unsigned int PROBE_SENSOR_PORT_HZ = 1000;
-	const unsigned int ABS_SENSOR_PORT_HZ = 1000;
+	const unsigned int MUX_PORT_HZ = 5000;
+	const unsigned int PROBE_SENSOR_PORT_HZ = 5000;
+	const unsigned int ABS_SENSOR_PORT_HZ = 5000;
 	muxPort.openPort("/dev/spidev0.0", MUX_PORT_HZ);
 	probeSensorPort.openPort("/dev/spidev0.1", PROBE_SENSOR_PORT_HZ);
 	// Set up a version of this port that uses the same port, just a different clock rate
@@ -78,6 +78,11 @@ int main() {
 	DLV_030A absSensor(absSensorPort);
 	// This device happens to use the same max clock rate as the probe sensors
 	Max6682 thermistor(probeSensorPort);
+	
+	printf("Port speeds:\n");
+	printf("    Probe sensors: %dHz\n", probeSensorPort.getClockRate());
+	printf("    Abs. Press sensor: %dHz\n", absSensorPort.getClockRate());
+	printf("    Multiplexer: %dHz\n", muxPort.getClockRate());
 	
 	// Take readings from the probe sensors
 	const unsigned int MAX_WAIT_MILLIS = 500;
