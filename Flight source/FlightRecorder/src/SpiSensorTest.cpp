@@ -90,15 +90,16 @@ int main() {
 	for(unsigned int ch; ch < NUM_PROBE_CH; ch++) {
 		mux.setMux(probChMuxNum[ch]);
 		probeSensor.commandReading();
-		for (unsigned int waitCt = 0; waitCt < MAX_WAIT_MILLIS; ++waitCt) {
+		unsigned int waitCt;
+		for (waitCt = 0; waitCt < MAX_WAIT_MILLIS; ++waitCt) {
 			if(!probeSensor.isBusy()) {
 				break;
 			} else {
 				this_thread::sleep_for(chrono::milliseconds(1));
 			}
 		}
-		if(!probeSensor.isBusy()) {
-			probeReading[ch] = probeSensor.retrieveReading();
+		if(waitCt < MAX_WAIT_MILLIS) {
+			probeReading[ch] = probeSensor.retrieveReading(true);
 		} else {
 			printf("Timeout waiting for probe channel %d (1-indexed).\n", ch+1);
 		}

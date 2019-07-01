@@ -83,11 +83,12 @@ public:
 	}
 	
 	/**
+	 * @param assumeNotBusy set to true to skip the busy check
 	 * @returns pressure and temperature if the sensor is not busy. {0,0} otherwise.
 	 */
-	Reading retrieveReading() {
+	Reading retrieveReading(bool assumeNotBusy = false) {
 		Reading reading = {0,0};
-		if(!isBusy()) {
+		if(assumeNotBusy || !isBusy()) {
 			char inbuf[READING_LEN_B];
 			char outbuf[READING_LEN_B];
 			memset(inbuf, 0, sizeof(inbuf));
