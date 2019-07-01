@@ -12,6 +12,7 @@
 
 #include <sensors/DlhrPressureSensor.hpp>
 #include <sensors/DlvPressureSensor.hpp>
+#include <sensors/Max6682.hpp>
 #include <Adg725.hpp>
 #include <SpiDev.hpp>
 #include <CsvLogger.hpp>
@@ -75,6 +76,8 @@ int main() {
 	SpiDev absSensorPort;
 	absSensorPort.openPort(probeSensorPort.getFd(), ABS_SENSOR_PORT_HZ);
 	DLV_030A absSensor(absSensorPort);
+	// This device happens to use the same max clock rate as the probe sensors
+	Max6682 thermistor(probeSensorPort);
 	
 	// Take readings from the probe sensors
 	const unsigned int MAX_WAIT_MILLIS = 500;
@@ -111,5 +114,7 @@ int main() {
 	DLV_030A::Reading absReading = absSensor.retrieveReading();
 	printf("Absolute pressure sensor reading: Pressure (PSI): %3.8f Temperature (C): %8.3f\n", absReading.pressurePsi, absReading.temperatureC);
 	
+	int Dout = thermistor.getAdcValue();
+	printf("Thermistor ADC (Dout) value: %d\n", Dout);
 }
 
