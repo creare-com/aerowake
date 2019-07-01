@@ -125,7 +125,7 @@ public:
 			printf("\n");
 		}
 		
-		if (ioctl(spiPortFd, SPI_IOC_MESSAGE(0), &xfer) < 0) {
+		if (ioctl(spiPortFd, SPI_IOC_MESSAGE(1), &xfer) < 0) {
 			throw runtime_error("Failed to transfer on SPI port.");
 		}
 		if(dataIn != NULL) {
