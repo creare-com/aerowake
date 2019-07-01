@@ -61,7 +61,10 @@ public:
 	 */
 	void commandReading(MeasurementType type = MeasurementType::Single) {
 		if(port.isOpen()) {
-			
+			char outbuf[COMMAND_LEN_B];
+			memset(outbuf, 0, sizeof(outbuf));
+			outbuf[0] = type;
+			port.write(outbuf, COMMAND_LEN_B);
 		}
 	}
 	
@@ -90,7 +93,7 @@ public:
 			memset(inbuf, 0, sizeof(inbuf));
 			memset(outbuf, 0, sizeof(outbuf));
 			outbuf[0] = READ_STATUS_COMMAND; // required
-			port.transfer(&inbuf, &outbuf, READING_LEN_B);
+			port.transfer(inbuf, outbuf, READING_LEN_B);
 			
 			// Parse the response
 			if((inbuf[0] & STATUS_BUSY) == 0) {
@@ -105,6 +108,7 @@ public:
 	
 private:
 	const char READ_STATUS_COMMAND = 0xF0;
+	const char COMMAND_LEN_B = 3;
 	const char READING_LEN_B = 7;
 	const char STATUS_BUSY = 0x20;
 	const unsigned int adcBitWidth = 24;
