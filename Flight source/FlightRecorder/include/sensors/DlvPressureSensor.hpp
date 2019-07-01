@@ -6,8 +6,8 @@
 	2019-06-25	JDW	Created.
 */
 
-#ifndef __DlvPressureSensor_HPP__
-#define __DlvPressureSensor_HPP__
+#ifndef __DLVPRESSURESENSOR_HPP__
+#define __DLVPRESSURESENSOR_HPP__
 #include <SpiDev.hpp>
 
 using namespace std;
@@ -105,4 +105,4 @@ typedef DlvPressureSensor<1638, 15> DLV_015A;
 typedef DlvPressureSensor<1638, 30> DLV_030A;
 
 
-#endif // __DlvPressureSensor_HPP__
+#endif // __DLVPRESSURESENSOR_HPP__
