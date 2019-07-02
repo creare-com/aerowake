@@ -54,13 +54,11 @@ public:
 				if(bankToChange == Bank::NEITHER || bankToChange == Bank::A) {
 					command |= COMMAND_CSB; // Setting the CSB# bit retains previous value for bank B
 				}
-				
 				command |= (COMMAND_A & muxNum);
-				
-				port.write(&command, 1);
 			} else {
 				command = COMMAND_EN; // Setting the EN# bit disables the device's switch connections
 			}
+			port.write(&command, 1);
 		}
 	}
 	
