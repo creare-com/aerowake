@@ -40,15 +40,22 @@ sudo ./apply_binaries.sh
 # Setup on Jetson
 
 1. SSH into the Jetson.
-2. Install required libraries and tools: `sudo apt install -y git libboost-all-dev screen device-tree-compiler`
-3. Install useful tools: `sudo apt install -y tree python netcat socat python-pip`
-4. Upgrade: `supo apt update; sudo apt -y upgrade`
+2. Make sure local time is correct with the date command.
+3. Copy local time to hardware clock with: `sudo hwclock -w`
+4. Install required libraries and tools: `sudo apt install -y git nano libboost-all-dev screen device-tree-compiler`
+5. Install useful tools: `sudo apt install -y tree python netcat socat python-pip`
+6. Upgrade: `supo apt update; sudo apt -y upgrade`
+7. Cleanup: `sudo apt -y autoremove`
 
 ## Spinnaker setup
 
 ### Increase `usbfs` size
-(Courtesy https://www.flir.com/support-center/iis/machine-vision/application-note/understanding-usbfs-on-linux/)
+(Courtesy https://www.flir.com/support-center/iis/machine-vision/application-note/understanding-usbfs-on-linux/ )
 
+#### As of Jetpack 4
+1. ????
+
+#### Up to Jetpack 3
 1. Run `sudo nano /etc/default/grub`
 2. Find `GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"`
 3. Replace with `GRUB_CMDLINE_LINUX_DEFAULT="quiet splash usbcore.usbfs_memory_mb=1000"`
@@ -57,7 +64,16 @@ sudo ./apply_binaries.sh
 
 ### Install
 
-1. Copy spinnaker-1.23.0.27-arm64-Ubuntu18.04-pkg.tar.gz to `~/Downloads/` on the Jetson.
-2. Run `cd ~/Downloads`
+1. Copy spinnaker-1.23.0.27-arm64-Ubuntu18.04-pkg.tar.gz to `/home/creare` on the Jetson.
+2. Run `cd`
 3. Run `tar -xzvf spinnaker-1.23.0.27-arm64-Ubuntu18.04-pkg.tar.gz`
-4. Run `cd `
+4. Run `cd spinnaker-1.23.0.27-arm64/`
+5. Run `printf "y\ny\ncreare\ny\ny\ny\nn\n" | ./install_spinnaker_arm.sh`
+6. Make sure it worked by running `SpinView_QT` (if you have X windows forwarding working)
+
+## Creare software setup
+Mount sd card
+add to fstab
+`git clone`
+`git submodule update`
+Automatic startup script when you write that
