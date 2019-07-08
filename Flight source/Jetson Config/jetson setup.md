@@ -1,3 +1,12 @@
+# WARNING
+
+As of 2019-7-2, We have not yet succeeded in getting a Jetson to have a working SPI port.
+
+These instructions won't get you all the way there.
+
+
+
+
 # Setup on configurator laptop
 
 1. Obtain laptop with Ubuntu 18.04
