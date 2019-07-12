@@ -39,7 +39,7 @@ enum MuxAssignment_e {
 	TEMPERATURE = 13
 };
 
-int main() {
+int _main() {
 	// Multiplexer dictates to which device the sensor port is routed
 	SpiDev muxPort;
 	Adg725 mux(muxPort);
@@ -124,5 +124,7 @@ int main() {
 	mux.setMux(TEMPERATURE);
 	int Dout = thermistor.getAdcValue();
 	printf("Thermistor ADC (Dout) value: %d\n", Dout);
+	
+	return 0;
 }
 
