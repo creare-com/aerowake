@@ -64,8 +64,8 @@ int main(int argc, char** argv)
 	system(("mkdir -p '" + recordingDir + "'").c_str());
 	
 	// Start logging data from the autopilot in another thread
-	// AutopilotLogger apLogger(recordingDir, apLogFilenameFormat, autopilotPort, apBaudRate);
-	// apLogger.startLogging();
+	AutopilotLogger apLogger(recordingDir, apLogFilenameFormat, autopilotPort, apBaudRate);
+	apLogger.startLogging();
 	
 	// Setup wind probe logger
 	WindProbeLogger wpLogger(recordingDir, apLogFilenameFormat, autopilotPort, apBaudRate);
@@ -101,7 +101,7 @@ int main(int argc, char** argv)
 		cout << "Error in main loop: " << e.what() << endl;
 	}
 
-	// apLogger.stopLogging();
+	apLogger.stopLogging();
 
 	sync();
 	Benchmarker::summarizeBenchmarksToStream(allBms, cout);
