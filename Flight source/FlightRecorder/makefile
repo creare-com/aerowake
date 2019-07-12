@@ -8,7 +8,7 @@ INC=-I/usr/include/spinnaker -Iinclude/ -Iinclude/mavlink/v2.0/
 # This makes it so that a change to any project-specific header file causes all .o files to rebuild
 PROJ_INC=$(wildcard include/*/*.hpp include/*.hpp include/*.h)
 OUTPUT=FlightRecorder
-OPTIONS=-std=c++11
+OPTIONS=-std=c++11 -Wno-psabi
 LIBS=-lSpinnaker -lopencv_core -lopencv_imgcodecs -lopencv_features2d -lopencv_imgproc -lpthread
 
 all: $(OUTPUT)
