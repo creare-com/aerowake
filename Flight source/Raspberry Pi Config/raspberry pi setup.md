@@ -44,11 +44,6 @@ Notes on how to configure a raspberry pi as a data recorder companion computer f
 ## OpenCV setup
 1. Run `sudo apt -y install libopencv-dev`
 2. While that is running, rage silently about all the developers who post broken instructions talking about how to compile opencv from source, while failing to mention that it's absolutely unnecessary.
-
-sudo nano /etc/dphys-swapfile
-Replace CONF_SWAPSIZE=100 with CONF_SWAPSIZE=2048
-sudo /etc/init.d/dphys-swapfile stop
-sudo /etc/init.d/dphys-swapfile start
     
     
 ## Creare software setup
