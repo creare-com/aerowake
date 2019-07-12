@@ -28,25 +28,31 @@ Notes on how to configure a raspberry pi as a data recorder companion computer f
 
 ### Increase `usbfs` size
 (Courtesy https://www.flir.com/support-center/iis/machine-vision/application-note/understanding-usbfs-on-linux/ )
-
-#### As of Jetpack 4
-1. ????
-
-#### Up to Jetpack 3
-1. Run `sudo nano /etc/default/grub`
-2. Find `GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"`
-3. Replace with `GRUB_CMDLINE_LINUX_DEFAULT="quiet splash usbcore.usbfs_memory_mb=1000"`
-4. Exit with `^x <enter> Y`
-4. Run `sudo update-grub`
+1. Run `sudo nano /boot/cmdline.txt`
+2. Add the following to the end of the line: ` usbcore.usbfs_memory_mb=1000`
+3. Reboot
 
 ### Install
+(Some steps courtesy http://jollejolles.com/installing-ffmpeg-with-h264-support-on-raspberry-pi/)
 
-1. Copy spinnaker-1.23.0.27-arm64-Ubuntu18.04-pkg.tar.gz to `/home/creare` on the Jetson.
+1. Copy spinnaker-1.23.0.27-armhf-Ubuntu16.04-pkg.tar.gz to `/home/creare` on the Pi.
 2. Run `cd`
-3. Run `tar -xzvf spinnaker-1.23.0.27-arm64-Ubuntu18.04-pkg.tar.gz`
-4. Run `cd spinnaker-1.23.0.27-arm64/`
+3. Run `tar -xzvf spinnaker-1.23.0.27-armhf-Ubuntu16.04-pkg.tar.gz`
+4. Run `cd spinnaker-1.23.0.27-armhf/`
 5. Run `printf "y\ny\ncreare\ny\ny\ny\nn\n" | ./install_spinnaker_arm.sh`
-6. Make sure it worked by running `SpinView_QT` (if you have X windows forwarding working)
+6. Run `sudo apt -y install libgl1 libswscale-dev libraw1394-11 libusb-1.0-0`
+7. Run `git clone --depth 1 http://git.videolan.org/git/x264`
+8. Run `./configure --host=arm-unknown-linux-gnueabi --enable-static --disable-opencl`
+9. Run `make -j4 && sudo make install`
+10. Run `cd ..`
+11. Run `git clone https://git.videolan.org/git/ffmpeg.git --depth=1`
+12. Run `cd ffmpeg`
+13. Run `./configure --arch=armel --target-os=linux --enable-gpl --enable-libx264 --enable-nonfree`
+14. Run `make -j4 && sudo make install` (this one takes a while)
+15. Run ``
+16. Run ``
+17. Run ``
+18. Make sure it worked by running `SpinView_QT` (if you have X windows forwarding working)
 
 ## Creare software setup
 Mount sd card
