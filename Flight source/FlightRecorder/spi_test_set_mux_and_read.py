@@ -41,6 +41,10 @@ try:
     send(muxPort, [0x0D])
     print("Reading MAX6682 value.")
     send(sensorPort, [0x00, 0x00])
+    print("Setting mux to port 13 (counting from 1).")
+    send(muxPort, [0x0C])
+    print("Reading DLV value.")
+    send(sensorPort, [0x00, 0x00, 0x00, 0x00])
     print("Setting mux to port 2 (counting from 1).")
     send(muxPort, [0x01])
     
