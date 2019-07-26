@@ -5,6 +5,8 @@ Attempts to read the status word once.
 
 """
 import spidev
+import time
+sleep_millis = 8 # Technically only need to sleep 4ms.  Sleeping longer to be sure.
 
 def reprHex(intArr):
     """
@@ -45,6 +47,16 @@ try:
     send(muxPort, [0x0C])
     print("Reading DLV value.")
     send(sensorPort, [0x00, 0x00, 0x00, 0x00])
+    print("Setting mux to port 12 (counting from 1).")
+    send(muxPort, [0x0B])
+    print("Reading DLHR status.")
+    send(sensorPort, [0xF0])
+    print("Commanding DLHR read.")
+    send(sensorPort, [0xAA, 0, 0])
+    print("Sleeping for %dms."%sleep_millis);
+    time.sleep(sleep_millis * 0.001)
+    print("Reading from DLHR.")
+    send(sensorPort, [0, 0, 0, 0, 0, 0, 0])
     print("Setting mux to port 2 (counting from 1).")
     send(muxPort, [0x01])
     
