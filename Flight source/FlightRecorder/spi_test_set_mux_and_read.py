@@ -24,17 +24,27 @@ def send(spiDevice, outbound):
     inbound = spiDevice.xfer(outbound)
     print("Received: " + reprHex(inbound))
     
+def printData(spi, name):
+    """
+    Prints a bunch of data
+    spi: an open spidev.SpiDev instance
+    name: human-readable description
+    """
+    print("%s: spi.bits_per_word: %d, spi.cshigh: %d, spi.loop: %d, spi.no_cs: %d, spi.lsbfirst: %d, spi.max_speed_hz: %d, spi.mode: %d, spi.threewire: %d"%(name, spi.bits_per_word, spi.cshigh, spi.loop, spi.no_cs, spi.lsbfirst, spi.max_speed_hz, spi.mode, spi.threewire))
+    
 
 try:
     print("Opening mux port.")
     muxPort = spidev.SpiDev()
     muxPort.open(0, 0)
+    muxPort.mode = 1
     muxPort.max_speed_hz = 5000
+    printData(muxPort, "muxPort")
     print("Opening sensor port.")
     sensorPort = spidev.SpiDev()
     sensorPort.open(0, 1)
     sensorPort.max_speed_hz = 5000
-    # print("spi.bits_per_word: %d, spi.cshigh: %d, spi.loop: %d, spi.no_cs: %d, spi.lsbfirst: %d, spi.max_speed_hz: %d, spi.mode: %d, spi.threewire: %d"%(spi.bits_per_word, spi.cshigh, spi.loop, spi.no_cs, spi.lsbfirst, spi.max_speed_hz, spi.mode, spi.threewire))
+    printData(sensorPort, "sensorPort")
     
     for n in range(0, 12):
         print("----------------")
