@@ -7,6 +7,7 @@ Attempts to read the status word once.
 import spidev
 import time
 sleep_millis = 8 # Technically only need to sleep 4ms.  Sleeping longer to be sure.
+clock_rate_hz = 5000000
 
 def reprHex(intArr):
     """
@@ -38,12 +39,12 @@ try:
     muxPort = spidev.SpiDev()
     muxPort.open(0, 0)
     muxPort.mode = 1
-    muxPort.max_speed_hz = 5000
+    muxPort.max_speed_hz = clock_rate_hz
     printData(muxPort, "muxPort")
     print("Opening sensor port.")
     sensorPort = spidev.SpiDev()
     sensorPort.open(0, 1)
-    sensorPort.max_speed_hz = 5000
+    sensorPort.max_speed_hz = clock_rate_hz
     printData(sensorPort, "sensorPort")
     
     for n in range(0, 12):
