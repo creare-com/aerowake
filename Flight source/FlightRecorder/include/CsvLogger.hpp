@@ -92,7 +92,9 @@ public:
 		unsigned int id;
 		double value;
 		
+		Cell() { ; }
 		Cell(unsigned int id, double value) : id(id), value(value) { ; }
+		Cell & operator=(const Cell& other) { id = other.id; value = other.value; return *this; };
 		friend bool operator< (const Cell &c1, const Cell &c2) { return c1.id < c2.id; }
 	};
 	
