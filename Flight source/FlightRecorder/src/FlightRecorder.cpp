@@ -55,7 +55,7 @@ int main(int argc, char** argv)
 	bool autostart = false;
 	cmdOpts.add_option("--autostart", autostart, "Wait for the autopilot to arm, then begin recording.  Use with --ap 1.  Default is " + boolToString(autostart) + ".");
 	cmdOpts.add_option("-a", apLogFilenameFormat, "Pattern specifying the filename for data captured from the autopilot. Default: \"" + apLogFilenameFormat + "\".  Will substitute flags found here: https://howardhinnant.github.io/date/date.html#to_stream_formatting.  Extension should be included here.  Avoid any characters not supported by the filesystem, such as colons.");
-	string autopilotPort = "/dev/ttyTHS1"; // UART0 on the Jetson TX2 with Auvidea J120's DTS
+	string autopilotPort = "/dev/ttyS0"; // UART on the Pi
 	cmdOpts.add_option("-p", autopilotPort, "Port to which the Pixhawk Autopilot is connected.  Default is " + autopilotPort + ".");
 	int apBaudRate = 57600;
 	cmdOpts.add_option("-r", apBaudRate, "Baud rate for communicating with the Pixhawk Autopilot.  Default is 57600.");
