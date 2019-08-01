@@ -40,7 +40,7 @@ public:
 	/**
 	 * Apply a configuration to the mutliplexer.
 	 *
-	 * @param muxNum number to select, 1-16 inclusive.  For example, muxNum = 4 means pin S4A will be connected to pin DA, and S4B will be connected to pin DB.
+	 * @param muxNum number to select, 0-15 inclusive.  For example, muxNum = 4 means pin S5A will be connected to pin DA, and S5B will be connected to pin DB.
 	 * @param bankToChange which bank to set.  For example, if bank = A, the settings on bank B will remain unchanged.
 	 * @param enable set to false to set "all switches off".  This parameter overrides the other parameters.
 	 */
