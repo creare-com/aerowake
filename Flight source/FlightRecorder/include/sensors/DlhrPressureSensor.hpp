@@ -21,7 +21,7 @@ using namespace std;
  * @tparam OSdigx10 10x Digital offset
  *   We can't do floating-point template values, but the DLHR line only has increments of 0.1 for this.
  */
-template <unsigned int OSdigx10>
+template <unsigned int OSdigx10, unsigned int FSSinH2O>
 class DlhrPressureSensor {
 	
 public:
@@ -97,7 +97,6 @@ private:
 	const char READING_LEN_B = 7;
 	const char STATUS_BUSY = 0x20;
 	const unsigned int adcBitWidth = 24;
-	const double FSSinH2O = 0.8 * (1 << adcBitWidth);
 	SpiDev & port; // will not be destructed at destruction of DlhrPressureSensor
 	
 	
@@ -122,24 +121,22 @@ private:
 	}
 };
 
-typedef DlhrPressureSensor<(5 * (1 << 24))> DlhrPressureSensorDiff;
-typedef DlhrPressureSensor<(1 * (1 << 24))> DlhrPressureSensorGage;
-
-typedef DlhrPressureSensorDiff DLHR_F50D;
-typedef DlhrPressureSensorDiff DLHR_L01D;
-typedef DlhrPressureSensorDiff DLHR_L02D;
-typedef DlhrPressureSensorDiff DLHR_L05D;
-typedef DlhrPressureSensorDiff DLHR_L10D;
-typedef DlhrPressureSensorDiff DLHR_L20D;
-typedef DlhrPressureSensorDiff DLHR_L30D;
-typedef DlhrPressureSensorDiff DLHR_L60D;
-typedef DlhrPressureSensorGage DLHR_L01G;
-typedef DlhrPressureSensorGage DLHR_L02G;
-typedef DlhrPressureSensorGage DLHR_L05G;
-typedef DlhrPressureSensorGage DLHR_L10G;
-typedef DlhrPressureSensorGage DLHR_L20G;
-typedef DlhrPressureSensorGage DLHR_L30G;
-typedef DlhrPressureSensorGage DLHR_L60G;
+//                           OSdigx10     , FSSinH2O
+typedef DlhrPressureSensor<(5 * (1 << 24)),    1> DLHR_F50D;
+typedef DlhrPressureSensor<(5 * (1 << 24)), 2*01> DLHR_L01D;
+typedef DlhrPressureSensor<(5 * (1 << 24)), 2*02> DLHR_L02D;
+typedef DlhrPressureSensor<(5 * (1 << 24)), 2*05> DLHR_L05D;
+typedef DlhrPressureSensor<(5 * (1 << 24)), 2*10> DLHR_L10D;
+typedef DlhrPressureSensor<(5 * (1 << 24)), 2*20> DLHR_L20D;
+typedef DlhrPressureSensor<(5 * (1 << 24)), 2*30> DLHR_L30D;
+typedef DlhrPressureSensor<(5 * (1 << 24)), 2*60> DLHR_L60D;
+typedef DlhrPressureSensor<(1 * (1 << 24)), 1*01> DLHR_L01G;
+typedef DlhrPressureSensor<(1 * (1 << 24)), 1*02> DLHR_L02G;
+typedef DlhrPressureSensor<(1 * (1 << 24)), 1*05> DLHR_L05G;
+typedef DlhrPressureSensor<(1 * (1 << 24)), 1*10> DLHR_L10G;
+typedef DlhrPressureSensor<(1 * (1 << 24)), 1*20> DLHR_L20G;
+typedef DlhrPressureSensor<(1 * (1 << 24)), 1*30> DLHR_L30G;
+typedef DlhrPressureSensor<(1 * (1 << 24)), 1*60> DLHR_L60G;
 
 
 #endif // __DLHRPRESSURESENSOR_HPP__
