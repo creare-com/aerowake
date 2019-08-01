@@ -9,6 +9,22 @@
 #include <WindProbeLogger.hpp>
 
 using namespace std;
+
+const unsigned char WindProbeLogger::dlhrMuxNum[WindProbeLogger::NUM_DLHR_SENSORS] = {
+	DLHR_1 ,
+	DLHR_2 ,
+	DLHR_3 ,
+	DLHR_4 ,
+	DLHR_5 ,
+	DLHR_6 ,
+	DLHR_7 ,
+	DLHR_8 ,
+	DLHR_9 ,
+	DLHR_10,
+	DLHR_11,
+	DLHR_12
+};
+
 /**
  * Constructor. 
  */
@@ -16,12 +32,12 @@ WindProbeLogger::WindProbeLogger(string recordingDir, string logFilenameFormat, 
 	logger(recordingDir, logFilenameFormat),
 	sensorPortName(sensorPortName),
 	muxPortName(muxPortName),
-	clockRate(clockRate)
+	clockRate(clockRate),
+	multiplexer(muxPort),
+	dlhrSensor(sensorPort),
+	dlvSensor(sensorPort),
+	thermistorReader(sensorPort)
 { 
-	// DLHR_L01D probeSensor(port);
-	// Adg725 mux(port);
-	// DLV_030A absSensor(port);
-	
 	// Set up log
 	for(unsigned int sensorIdx = 0; sensorIdx < NUM_DLHR_SENSORS; ++sensorIdx) {
 		stringstream pressColName;
@@ -44,3 +60,33 @@ void WindProbeLogger::startLogging() {
 void WindProbeLogger::stopLogging() {
 
 }
+/**
+ * Tell all the DLHR sensors to begin taking a reading.
+ */
+void WindProbeLogger::startReadings() {
+	for(unsigned int sensorIdx; sensorIdx < NUM_DLHR_SENSORS; sensorIdx++) {
+		multiplexer.setMux(dlhrMuxNum[sensorIdx]);
+		dlhrSensor.commandReading();
+	}
+}
+/**
+ * Retrieve a reading from every sensor and log it.
+ * Should be called at least 4ms after calling startReadings(),
+ * or the DLHR values may be invalid.
+ */
+void WindProbeLogger::logReadings() {
+	auto row = vector<CsvLogger::Cell>(NUM_DLHR_SENSORS + 3);
+	for(unsigned int sensorIdx; sensorIdx < NUM_DLHR_SENSORS; sensorIdx++) {
+		multiplexer.setMux(dlhrMuxNum[sensorIdx]);
+		auto dlhrReading = dlhrSensor.retrieveReading(true);
+		row[sensorIdx * 2 + 0].id = logIdDlhrPressure[sensorIdx];
+		row[sensorIdx * 2 + 0].value = dlhrReading.pressureInH20;
+		row[sensorIdx * 2 + 1].id = logIdDlhrTemperature[sensorIdx];
+		row[sensorIdx * 2 + 1].value = dlhrReading.temperatureC;
+	}
+	
+	multiplexer.setMux(DLV);
+	auto dlvReading = dlvSensor.retrieveReading();
+	// row[NUM_DLHR_SENSORS].id = 
+}
+
