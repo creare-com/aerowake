@@ -25,22 +25,34 @@ public:
 	/**
 	 * Constructor. 
 	 */
-	WindProbeLogger(string recordingDir, string logFilenameFormat, string autopilotPort, int apBaudRate) :
-		logger(recordingDir, logFilenameFormat)
+	WindProbeLogger(string recordingDir, string logFilenameFormat, string sensorPortName, string muxPortName, unsigned int clockRate) :
+		logger(recordingDir, logFilenameFormat),
+		sensorPortName(sensorPortName),
+		muxPortName(muxPortName),
+		clockRate(clockRate)
 	{ 
-		SpiDev port;
-		DLHR_L01D probeSensor(port);
-		Adg725 mux(port);
-		DLV_030A absSensor(port);
+		// DLHR_L01D probeSensor(port);
+		// Adg725 mux(port);
+		// DLV_030A absSensor(port);
 	}
 	virtual ~WindProbeLogger() {
 		stopLogging();
+	}
+	
+	void openPorts() {
+		sensorPort.openPort(sensorPortName.c_str(), clockRate, 0);
+		muxPort.openPort(muxPortName.c_str(), clockRate, 1); // CPHA = 1 for the muxPort
 	}
 	
 	void startLogging();
 	void stopLogging();
 	
 private:
+	string sensorPortName;
+	string muxPortName;
+	SpiDev sensorPort;
+	SpiDev muxPort;
+	unsigned int clockRate;
 
 	CsvLogger logger;
 };
