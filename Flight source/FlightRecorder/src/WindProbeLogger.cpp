@@ -64,7 +64,7 @@ void WindProbeLogger::stopLogging() {
  * Tell all the DLHR sensors to begin taking a reading.
  */
 void WindProbeLogger::startReadings() {
-	for(unsigned int sensorIdx; sensorIdx < NUM_DLHR_SENSORS; sensorIdx++) {
+	for(unsigned int sensorIdx = 0; sensorIdx < NUM_DLHR_SENSORS; sensorIdx++) {
 		multiplexer.setMux(dlhrMuxNum[sensorIdx]);
 		dlhrSensor.commandReading();
 	}
@@ -77,7 +77,7 @@ void WindProbeLogger::startReadings() {
 void WindProbeLogger::logReadings() {
 	auto row = vector<CsvLogger::Cell>(NUM_DLHR_SENSORS + 3);
 	unsigned int col = 0;
-	for(unsigned int sensorIdx; sensorIdx < NUM_DLHR_SENSORS; sensorIdx++) {
+	for(unsigned int sensorIdx = 0; sensorIdx < NUM_DLHR_SENSORS; sensorIdx++) {
 		multiplexer.setMux(dlhrMuxNum[sensorIdx]);
 		auto dlhrReading = dlhrSensor.retrieveReading(true);
 		row[col++] = {logIdDlhrPressure[sensorIdx], dlhrReading.pressureInH20};
@@ -87,6 +87,7 @@ void WindProbeLogger::logReadings() {
 	multiplexer.setMux(DLV);
 	auto dlvReading = dlvSensor.retrieveReading();
 	row[col++] = {logIdDlvPressure, dlvReading.pressurePsi};
+	row[col++] = {logIdDlvTemperature, dlvReading.temperatureC};
 	
 	multiplexer.setMux(MAX6682);
 	int thermistorReading = thermistorReader.getAdcValue();

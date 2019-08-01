@@ -1,5 +1,6 @@
 
 #include <chrono>
+#include <thread>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -104,6 +105,7 @@ int main(int argc, char** argv)
 	WindProbeLogger wpLogger(recordingDir, apLogFilenameFormat, sensorPortName, muxPortName, spiClock);
 	if(recProbe) {
 		wpLogger.openPorts();
+		wpLogger.startLogging();
 	}
 	
 	// Set up camera logger
@@ -116,8 +118,18 @@ int main(int argc, char** argv)
 			bmWholeFrame.start();
 			
 			// This is the thread performing image logging
-			if(recImages) { camLogger.captureAndLogImage(); }
+			if(recImages) { 
+				camLogger.captureAndLogImage();
+			}
 			
+			// Will move this to another thread later
+			if(recProbe) {
+				wpLogger.startReadings();
+				this_thread::sleep_for(milliseconds(4));
+				wpLogger.logReadings();
+			}
+			
+			// Flush OS filesystem buffers to disk
 			bmSync.start();
 			sync();
 			bmSync.end();
