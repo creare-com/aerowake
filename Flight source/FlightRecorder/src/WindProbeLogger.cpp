@@ -75,7 +75,7 @@ void WindProbeLogger::startReadings() {
  * or the DLHR values may be invalid.
  */
 void WindProbeLogger::logReadings() {
-	auto row = vector<CsvLogger::Cell>(NUM_DLHR_SENSORS + 3);
+	auto row = vector<CsvLogger::Cell>(NUM_DLHR_SENSORS*2 + 3);
 	unsigned int col = 0;
 	for(unsigned int sensorIdx = 0; sensorIdx < NUM_DLHR_SENSORS; sensorIdx++) {
 		multiplexer.setMux(dlhrMuxNum[sensorIdx]);

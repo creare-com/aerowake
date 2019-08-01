@@ -102,7 +102,7 @@ int main(int argc, char** argv)
 	}
 	
 	// Setup wind probe logger
-	WindProbeLogger wpLogger(recordingDir, apLogFilenameFormat, sensorPortName, muxPortName, spiClock);
+	WindProbeLogger wpLogger(recordingDir, wpLogFilenameFormat, sensorPortName, muxPortName, spiClock);
 	if(recProbe) {
 		wpLogger.openPorts();
 		wpLogger.startLogging();
