@@ -24,6 +24,7 @@ const unsigned char WindProbeLogger::dlhrMuxNum[WindProbeLogger::NUM_DLHR_SENSOR
 	DLHR_11,
 	DLHR_12
 };
+const unsigned int WindProbeLogger::MS_PER_READ = 4;
 
 /**
  * Constructor. 
@@ -52,13 +53,26 @@ WindProbeLogger::WindProbeLogger(string recordingDir, string logFilenameFormat, 
 	logIdDlvPressure      = logger.addColumn("dlv_pressure_psi");
 	logIdDlvTemperature   = logger.addColumn("dlv_temperature_degC");
 	logIdMax6682AdcTicks  = logger.addColumn("max6682_temp_adc_ticks");
+	
+	runReadThread = false;
 }
 void WindProbeLogger::startLogging() {
 	// Add all columns before this
 	logger.startNewLogFile();
+	
+	if(!sensorPort.isOpen()) {
+		sensorPort.openPort(sensorPortName.c_str(), clockRate, 0);
+	}
+	if(!muxPort.isOpen()) {
+		muxPort.openPort(muxPortName.c_str(), clockRate, 1); // CPHA = 1 for the muxPort
+	}
+
+	runReadThread = true;
+	readThread = thread(threadFunc, this); // Starts the thread
 }
 void WindProbeLogger::stopLogging() {
-
+	runReadThread = false;
+	readThread.join();
 }
 /**
  * Tell all the DLHR sensors to begin taking a reading.
@@ -95,4 +109,17 @@ void WindProbeLogger::logReadings() {
 	
 	logger.logData(row);
 }
+
+/**
+ * Continually read and log data until runReadThread becomes false.
+ *
+ */
+void WindProbeLogger::readAndLog() {
+	while(runReadThread) {
+		startReadings();
+		this_thread::sleep_for(milliseconds(MS_PER_READ));
+		logReadings();
+	}
+}
+
 

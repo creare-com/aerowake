@@ -104,7 +104,6 @@ int main(int argc, char** argv)
 	// Setup wind probe logger
 	WindProbeLogger wpLogger(recordingDir, wpLogFilenameFormat, sensorPortName, muxPortName, spiClock);
 	if(recProbe) {
-		wpLogger.openPorts();
 		wpLogger.startLogging();
 	}
 	
@@ -122,13 +121,6 @@ int main(int argc, char** argv)
 				camLogger.captureAndLogImage();
 			}
 			
-			// Will move this to another thread later
-			if(recProbe) {
-				wpLogger.startReadings();
-				this_thread::sleep_for(milliseconds(4));
-				wpLogger.logReadings();
-			}
-			
 			// Flush OS filesystem buffers to disk
 			bmSync.start();
 			sync();
@@ -141,8 +133,12 @@ int main(int argc, char** argv)
 		cout << "Error in main loop: " << e.what() << endl;
 	}
 
-	apLogger.stopLogging();
-
+	if(recAp) {
+		apLogger.stopLogging();
+	}
+	if(recProbe) {
+		wpLogger.stopLogging();
+	}
 	sync();
 	Benchmarker::summarizeBenchmarksToStream(allBms, cout);
 

@@ -10,6 +10,8 @@
 #define __WINDPROBELOGGER_HPP__
 
 #include <string>
+#include <atomic>
+#include <thread>
 
 #include <sensors/DlhrPressureSensor.hpp>
 #include <sensors/DlvPressureSensor.hpp>
@@ -33,22 +35,8 @@ public:
 		stopLogging();
 	}
 	
-	void openPorts() {
-		sensorPort.openPort(sensorPortName.c_str(), clockRate, 0);
-		muxPort.openPort(muxPortName.c_str(), clockRate, 1); // CPHA = 1 for the muxPort
-	}
-	
 	void startLogging();
 	void stopLogging();
-	
-	/**
-	 * Tell all the DLHR sensors to begin taking a reading.
-	 */
-	void startReadings();
-	/**
-	 * Retrieve a reading from every sensor and log it.
-	 */
-	void logReadings();
 	
 private:
 	// Mux number for each sensor.
@@ -72,6 +60,7 @@ private:
 
 	// mux port on which each probe channel sensor resides
 	static const unsigned char dlhrMuxNum[NUM_DLHR_SENSORS];
+	static const unsigned int MS_PER_READ;
 
 	string sensorPortName;
 	string muxPortName;
@@ -92,6 +81,28 @@ private:
 	Max6682 thermistorReader;
 
 	CsvLogger logger;
+	
+	atomic<bool> runReadThread;
+	thread readThread;
+	
+	static void threadFunc(WindProbeLogger * wp) {
+		wp->readAndLog();
+	}
+	
+	/**
+	 * Continually read and log data until runReadThread becomes false.
+	 *
+	 */
+	void readAndLog();
+	
+	/**
+	 * Tell all the DLHR sensors to begin taking a reading.
+	 */
+	void startReadings();
+	/**
+	 * Retrieve a reading from every sensor and log it.
+	 */
+	void logReadings();
 };
 
 #endif // __WINDPROBELOGGER_HPP__
