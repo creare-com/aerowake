@@ -76,17 +76,22 @@ void WindProbeLogger::startReadings() {
  */
 void WindProbeLogger::logReadings() {
 	auto row = vector<CsvLogger::Cell>(NUM_DLHR_SENSORS + 3);
+	unsigned int col = 0;
 	for(unsigned int sensorIdx; sensorIdx < NUM_DLHR_SENSORS; sensorIdx++) {
 		multiplexer.setMux(dlhrMuxNum[sensorIdx]);
 		auto dlhrReading = dlhrSensor.retrieveReading(true);
-		row[sensorIdx * 2 + 0].id = logIdDlhrPressure[sensorIdx];
-		row[sensorIdx * 2 + 0].value = dlhrReading.pressureInH20;
-		row[sensorIdx * 2 + 1].id = logIdDlhrTemperature[sensorIdx];
-		row[sensorIdx * 2 + 1].value = dlhrReading.temperatureC;
+		row[col++] = {logIdDlhrPressure[sensorIdx], dlhrReading.pressureInH20};
+		row[col++] = {logIdDlhrTemperature[sensorIdx], dlhrReading.temperatureC};
 	}
 	
 	multiplexer.setMux(DLV);
 	auto dlvReading = dlvSensor.retrieveReading();
-	// row[NUM_DLHR_SENSORS].id = 
+	row[col++] = {logIdDlvPressure, dlvReading.pressurePsi};
+	
+	multiplexer.setMux(MAX6682);
+	int thermistorReading = thermistorReader.getAdcValue();
+	row[col++] = {logIdMax6682AdcTicks, (double)thermistorReading};
+	
+	logger.logData(row);
 }
 
