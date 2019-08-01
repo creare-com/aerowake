@@ -22,19 +22,15 @@ using namespace std;
 
 class WindProbeLogger {
 public:
+	static const unsigned int NUM_DLHR_SENSORS = 12;
+	static const unsigned int DLV_MUX_CHANNEL = 13;
+	static const unsigned int MAX6682_MUX_CHANNEL = 14;
+	
 	/**
 	 * Constructor. 
 	 */
-	WindProbeLogger(string recordingDir, string logFilenameFormat, string sensorPortName, string muxPortName, unsigned int clockRate) :
-		logger(recordingDir, logFilenameFormat),
-		sensorPortName(sensorPortName),
-		muxPortName(muxPortName),
-		clockRate(clockRate)
-	{ 
-		// DLHR_L01D probeSensor(port);
-		// Adg725 mux(port);
-		// DLV_030A absSensor(port);
-	}
+	WindProbeLogger(string recordingDir, string logFilenameFormat, string sensorPortName, string muxPortName, unsigned int clockRate);
+
 	virtual ~WindProbeLogger() {
 		stopLogging();
 	}
@@ -53,6 +49,14 @@ private:
 	SpiDev sensorPort;
 	SpiDev muxPort;
 	unsigned int clockRate;
+	
+	unsigned int logIdDlhrPressure[NUM_DLHR_SENSORS];
+	unsigned int logIdDlhrTemperature[NUM_DLHR_SENSORS];
+	unsigned int logIdDlvPressure;
+	unsigned int logIdDlvTemperature;
+	unsigned int logIdMax6682AdcTicks;
+	
+	
 
 	CsvLogger logger;
 };
