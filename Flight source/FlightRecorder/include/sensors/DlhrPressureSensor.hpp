@@ -69,26 +69,12 @@ public:
 	}
 	
 	/**
-	 * @returns true if the sensor is taking a reading, false otherwise
+	 * Retrieve the reading from the sensor.
+	 * This should only be called >= 4ms after calling commandReading()
+	 * @returns pressure and temperature returned by the sensor
 	 */
-	bool isBusy() {
-		if(port.isOpen()) {
-			char command = READ_STATUS_COMMAND;
-			char status = 0;
-			port.transfer(&status, &command, 1);
-			return ((status & STATUS_BUSY) != 0);
-		} else {
-			return true;
-		}
-	}
-	
-	/**
-	 * @param assumeNotBusy set to true to skip the busy check
-	 * @returns pressure and temperature if the sensor is not busy. {0,0} otherwise.
-	 */
-	Reading retrieveReading(bool assumeNotBusy = false) {
+	Reading retrieveReading() {
 		Reading reading = {0,0};
-		if(assumeNotBusy || !isBusy()) {
 			char inbuf[READING_LEN_B];
 			char outbuf[READING_LEN_B];
 			memset(inbuf, 0, sizeof(inbuf));
@@ -97,12 +83,10 @@ public:
 			port.transfer(inbuf, outbuf, READING_LEN_B);
 			
 			// Parse the response
-			if((inbuf[0] & STATUS_BUSY) == 0) {
-				unsigned int pOutDig = (inbuf[1] << 16) | (inbuf[2] << 8) | (inbuf[3] << 0);
-				unsigned int tOutDig = (inbuf[4] << 16) | (inbuf[5] << 8) | (inbuf[6] << 0);
-				reading.pressureInH20 = computePressureFromAdcWord(tOutDig);
-				reading.temperatureC = computeTemperatureFromAdcWord(tOutDig);
-			}
+			unsigned int pOutDig = (inbuf[1] << 16) | (inbuf[2] << 8) | (inbuf[3] << 0);
+			unsigned int tOutDig = (inbuf[4] << 16) | (inbuf[5] << 8) | (inbuf[6] << 0);
+			reading.pressureInH20 = computePressureFromAdcWord(tOutDig);
+			reading.temperatureC = computeTemperatureFromAdcWord(tOutDig);
 		}
 		return reading;
 	}
