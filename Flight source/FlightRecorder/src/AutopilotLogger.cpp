@@ -9,12 +9,14 @@
 #include <AutopilotLogger.hpp>
 
 using namespace std;
-
-void AutopilotLogger::startLogging() {
-	apIntf.registerAnnouncementCallbacks();
-	
-	
-	
+/**
+ * Constructor. 
+ */
+AutopilotLogger::AutopilotLogger(string recordingDir, string logFilenameFormat, string autopilotPort, int apBaudRate) :
+	logger(recordingDir, logFilenameFormat),
+	apSerialPort(autopilotPort.c_str(), apBaudRate),
+	apIntf(&apSerialPort)
+{ 
 	// Set up log
 	unsigned int logIdApTime      = logger.addColumn("ap_time_ms");
 	unsigned int logIdRoll        = logger.addColumn("roll");
@@ -23,8 +25,9 @@ void AutopilotLogger::startLogging() {
 	unsigned int logIdRollSpeed   = logger.addColumn("roll_speed");
 	unsigned int logIdPitchSpeed  = logger.addColumn("pitch_speed");
 	unsigned int logIdYawSpeed    = logger.addColumn("yaw_speed");
-	// Add all columns before this
-	logger.startNewLogFile();
+	
+	// Tell the autopilot interface to announce whenever a message arrives
+	apIntf.registerAnnouncementCallbacks();
 	
 	// Use lambda functions to log whenever a message arrives.
 	// This will happen on the reader thread.
@@ -49,12 +52,10 @@ void AutopilotLogger::startLogging() {
 			CsvLogger::Cell(logIdYawSpeed  , att.yawspeed    ),
 		}));
 	});
-	
-	
-	
-	
-	
-	
+}
+
+void AutopilotLogger::startLogging() {
+	logger.startNewLogFile();
 	
 	apSerialPort.start();
 	apIntf.start();
