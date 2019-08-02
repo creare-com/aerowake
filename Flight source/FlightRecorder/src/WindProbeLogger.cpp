@@ -93,7 +93,7 @@ void WindProbeLogger::logReadings() {
 	unsigned int col = 0;
 	for(unsigned int sensorIdx = 0; sensorIdx < NUM_DLHR_SENSORS; sensorIdx++) {
 		multiplexer.setMux(dlhrMuxNum[sensorIdx]);
-		auto dlhrReading = dlhrSensor.retrieveReading(true);
+		auto dlhrReading = dlhrSensor.retrieveReading();
 		row[col++] = {logIdDlhrPressure[sensorIdx], dlhrReading.pressureInH20};
 		row[col++] = {logIdDlhrTemperature[sensorIdx], dlhrReading.temperatureC};
 	}
