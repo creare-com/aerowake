@@ -196,7 +196,6 @@ Autopilot_Interface(Serial_Port *serial_port_)
 	time_to_exit   = false;  // flag to signal thread exit
 
 	read_tid  = 0; // read thread id
-	write_tid = 0; // write thread id
 
 	system_id    = 0; // system id
 	autopilot_id = 0; // autopilot component id
@@ -683,7 +682,6 @@ stop()
 
 	// wait for exit
 	pthread_join(read_tid ,NULL);
-	pthread_join(write_tid,NULL);
 
 	// now the read and write threads are closed
 	printf("\n");

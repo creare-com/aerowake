@@ -23,13 +23,7 @@ public:
 	/**
 	 * Constructor. 
 	 */
-	AutopilotLogger(string recordingDir, string logFilenameFormat, string autopilotPort, int apBaudRate) :
-		logger(recordingDir, logFilenameFormat),
-		apSerialPort(autopilotPort.c_str(), apBaudRate),
-		apIntf(&apSerialPort)
-	{ 
-		
-	}
+	AutopilotLogger(string recordingDir, string logFilenameFormat, string autopilotPort, int apBaudRate);
 	virtual ~AutopilotLogger() {
 		stopLogging();
 	}
