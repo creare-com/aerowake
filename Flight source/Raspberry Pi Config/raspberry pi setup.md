@@ -24,7 +24,7 @@ Notes on how to configure a raspberry pi as a data recorder companion computer f
 2. Make sure local time is correct with the date command. (`sudo date MMDDHHmmCCYY`)
 6. Upgrade: `sudo apt update; sudo apt -y upgrade`
 4. Install required libraries and tools: `sudo apt install -y git nano libboost-all-dev libopencv-dev screen`
-5. Install useful tools: `sudo apt install -y tree python netcat socat python-pip; sudo pip install spidev`
+5. Install useful tools: `sudo apt install -y tree python netcat dos2unix socat python-pip; sudo pip install spidev`
 7. Cleanup: `sudo apt -y autoremove`
 
 ## Spinnaker setup
@@ -48,10 +48,23 @@ Notes on how to configure a raspberry pi as a data recorder companion computer f
 
 ## Creare software setup
 
-TODO
-
-- Make a creare user (need to update autostart script)
-    Add to groups sudo, dialout, ptgreyimaging, and/or whatever those groups are named
-- `git clone`
-- `git submodule update`
-- Enable automatic startup script
+1. Run `sudo adduser creare` and supply `6614` for the password
+2. Run `sudo usermod -aG sudo,dialout,i2c,spi,flirimaging creare`
+3. Run `su creare` and supply `6614` for the password
+4. Run `cd`
+5. Run `git clone https://gitlab.com/creare-com/wake-swarm/aerowake.git`
+6. Run `cd aerowake/`
+7. If you're working on a branch, check it out here
+8. Run `git submodule init`
+9. Run `git submodule update`
+10. Run `cd Flight\ source/FlightRecorder/`
+11. Run `make`.  After a while, it should return without errors.
+12. Run `sudo cp ../Raspberry\ Pi\ Config/lib/systemd/system/flightRecorder.service /lib/systemd/system/`
+13. Run `sudo systemctl enable flightRecorder.service`
+14. Run `sudo visudo`
+15. Edit the line reading `%sudo   ALL=(ALL:ALL) ALL` so it reads `%sudo   ALL=(ALL:ALL) NOPASSWD: ALL`
+16. Save and exit
+17. Reboot
+18. Log in as `creare`.
+19. Run `sudo userdel pi`
+20. Run `sudo rm -rf /home/pi/`

@@ -5,7 +5,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/bin/bash /home/pi/FlightRecorder/run_flight_recorder.sh
+ExecStart=/bin/bash /home/creare/aerowake/Flight\ source/FlightRecorder/run_flight_recorder.sh
 
 [Install]
 WantedBy=multi-user.target
