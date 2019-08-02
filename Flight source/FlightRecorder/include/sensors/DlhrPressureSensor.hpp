@@ -118,7 +118,7 @@ private:
 	 */
 	virtual double computeTemperatureFromAdcWord(unsigned int tOutDig) {
 		// This equation is from the DLHR series datasheet, DS-0350_Rev_B
-		return ((tOutDig * 125) / (1 << adcBitWidth)) - 40;
+		return ((tOutDig * 125.0) / (1 << adcBitWidth)) - 40.0;
 	}
 };
 
