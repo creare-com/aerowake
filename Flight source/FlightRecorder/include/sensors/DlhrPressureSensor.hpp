@@ -75,19 +75,20 @@ public:
 	 */
 	Reading retrieveReading() {
 		Reading reading = {0,0};
-			char inbuf[READING_LEN_B];
-			char outbuf[READING_LEN_B];
-			memset(inbuf, 0, sizeof(inbuf));
-			memset(outbuf, 0, sizeof(outbuf));
-			outbuf[0] = READ_STATUS_COMMAND; // required
-			port.transfer(inbuf, outbuf, READING_LEN_B);
-			
-			// Parse the response
-			unsigned int pOutDig = (inbuf[1] << 16) | (inbuf[2] << 8) | (inbuf[3] << 0);
-			unsigned int tOutDig = (inbuf[4] << 16) | (inbuf[5] << 8) | (inbuf[6] << 0);
-			reading.pressureInH20 = computePressureFromAdcWord(tOutDig);
-			reading.temperatureC = computeTemperatureFromAdcWord(tOutDig);
-		}
+		char inbuf[READING_LEN_B];
+		char outbuf[READING_LEN_B];
+		memset(inbuf, 0, sizeof(inbuf));
+		memset(outbuf, 0, sizeof(outbuf));
+
+		outbuf[0] = READ_STATUS_COMMAND; // required
+		port.transfer(inbuf, outbuf, READING_LEN_B);
+		
+		// Parse the response
+		unsigned int pOutDig = (inbuf[1] << 16) | (inbuf[2] << 8) | (inbuf[3] << 0);
+		unsigned int tOutDig = (inbuf[4] << 16) | (inbuf[5] << 8) | (inbuf[6] << 0);
+		reading.pressureInH20 = computePressureFromAdcWord(tOutDig);
+		reading.temperatureC = computeTemperatureFromAdcWord(tOutDig);
+	
 		return reading;
 	}
 	
