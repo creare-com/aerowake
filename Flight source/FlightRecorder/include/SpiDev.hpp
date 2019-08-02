@@ -154,18 +154,18 @@ private:
 		
 		// Speed
 		if (ioctl(fd, SPI_IOC_WR_MAX_SPEED_HZ, &clockRateHz) < 0) {
-			throw runtime_error("Failed to set SPI port write max clock rate.");
+			throw runtime_error("Failed to set SPI port max clock rate.");
 		}
-		if (ioctl(fd, SPI_IOC_RD_MAX_SPEED_HZ, &clockRateHz) < 0) {
-			throw runtime_error("Failed to set SPI port read max clock rate.");
-		}
+		// if (ioctl(fd, SPI_IOC_RD_MAX_SPEED_HZ, &clockRateHz) < 0) {
+			// throw runtime_error("Failed to read SPI port max clock rate.");
+		// }
 		// SPI mode (CPHA|CPOL)
-		if (ioctl(fd, SPI_IOC_RD_MODE, &mode8bit) < 0) {
-			throw runtime_error("Failed to set SPI port read mode.");
-		}
 		if (ioctl(fd, SPI_IOC_WR_MODE, &mode8bit) < 0) {
-			throw runtime_error("Failed to set SPI port write mode.");
+			throw runtime_error("Failed to set SPI port mode.");
 		}
+		// if (ioctl(fd, SPI_IOC_RD_MODE, &mode8bit) < 0) {
+			// throw runtime_error("Failed to read SPI port mode.");
+		// }
 		
 		// Other available settings not presently implemented:
 		
