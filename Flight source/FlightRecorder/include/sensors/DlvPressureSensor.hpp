@@ -79,7 +79,7 @@ private:
 	 */
 	virtual double computePressureFromAdcWord(unsigned int pOutDig) {
 		// This equation is from the DLV series datasheet
-		return 1.25 * ((pOutDig - OSdig) / (1 << adcBitWidth)) * FSSpsi;
+		return 1.25 * (((double)pOutDig - OSdig) / (1 << adcBitWidth)) * FSSpsi;
 	}
 	
 	/**
