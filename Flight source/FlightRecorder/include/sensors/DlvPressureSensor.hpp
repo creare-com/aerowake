@@ -60,7 +60,7 @@ public:
 			unsigned char status =  (inbuf[0] >> 6) & 0x03;
 			unsigned int pOutDig = ((inbuf[0] << 8) | (inbuf[1] << 0)) & 0x3FFF;
 			unsigned int tOutDig = ((inbuf[2] << 8) | (inbuf[3] << 0)) >> 5;
-			reading.pressurePsi = computePressureFromAdcWord(tOutDig);
+			reading.pressurePsi = computePressureFromAdcWord(pOutDig);
 			reading.temperatureC = computeTemperatureFromAdcWord(tOutDig);
 		}
 		return reading;
