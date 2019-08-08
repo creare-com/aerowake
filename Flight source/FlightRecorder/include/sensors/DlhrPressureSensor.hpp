@@ -86,7 +86,7 @@ public:
 		// Parse the response
 		unsigned int pOutDig = (inbuf[1] << 16) | (inbuf[2] << 8) | (inbuf[3] << 0);
 		unsigned int tOutDig = (inbuf[4] << 16) | (inbuf[5] << 8) | (inbuf[6] << 0);
-		reading.pressureInH20 = computePressureFromAdcWord(tOutDig);
+		reading.pressureInH20 = computePressureFromAdcWord(pOutDig);
 		reading.temperatureC = computeTemperatureFromAdcWord(tOutDig);
 	
 		return reading;
