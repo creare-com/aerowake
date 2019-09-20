@@ -1,0 +1,11 @@
+# Must copy into /lib/systemd/system/ and run sudo systemctl enable flightRecorder.service
+[Unit]
+Description=Wake Swarm Flight data recorder service
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/bin/bash /home/creare/aerowake/Flight\ source/FlightRecorder/run_flight_recorder.sh
+
+[Install]
+WantedBy=multi-user.target
