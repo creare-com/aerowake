@@ -41,7 +41,7 @@ class ReelController:
         self._REELING_IN_ACCEL_RPMS  = 10 # accelerate at this speed on reelin
         self._REELING_IN_MAX_RPM_NO_TENSION         = 20 # Maximum RPM when reeling in if there is not enough tension on the line. If there is enough tension, max rpm when reeling in is self._MAX_RPM.
         self._REELING_IN_TENSION_REQUIRED_N         = 3 # There must be at least this many newtons on the tension sensor when reeling in, otherwise reel in will limit max rpm
-	self._REELING_IN_LENGTH_TO_IGNORE_TENSION_M = 3 # If tether length is less than this, do not set speed based on tension
+        self._REELING_IN_LENGTH_TO_IGNORE_TENSION_M = 3 # If tether length is less than this, do not set speed based on tension
         
         # Sensor settings
         self._N_PER_ADC_COUNT        = 0.0045203
@@ -129,10 +129,10 @@ class ReelController:
     def youAreHome(self,home_pos_m=None):
         """ Consider the tether's current position to be 0m """
         if home_pos_m is None:
-	    self._home_pos_m = 0 # Zero this out because getTetherLengthM() returns a value relative to home
+            self._home_pos_m = 0 # Zero this out because getTetherLengthM() returns a value relative to home
             self._home_pos_m = self.getTetherLengthM()
         else:
-	    self._home_pos_m = home_pos_m
+            self._home_pos_m = home_pos_m
     
     def _recommandMotorPosition(self):
         """
@@ -236,7 +236,7 @@ class ReelController:
         return motor_max_rpm
         
     def _setMaxTetherSpeedMps(self, max_tether_mps, reeling_out=True, accel=None):
-	if accel is None:
+        if accel is None:
             accel = self._REEL_ACCEL_RPMS
         if reeling_out: decel = self._REELING_OUT_DECEL_RPMS
         else:           decel = self._REELING_IN_DECEL_RPMS
