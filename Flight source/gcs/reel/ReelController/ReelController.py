@@ -200,12 +200,18 @@ class ReelController:
         self._logger.debug(status_str)
 
     def stopMoving(self):
+        """
+        Tell the motor to stop moving
+        """
         try:
             self._mc.haltMovement()
         except RuntimeError as err:
             self._logger.error("Error in _mc.haltMovement: " + str(err))
     
     def setTetherLengthM(self, tether_length_m):
+        """
+        Begin seeking the indicated target position relative to home
+        """
         desired_motor_position = self.motorPositionFromTetherLength(tether_length_m)
         try:
             self._mc.moveToPosition(desired_motor_position)
@@ -214,6 +220,9 @@ class ReelController:
         self.update()
         
     def getTetherLengthM(self):
+        """
+        Return the current paid-out tether length relative to home
+        """
         try:
             cur_motor_position = self._mc.getPosition()
         except RuntimeError as err:
@@ -222,6 +231,9 @@ class ReelController:
         return self.tetherLengthFromMotorPosition(cur_motor_position)
         
     def getTargetTetherLengthM(self):
+        """
+        Returns the tether length that is currently being sought or held
+        """
         try:
             tgt_motor_position = self._mc.getTargetPosition()
         except RuntimeError as err:
@@ -230,6 +242,9 @@ class ReelController:
         return self.tetherLengthFromMotorPosition(tgt_motor_position)
         
     def computeMaxTetherSpeedRpm(self):
+        """
+        Return the highest speed the motor can turn, in RPM, with the configured limits
+        """
         motor_limited_rpm   = self._MOTOR_MAX_RPM / self._gear_ratio
         gearbox_limited_rpm = self._GEARBOX_MAX_INPUT_RPM / self._gear_ratio
         motor_max_rpm = min(motor_limited_rpm, gearbox_limited_rpm)
@@ -256,6 +271,9 @@ class ReelController:
             return self.tetherMpsFromReelRpm(max_tether_rpm)
 
     def getMaxTetherSpeedMps(self):
+        """
+        Return the highest speed the motor pay out the tether, in meters per second, with the configured limits
+        """
         try:
             return self.tetherMpsFromReelRpm(self._mc.getPositionProfile()['velocity']);
         except RuntimeError as err:
@@ -263,9 +281,15 @@ class ReelController:
             return 0
 
     def getTetherTensionN(self):
+        """
+        Return the current tension on the tether, in Newtons
+        """
         return self._tension_sensor.readTension()
 
     def isEnabled(self):
+        """
+        Return true if the motor controller is enabled
+        """
         try:
             return self._mc.isEnabled()
         except RuntimeError as err:
@@ -273,6 +297,9 @@ class ReelController:
             return False
 
     def isFaulted(self):
+        """
+        Return true if the motor controller is in fault state
+        """
         try:
             return self._mc.isFaulted()
         except RuntimeError as err:
@@ -280,12 +307,18 @@ class ReelController:
             return False
 
     def clearFault(self):
+        """
+        Attempt to clear a fault state
+        """
         try:
             self._mc.clearFault()
         except RuntimeError as err:
             self._logger.error("Error in _mc.clearFault: " + str(err))
 
     def clearFaultAndEnable(self):
+        """
+        Enable the motor, after clearing the fault state
+        """
         if self.isFaulted():
             try:
                 curr_pos = self.getTetherLengthM()
