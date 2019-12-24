@@ -65,8 +65,8 @@ int main(int argc, char** argv)
 	cmdOpts.add_option("--pressure", recProbe, "1 to enable, 0 to disable reading and recording pressures from the wind probe.  Default is " + boolToString(recProbe) + ".");
 	string wpLogFilenameFormat = "wp_%F_%H-%M-%S.csv";
 	cmdOpts.add_option("-w", wpLogFilenameFormat, "Pattern specifying the filename for data captured from the wind probe. Default: \"" + apLogFilenameFormat + "\".  Will substitute flags found here: https://howardhinnant.github.io/date/date.html#to_stream_formatting.  Extension should be included here.  Avoid any characters not supported by the filesystem, such as colons.");
-	unsigned int spiClock = 5000000; // Default to the max DLHR rate
-	cmdOpts.add_option("--spiclk", spiClock, "SPI clock rate to use interacting with the sensors.  The PI can do 3.814 kHz to 125 MHz, and the DLHR sensors can go up to 5MHz.  Default is 5MHz.");
+	unsigned int spiClock = 800000; // Default to the max DLV rate
+	cmdOpts.add_option("--spiclk", spiClock, "SPI clock rate to use interacting with the sensors.  The PI can do 3.814 kHz to 125 MHz, the DLV can do 800 kHz, and the DLHR sensors can go up to 5MHz.  Default is 800 kHz.");
 	string sensorPortName = "/dev/spidev0.1";
 	cmdOpts.add_option("--sensorSpiPort", sensorPortName, "SPI device connected to the sensor part of the wind probe.  Default is \"" + sensorPortName + "\".");
 	string muxPortName = "/dev/spidev0.0";
