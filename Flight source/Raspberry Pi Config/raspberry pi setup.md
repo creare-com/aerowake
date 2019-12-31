@@ -38,7 +38,7 @@ Notes on how to configure a raspberry pi as a data recorder companion computer f
 
 ### Install
 
-1. Copy spinnaker-1.23.0.27-armhf-Ubuntu16.04-pkg.tar.gz to `/home/raspberry` on the Pi.
+1. Copy spinnaker-1.23.0.27-armhf-Ubuntu16.04-pkg.tar.gz to `/home/pi` on the Pi.
 2. Run `cd`
 3. Run `tar -xzvf spinnaker-1.23.0.27-armhf-Ubuntu16.04-pkg.tar.gz`
 4. Run `cd spinnaker-1.23.0.27-armhf/`
