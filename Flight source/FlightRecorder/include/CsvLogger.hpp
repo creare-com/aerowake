@@ -132,11 +132,11 @@ public:
 				if(it != values.end()) {
 					if(it->id == col) {
 						logFile << it->value;
+						if(col < headers.size() - 1) {
+							logFile << ',';
+						}
 						++it;
 					}
-				}
-				if(col < headers.size() - 1) {
-					logFile << ',';
 				}
 			}
 			logFile << endl;
