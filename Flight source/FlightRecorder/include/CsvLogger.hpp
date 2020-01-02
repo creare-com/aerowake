@@ -60,6 +60,9 @@ public:
 		streamPrecision   (streamPrecision  )
 	{ 
 		headers.push_back("time");
+		headers.push_back("secondsElapsed");
+		
+		startTime = system_clock::now();
 	}
 	virtual ~CsvLogger() {
 		closeFile();
@@ -113,7 +116,11 @@ public:
 		if(logFile.is_open()) {
 			// Timestamp is always the first column
 			logFile << date::format(timestampFormat, date::floor<milliseconds>(system_clock::now()));
-			logFile <<',';
+			logFile << ',';
+			// Seconds elapsed is always the second column
+			logFile << (duration_cast<milliseconds>(system_clock::now() - startTime).count() / 1000.0);
+			logFile << ',';
+			
 			sort(values.begin(), values.end());
 			// cout << "Sorted values: ";
 			// for(auto value : values) {
@@ -145,6 +152,7 @@ private:
 	unsigned int streamPrecision;
 	vector<string> headers;
 	string curPath = "";
+	system_clock::time_point startTime;
 	
 	ofstream logFile;
 	
