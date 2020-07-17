@@ -98,9 +98,9 @@ class ReelController:
         """
         try:
             from PyMotorController import PyMotorController, SensorType
-            self._mc = PyMotorController(interface)
+            self._mc = PyMotorController(str(interface).encode())
             
-            self._mc.setOperatingMode('PROFILE_POSITION')
+            self._mc.setOperatingMode(b'PROFILE_POSITION')
         except Exception as err:
             self._logger.error("Error while connecting to motor controller: ", exc_info=True)
             self._logger.warning("Cannot connect to motor controller!  Will be using mock motor controller instead.")
