@@ -20,11 +20,11 @@ class ReelController:
         # Logger setup
         if 'reel_logger' in logging.Logger.manager.loggerDict:
             self._logger = logging.getLogger('reel_logger')
-            print 'ReelController.py is using reel.py logger'
+            print('ReelController.py is using reel.py logger')
         else:
             self._logger = logging.getLogger('reel_logger')
             self._logger.setLevel(logging.DEBUG)
-            print 'ReelController.py created its own reel_logger'
+            print('ReelController.py created its own reel_logger')
 
         # Motor settings
         self._QC_PER_TURN            = -1024*4 # Flip the sign - the motor considers "positive" to be the direction that retracts the tether
@@ -79,7 +79,7 @@ class ReelController:
             self._REELING_OUT_DECEL_RPMS = self._mc.getMaxAccelDecel()
         if self._REEL_MAX_VEL_RPM == None:
             self._REEL_MAX_VEL_RPM = self.computeMaxTetherSpeedRpm()
-        print 'DECEL RPMS: ', self._REELING_OUT_DECEL_RPMS
+        print('DECEL RPMS: ', self._REELING_OUT_DECEL_RPMS)
         self._mc.setMaxVelocity(self._REEL_MAX_VEL_RPM)
         self._logger.debug("getMaxAccelDecel() = %f"%self._mc.getMaxAccelDecel())
         self._logger.debug("_REELING_OUT_DECEL_RPMS = %f"%self._REELING_OUT_DECEL_RPMS)

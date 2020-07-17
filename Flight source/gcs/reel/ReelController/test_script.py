@@ -1,4 +1,4 @@
-# Run as ipython -i test_script.py
+# Run as ipython3 -i test_script.py
 import time
 import logging
 logging.basicConfig(level=logging.INFO)
