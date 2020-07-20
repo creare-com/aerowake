@@ -6,11 +6,11 @@ class MockPyMotorController:
         # Logger setup
         if 'reel_logger' in logging.Logger.manager.loggerDict:
             self._logger = logging.getLogger('reel_logger')
-            print 'ReelController.py is using reel.py logger'
+            print('ReelController.py is using reel.py logger')
         else:
             self._logger = logging.getLogger('reel_logger')
             self._logger.setLevel(logging.DEBUG)
-            print 'ReelController.py created its own reel_logger'
+            print('ReelController.py created its own reel_logger')
         self._opened = False
         self._enabled = False
         self._pos = 0;

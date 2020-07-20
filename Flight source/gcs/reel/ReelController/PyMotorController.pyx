@@ -71,29 +71,29 @@ cdef extern from "EposMotorController.hpp" namespace "gcs":
 
 # Would use an Enum here, but cython won't let us put non-literals for enum values
 SensorType = {
-    'UNKNOWN'                : ST_UNKNOWN               ,
-    'INC_ENCODER_3CHANNEL'   : ST_INC_ENCODER_3CHANNEL  ,
-    'INC_ENCODER_2CHANNEL'   : ST_INC_ENCODER_2CHANNEL  ,
-    'HALL_SENSORS'           : ST_HALL_SENSORS          ,
-    'SSI_ABS_ENCODER_BINARY' : ST_SSI_ABS_ENCODER_BINARY,
-    'SSI_ABS_ENCODER_GREY'   : ST_SSI_ABS_ENCODER_GREY  ,
+    b'UNKNOWN'                : ST_UNKNOWN               ,
+    b'INC_ENCODER_3CHANNEL'   : ST_INC_ENCODER_3CHANNEL  ,
+    b'INC_ENCODER_2CHANNEL'   : ST_INC_ENCODER_2CHANNEL  ,
+    b'HALL_SENSORS'           : ST_HALL_SENSORS          ,
+    b'SSI_ABS_ENCODER_BINARY' : ST_SSI_ABS_ENCODER_BINARY,
+    b'SSI_ABS_ENCODER_GREY'   : ST_SSI_ABS_ENCODER_GREY  ,
 }
 
 # Would use an Enum here, but cython won't let us put non-literals for enum values
 OperatingMode = {
-    'PROFILE_POSITION'       : OMD_PROFILE_POSITION_MODE      ,
-    'PROFILE_VELOCITY'       : OMD_PROFILE_VELOCITY_MODE      ,
-    'HOMING'                 : OMD_HOMING_MODE                ,
-    'INTERPOLATED_POSITION'  : OMD_INTERPOLATED_POSITION_MODE ,
-    'POSITION'               : OMD_POSITION_MODE              ,
-    'VELOCITY'               : OMD_VELOCITY_MODE              ,
-    'CURRENT'                : OMD_CURRENT_MODE               ,
-    'MASTER_ENCODER'         : OMD_MASTER_ENCODER_MODE        ,
-    'STEP_DIRECTION'         : OMD_STEP_DIRECTION_MODE        ,
+    b'PROFILE_POSITION'       : OMD_PROFILE_POSITION_MODE      ,
+    b'PROFILE_VELOCITY'       : OMD_PROFILE_VELOCITY_MODE      ,
+    b'HOMING'                 : OMD_HOMING_MODE                ,
+    b'INTERPOLATED_POSITION'  : OMD_INTERPOLATED_POSITION_MODE ,
+    b'POSITION'               : OMD_POSITION_MODE              ,
+    b'VELOCITY'               : OMD_VELOCITY_MODE              ,
+    b'CURRENT'                : OMD_CURRENT_MODE               ,
+    b'MASTER_ENCODER'         : OMD_MASTER_ENCODER_MODE        ,
+    b'STEP_DIRECTION'         : OMD_STEP_DIRECTION_MODE        ,
 }
 cdef class PyMotorController:
     cdef EposMotorController *_mc
-    def __cinit__(self, string usb_port = "USB0", unsigned int baudRate=1000000):
+    def __cinit__(self, string usb_port = b"USB0", unsigned int baudRate=1000000):
         self._mc = new EposMotorController(usb_port, baudRate)
         self._mc.open()
     def __dealloc__(self):
