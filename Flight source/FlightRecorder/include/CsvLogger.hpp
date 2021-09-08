@@ -128,7 +128,7 @@ public:
 			// }
 			// cout << endl;
 			auto it = values.begin();
-			for(unsigned int col = 1; col < headers.size(); col++) {
+			for(unsigned int col = 2; col < headers.size(); col++) {
 				if(it != values.end()) {
 					if(it->id == col) {
 						logFile << it->value;
