@@ -139,11 +139,23 @@ void AutopilotLogger::startLogging() {
 	mavlink_msg_request_data_stream_encode(/*uint8_t system_id*/ 1, /*uint8_t component_id*/0, &message, &rds);
 	apSerialPort.write_message(message);
 	cout << "Sent." << endl;
+	
 	memset(&rds, 0, sizeof(rds));
 	rds.req_message_rate = 1; // Hz
 	rds.target_system = 1;
 	rds.target_component = 1;
 	rds.req_stream_id = MAV_DATA_STREAM_EXTRA1;
+	rds.start_stop = 1; // start
+	cout << "Sending data stream request." << endl;
+	mavlink_msg_request_data_stream_encode(/*uint8_t system_id*/ 1, /*uint8_t component_id*/0, &message, &rds);
+	apSerialPort.write_message(message);
+	cout << "Sent." << endl;
+	
+	memset(&rds, 0, sizeof(rds));
+	rds.req_message_rate = 1; // Hz
+	rds.target_system = 1;
+	rds.target_component = 1;
+	rds.req_stream_id = MAV_DATA_STREAM_POSITION;
 	rds.start_stop = 1; // start
 	cout << "Sending data stream request." << endl;
 	mavlink_msg_request_data_stream_encode(/*uint8_t system_id*/ 1, /*uint8_t component_id*/0, &message, &rds);
