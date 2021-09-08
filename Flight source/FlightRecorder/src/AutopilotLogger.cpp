@@ -25,6 +25,15 @@ AutopilotLogger::AutopilotLogger(string recordingDir, string logFilenameFormat, 
 	unsigned int logIdRollSpeed   = logger.addColumn("roll_speed");
 	unsigned int logIdPitchSpeed  = logger.addColumn("pitch_speed");
 	unsigned int logIdYawSpeed    = logger.addColumn("yaw_speed");
+
+	unsigned int logIdLat         = logger.addColumn("lat"); //[degE7] Latitude, expressed
+	unsigned int logIdLon         = logger.addColumn("lon"); //[degE7] Longitude, expressed
+	unsigned int logIdAlt         = logger.addColumn("alt"); //[mm] Altitude (MSL). Note that virtually all GPS modules provide both WGS84 and MSL.
+	unsigned int logIdRelAlt      = logger.addColumn("relative_alt"); //[mm] Altitude (MSL). Note that virtually all GPS modules provide both WGS84 and MSL.
+	unsigned int logIdVx          = logger.addColumn("vx"); //[cm/s] Ground X Speed (Latitude, positive north)
+	unsigned int logIdVy          = logger.addColumn("vy"); //[cm/s] Ground Y Speed (Longitude, positive east)
+	unsigned int logIdVz          = logger.addColumn("vz"); //[cm/s] Ground Z Speed (Altitude, positive down)
+	unsigned int logIdHdg         = logger.addColumn("hdg"); //[cdeg] Vehicle heading (yaw angle), 0.0..359.99 degrees. If unknown, set to: UINT16_MAX
 	
 	// Tell the autopilot interface to announce whenever a message arrives
 	apIntf.registerAnnouncementCallbacks();
@@ -52,6 +61,33 @@ AutopilotLogger::AutopilotLogger(string recordingDir, string logFilenameFormat, 
 			CsvLogger::Cell(logIdYawSpeed  , att.yawspeed    ),
 		}));
 	});
+
+	apIntf.cbReg_global_position_int_t(
+		[
+			this,
+			logIdApTime,
+			logIdLat   ,
+			logIdLon   ,
+			logIdAlt   ,
+			logIdRelAlt,
+			logIdVx    ,
+			logIdVy    ,
+			logIdVz    ,
+			logIdHdg    
+		](mavlink_global_position_int_t& att) {
+		logger.logData(vector<CsvLogger::Cell>({
+			CsvLogger::Cell(logIdApTime, att.time_boot_ms),
+			CsvLogger::Cell(logIdLat   , att.lat         ),
+			CsvLogger::Cell(logIdLon   , att.lon         ),
+			CsvLogger::Cell(logIdAlt   , att.alt         ),
+			CsvLogger::Cell(logIdRelAlt, att.relative_alt),
+			CsvLogger::Cell(logIdVx    , att.vx          ),
+			CsvLogger::Cell(logIdVy    , att.vy          ),
+			CsvLogger::Cell(logIdVz    , att.vz          ),
+			CsvLogger::Cell(logIdHdg   , att.hdg         ),
+		}));
+	});
+
 }
 
 void AutopilotLogger::startLogging() {
@@ -103,11 +139,23 @@ void AutopilotLogger::startLogging() {
 	mavlink_msg_request_data_stream_encode(/*uint8_t system_id*/ 1, /*uint8_t component_id*/0, &message, &rds);
 	apSerialPort.write_message(message);
 	cout << "Sent." << endl;
+	
 	memset(&rds, 0, sizeof(rds));
 	rds.req_message_rate = 1; // Hz
 	rds.target_system = 1;
 	rds.target_component = 1;
 	rds.req_stream_id = MAV_DATA_STREAM_EXTRA1;
+	rds.start_stop = 1; // start
+	cout << "Sending data stream request." << endl;
+	mavlink_msg_request_data_stream_encode(/*uint8_t system_id*/ 1, /*uint8_t component_id*/0, &message, &rds);
+	apSerialPort.write_message(message);
+	cout << "Sent." << endl;
+	
+	memset(&rds, 0, sizeof(rds));
+	rds.req_message_rate = 1; // Hz
+	rds.target_system = 1;
+	rds.target_component = 1;
+	rds.req_stream_id = MAV_DATA_STREAM_POSITION;
 	rds.start_stop = 1; // start
 	cout << "Sending data stream request." << endl;
 	mavlink_msg_request_data_stream_encode(/*uint8_t system_id*/ 1, /*uint8_t component_id*/0, &message, &rds);
