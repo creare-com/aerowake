@@ -1,4 +1,14 @@
 /****************************************************************************
+ * 
+ * Modified for Creare LLC by John Walthour (jdw@creare.com).
+ * Original file was copied from:
+ * https://github.com/mavlink/c_uart_interface_example.git @ 05072aa344483aa64d88f7cf70cafb713c589885
+ * 
+ * Original license is reproduced below.
+ * 
+ ****************************************************************************/
+
+/****************************************************************************
  *
  *   Copyright (c) 2014 MAVlink Development Team. All rights reserved.
  *   Author: Trent Lukaczyk, <aerialhedgehog@gmail.com>
@@ -294,6 +304,26 @@ public:
 	void cbReg_command_ack_t               (function<void(mavlink_command_ack_t               &)> callback) { cbv_command_ack_t               .registerCallback(callback); }
 	void cbReg_param_value_t               (function<void(mavlink_param_value_t               &)> callback) { cbv_param_value_t               .registerCallback(callback); }
 	
+	/**
+	 * @brief Ask the autopilot to send us a specific stream of data
+	 * 
+	 * @param id Which stream to send
+	 * @param rate_Hz Desired rate of messages, in hertz
+	 */
+	void requestDataStream(MAV_DATA_STREAM id, int rate_Hz);
+	/**
+	 * @brief Stop a particular stream (or all streams)
+	 * 
+	 * @param id Which stream to stop
+	 */
+	void stopDataStream(MAV_DATA_STREAM id);
+	/**
+	 * @brief Ask the autopilot to send us a message at a given interval
+	 * 
+	 * @param id The ID of the message to send to us
+	 * @param interval_us Microseconds between messages
+	 */
+	void requestMessage(uint id, double interval_us);
 
 private:
 

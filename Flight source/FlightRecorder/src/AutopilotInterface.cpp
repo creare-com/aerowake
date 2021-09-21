@@ -1,4 +1,14 @@
 /****************************************************************************
+ * 
+ * Modified for Creare LLC by John Walthour (jdw@creare.com).
+ * Original file was copied from:
+ * https://github.com/mavlink/c_uart_interface_example.git @ 05072aa344483aa64d88f7cf70cafb713c589885
+ * 
+ * Original license is reproduced below.
+ * 
+ ****************************************************************************/
+
+/****************************************************************************
  *
  *   Copyright (c) 2014 MAVlink Development Team. All rights reserved.
  *   Author: Trent Lukaczyk, <aerialhedgehog@gmail.com>
@@ -891,3 +901,58 @@ void Autopilot_Interface::announce_param_value_t                (mavlink_param_v
 }
 
 
+/**
+ * @brief Ask the autopilot to send us a specific stream of data
+ * 
+ * @param id Which stream to send
+ * @param rate_Hz Desired rate of messages, in hertz
+ */
+void Autopilot_Interface::requestDataStream(MAV_DATA_STREAM id, int rate_Hz = 1) {
+	mavlink_message_t message;
+	mavlink_request_data_stream_t rds;
+	memset(&rds, 0, sizeof(rds));
+	rds.req_message_rate = rate_Hz; // Hz
+	rds.target_system = 1;
+	rds.target_component = 1;
+	rds.req_stream_id = id;
+	rds.start_stop = 1; // start
+	mavlink_msg_request_data_stream_encode(/*uint8_t system_id*/ 1, /*uint8_t component_id*/0, &message, &rds);
+	write_message(message);
+}
+
+/**
+ * @brief Stop a particular stream (or all streams)
+ * 
+ * @param id Which stream to stop
+ */
+void Autopilot_Interface::stopDataStream(MAV_DATA_STREAM id) {
+	mavlink_message_t message;
+	mavlink_request_data_stream_t rds;
+	memset(&rds, 0, sizeof(rds));
+	rds.target_system = 1;
+	rds.target_component = 1;
+	rds.req_stream_id = id;
+	rds.start_stop = 0; // stop
+	mavlink_msg_request_data_stream_encode(/*uint8_t system_id*/ 1, /*uint8_t component_id*/0, &message, &rds);
+	write_message(message);
+}
+
+/**
+ * @brief Ask the autopilot to send us a message at a given interval
+ * 
+ * @param id The ID of the message to send to us
+ * @param interval_us Microseconds between messages
+ */
+void Autopilot_Interface::requestMessage(uint id, double interval_us=0) {
+	mavlink_message_t message;
+	mavlink_command_long_t intvlReq;
+	memset(&intvlReq, 0, sizeof(intvlReq));
+	intvlReq.command = MAV_CMD_SET_MESSAGE_INTERVAL;
+	intvlReq.target_system = 1;
+	intvlReq.target_component = 1;
+	intvlReq.confirmation = 0;
+	intvlReq.param1 = id ; /* The MAVLink message ID */
+	intvlReq.param2 = interval_us; /* 	The interval between two messages. Set to -1 to disable and 0 to request default rate. */
+	mavlink_msg_command_long_encode(/*uint8_t system_id*/ 1, /*uint8_t component_id*/0, &message, &intvlReq);
+	write_message(message);
+}
