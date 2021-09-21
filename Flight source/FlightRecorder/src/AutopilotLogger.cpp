@@ -110,6 +110,7 @@ void AutopilotLogger::startLogging() {
 	double messageRateHz = 1;
 	apIntf.requestMessage(MAVLINK_MSG_ID_ATTITUDE_QUATERNION, 1000000.0 / messageRateHz);
 	apIntf.requestMessage(MAVLINK_MSG_ID_GPS_RAW_INT, 1000000.0 / messageRateHz);
+	apIntf.requestMessage(MAVLINK_MSG_ID_LOCAL_POSITION_NED, 1000000.0 / messageRateHz);
 	cout << "Sent." << endl;
 }
 void AutopilotLogger::stopLogging() {
