@@ -303,6 +303,7 @@ public:
 	void cbReg_autopilot_version_t         (function<void(mavlink_autopilot_version_t         &)> callback) { cbv_autopilot_version_t         .registerCallback(callback); }
 	void cbReg_command_ack_t               (function<void(mavlink_command_ack_t               &)> callback) { cbv_command_ack_t               .registerCallback(callback); }
 	void cbReg_param_value_t               (function<void(mavlink_param_value_t               &)> callback) { cbv_param_value_t               .registerCallback(callback); }
+	void cbReg_timesync_t                  (function<void(mavlink_timesync_t                  &)> callback) { cbv_timesync_t                  .registerCallback(callback); }
 	
 	/**
 	 * @brief Ask the autopilot to send us a specific stream of data
@@ -356,6 +357,7 @@ private:
 	CallbackVector<mavlink_autopilot_version_t         > cbv_autopilot_version_t         ;
 	CallbackVector<mavlink_command_ack_t               > cbv_command_ack_t               ;
 	CallbackVector<mavlink_param_value_t               > cbv_param_value_t               ;
+	CallbackVector<mavlink_timesync_t                  > cbv_timesync_t                  ;
 
 	static void announce_heartbeat_t                  (mavlink_heartbeat_t                 &);
 	static void announce_sys_status_t                 (mavlink_sys_status_t                &);
@@ -370,6 +372,7 @@ private:
 	static void announce_autopilot_version_t          (mavlink_autopilot_version_t         &);
 	static void announce_command_ack_t                (mavlink_command_ack_t               &);
 	static void announce_param_value_t                (mavlink_param_value_t               &);
+	static void announce_timesync_t                   (mavlink_timesync_t                  &);
 };
 
 

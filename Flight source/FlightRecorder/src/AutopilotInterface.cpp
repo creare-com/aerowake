@@ -398,6 +398,15 @@ read_messages()
 					break;
 				}
 
+				case MAVLINK_MSG_ID_TIMESYNC:
+				{
+					mavlink_timesync_t timeSync;
+					mavlink_msg_timesync_decode(&message, &timeSync);
+					// Notify listeners
+					cbv_timesync_t.fireCallbacks(timeSync);
+					break;
+				}
+
 				default:
 				{
 					printf("Warning, did not handle message id %i\n",message.msgid);
@@ -811,6 +820,7 @@ void Autopilot_Interface::registerAnnouncementCallbacks() {
 	cbReg_autopilot_version_t         (Autopilot_Interface::announce_autopilot_version_t          );
 	cbReg_command_ack_t               (Autopilot_Interface::announce_command_ack_t                );
 	cbReg_param_value_t               (Autopilot_Interface::announce_param_value_t                );
+	cbReg_timesync_t                  (Autopilot_Interface::announce_timesync_t                   );
 }
 
 void Autopilot_Interface::announce_heartbeat_t                  (mavlink_heartbeat_t                 &) {
@@ -851,6 +861,10 @@ void Autopilot_Interface::announce_highres_imu_t                (mavlink_highres
 
 void Autopilot_Interface::announce_attitude_t                   (mavlink_attitude_t                  &) {
 	printf("Received: MAVLINK_MSG_ID_ATTITUDE\n");
+}
+
+void Autopilot_Interface::announce_timesync_t                   (mavlink_timesync_t                  &) {
+	printf("Received: MAVLINK_MSG_ID_TIMESYNC\n");
 }
 
 void Autopilot_Interface::announce_autopilot_version_t          (mavlink_autopilot_version_t         & ver) {
