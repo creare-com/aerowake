@@ -787,64 +787,23 @@ start_autopilot_interface_read_thread(void *args)
 
 void Autopilot_Interface::registerAnnouncementCallbacks() {
 	
-	cbReg_heartbeat_t                 (Autopilot_Interface::announce_heartbeat_t                  );
-	cbReg_sys_status_t                (Autopilot_Interface::announce_sys_status_t                 );
-	cbReg_battery_status_t            (Autopilot_Interface::announce_battery_status_t             );
-	cbReg_radio_status_t              (Autopilot_Interface::announce_radio_status_t               );
-	cbReg_local_position_ned_t        (Autopilot_Interface::announce_local_position_ned_t         );
-	cbReg_global_position_int_t       (Autopilot_Interface::announce_global_position_int_t        );
-	cbReg_position_target_local_ned_t (Autopilot_Interface::announce_position_target_local_ned_t  );
-	cbReg_position_target_global_int_t(Autopilot_Interface::announce_position_target_global_int_t );
-	cbReg_highres_imu_t               (Autopilot_Interface::announce_highres_imu_t                );
-	cbReg_attitude_t                  (Autopilot_Interface::announce_attitude_t                   );
-	cbReg_autopilot_version_t         (Autopilot_Interface::announce_autopilot_version_t          );
-	cbReg_command_ack_t               (Autopilot_Interface::announce_command_ack_t                );
-	cbReg_param_value_t               (Autopilot_Interface::announce_param_value_t                );
-	cbReg_timesync_t                  (Autopilot_Interface::announce_timesync_t                   );
+	cbReg_heartbeat_t                 ([](mavlink_heartbeat_t                  &msg) {announce_msg("MAVLINK_MSG_ID_HEARTBEAT");});
+	cbReg_sys_status_t                ([](mavlink_sys_status_t                 &msg) {announce_msg("MAVLINK_MSG_ID_SYS_STATUS");});
+	cbReg_battery_status_t            ([](mavlink_battery_status_t             &msg) {announce_msg("MAVLINK_MSG_ID_BATTERY_STATUS");});
+	cbReg_radio_status_t              ([](mavlink_radio_status_t               &msg) {announce_msg("MAVLINK_MSG_ID_RADIO_STATUS");});
+	cbReg_local_position_ned_t        ([](mavlink_local_position_ned_t         &msg) {announce_msg("MAVLINK_MSG_ID_LOCAL_POSITION_NED");});
+	cbReg_global_position_int_t       ([](mavlink_global_position_int_t        &msg) {announce_msg("MAVLINK_MSG_ID_GLOBAL_POSITION_INT");});
+	cbReg_position_target_local_ned_t ([](mavlink_position_target_local_ned_t  &msg) {announce_msg("MAVLINK_MSG_ID_POSITION_TARGET_LOCAL_NED");});
+	cbReg_position_target_global_int_t([](mavlink_position_target_global_int_t &msg) {announce_msg("MAVLINK_MSG_ID_POSITION_TARGET_GLOBAL_INT");});
+	cbReg_highres_imu_t               ([](mavlink_highres_imu_t                &msg) {announce_msg("MAVLINK_MSG_ID_HIGHRES_IMU");});
+	cbReg_attitude_t                  ([](mavlink_attitude_t                   &msg) {announce_msg("MAVLINK_MSG_ID_ATTITUDE");});
+	cbReg_timesync_t                  ([](mavlink_timesync_t                   &msg) {announce_msg("MAVLINK_MSG_ID_TIMESYNC");});
+	cbReg_autopilot_version_t         (announce_autopilot_version_t);
+	cbReg_command_ack_t               (announce_command_ack_t);
+	cbReg_param_value_t               (announce_param_value_t);
 }
-
-void Autopilot_Interface::announce_heartbeat_t                  (mavlink_heartbeat_t                 &) {
-	printf("Received: MAVLINK_MSG_ID_HEARTBEAT\n");
-}
-
-void Autopilot_Interface::announce_sys_status_t                 (mavlink_sys_status_t                &) {
-	printf("Received: MAVLINK_MSG_ID_SYS_STATUS\n");
-}
-
-void Autopilot_Interface::announce_battery_status_t             (mavlink_battery_status_t            &) {
-	printf("Received: MAVLINK_MSG_ID_BATTERY_STATUS\n");
-}
-
-void Autopilot_Interface::announce_radio_status_t               (mavlink_radio_status_t              &) {
-	printf("Received: MAVLINK_MSG_ID_RADIO_STATUS\n");
-}
-
-void Autopilot_Interface::announce_local_position_ned_t         (mavlink_local_position_ned_t        &) {
-	printf("Received: MAVLINK_MSG_ID_LOCAL_POSITION_NED\n");
-}
-
-void Autopilot_Interface::announce_global_position_int_t        (mavlink_global_position_int_t       &) {
-	printf("Received: MAVLINK_MSG_ID_GLOBAL_POSITION_INT\n");
-}
-
-void Autopilot_Interface::announce_position_target_local_ned_t  (mavlink_position_target_local_ned_t &) {
-	printf("Received: MAVLINK_MSG_ID_POSITION_TARGET_LOCAL_NED\n");
-}
-
-void Autopilot_Interface::announce_position_target_global_int_t (mavlink_position_target_global_int_t&) {
-	printf("Received: MAVLINK_MSG_ID_POSITION_TARGET_GLOBAL_INT\n");
-}
-
-void Autopilot_Interface::announce_highres_imu_t                (mavlink_highres_imu_t               &) {
-	printf("Received: MAVLINK_MSG_ID_HIGHRES_IMU\n");
-}
-
-void Autopilot_Interface::announce_attitude_t                   (mavlink_attitude_t                  &) {
-	printf("Received: MAVLINK_MSG_ID_ATTITUDE\n");
-}
-
-void Autopilot_Interface::announce_timesync_t                   (mavlink_timesync_t                  &) {
-	printf("Received: MAVLINK_MSG_ID_TIMESYNC\n");
+void Autopilot_Interface::announce_msg(string msg_name) {
+	cout << "Received: " << msg_name << endl;
 }
 
 void Autopilot_Interface::announce_autopilot_version_t          (mavlink_autopilot_version_t         & ver) {

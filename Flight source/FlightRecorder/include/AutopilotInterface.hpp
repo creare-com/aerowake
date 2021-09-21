@@ -72,7 +72,7 @@
 #include <sys/time.h>
 #include <atomic>
 #include <functional>
-
+#include <iostream>
 #include <common/mavlink.h>
 
 using namespace std;
@@ -359,20 +359,10 @@ private:
 	CallbackVector<mavlink_param_value_t               > cbv_param_value_t               ;
 	CallbackVector<mavlink_timesync_t                  > cbv_timesync_t                  ;
 
-	static void announce_heartbeat_t                  (mavlink_heartbeat_t                 &);
-	static void announce_sys_status_t                 (mavlink_sys_status_t                &);
-	static void announce_battery_status_t             (mavlink_battery_status_t            &);
-	static void announce_radio_status_t               (mavlink_radio_status_t              &);
-	static void announce_local_position_ned_t         (mavlink_local_position_ned_t        &);
-	static void announce_global_position_int_t        (mavlink_global_position_int_t       &);
-	static void announce_position_target_local_ned_t  (mavlink_position_target_local_ned_t &);
-	static void announce_position_target_global_int_t (mavlink_position_target_global_int_t&);
-	static void announce_highres_imu_t                (mavlink_highres_imu_t               &);
-	static void announce_attitude_t                   (mavlink_attitude_t                  &);
-	static void announce_autopilot_version_t          (mavlink_autopilot_version_t         &);
-	static void announce_command_ack_t                (mavlink_command_ack_t               &);
-	static void announce_param_value_t                (mavlink_param_value_t               &);
-	static void announce_timesync_t                   (mavlink_timesync_t                  &);
+	static void announce_msg(string msg_name);
+	static void announce_autopilot_version_t          (mavlink_autopilot_version_t         & ver);
+	static void announce_command_ack_t                (mavlink_command_ack_t               &ack);
+	static void announce_param_value_t                (mavlink_param_value_t               &paramValue);
 };
 
 
