@@ -242,11 +242,10 @@ Autopilot_Interface::
 read_messages()
 {
 	bool success;               // receive success flag
-	bool received_all = false;  // receive only one message
 	Time_Stamps this_timestamps;
 
 	// Blocking wait for new data
-	while ( !received_all and !time_to_exit )
+	while ( !time_to_exit )
 	{
 		// ----------------------------------------------------------------------
 		//   READ MESSAGE
@@ -417,25 +416,6 @@ read_messages()
 			} // end: switch msgid
 
 		} // end: if read message
-
-		// Check for receipt of all items
-		received_all =
-				this_timestamps.heartbeat                  &&
-//				this_timestamps.battery_status             &&
-//				this_timestamps.radio_status               &&
-//				this_timestamps.local_position_ned         &&
-//				this_timestamps.global_position_int        &&
-//				this_timestamps.position_target_local_ned  &&
-//				this_timestamps.position_target_global_int &&
-//				this_timestamps.highres_imu                &&
-//				this_timestamps.attitude                   &&
-				this_timestamps.sys_status
-				;
-
-		// give the write thread time to use the port
-		//if ( writing_status > false ) {
-		//	usleep(100); // look for components of batches at 10kHz
-		//}
 
 	} // end: while not received all
 
