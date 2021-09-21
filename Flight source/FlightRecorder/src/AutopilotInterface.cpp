@@ -935,7 +935,7 @@ void Autopilot_Interface::stopDataStream(MAV_DATA_STREAM id) {
  * @brief Ask the autopilot to send us a message at a given interval
  * 
  * @param id The ID of the message to send to us
- * @param interval_us Microseconds between messages
+ * @param interval_us 	The interval between two messages. Set to -1 to disable and 0 to request default rate.
  */
 void Autopilot_Interface::requestMessage(uint id, double interval_us=0) {
 	mavlink_message_t message;

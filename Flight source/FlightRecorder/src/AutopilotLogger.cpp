@@ -103,7 +103,7 @@ void AutopilotLogger::startLogging() {
 	cout << "Sending data stream requests." << endl;
 	apIntf.requestDataStream(MAV_DATA_STREAM_EXTRA1, 1);
 	apIntf.requestDataStream(MAV_DATA_STREAM_POSITION, 1);
-	// apIntf.requestDataStream(MAV_DATA_STREAM_RAW_SENSORS, 1); // For GPS status and raw GPS
+	apIntf.requestDataStream(MAV_DATA_STREAM_RAW_SENSORS, 1); // For GPS status and raw GPS
 	cout << "Sent." << endl;
 	
 	cout << "Sending individual message rate requests." << endl;
@@ -112,16 +112,12 @@ void AutopilotLogger::startLogging() {
 	cout << "Sent." << endl;
 }
 void AutopilotLogger::stopLogging() {
-	mavlink_request_data_stream_t rds;
-	memset(&rds, 0, sizeof(rds));
-	rds.target_system = 1;
-	rds.target_component = 1;
-	rds.req_stream_id = MAV_DATA_STREAM_ALL;
-	rds.start_stop = 0; // stop
 	cout << "Stopping data streams." << endl;
-	mavlink_message_t message;
-	mavlink_msg_request_data_stream_encode(/*uint8_t system_id*/ 1, /*uint8_t component_id*/0, &message, &rds);
-	apSerialPort.write_message(message);
+	apIntf.stopDataStream(MAV_DATA_STREAM_ALL);
+	cout << "Sent." << endl;
+
+	cout << "Stopping individual message rate requests." << endl;
+	apIntf.requestMessage(MAVLINK_MSG_ID_ATTITUDE_QUATERNION, -1);
 	cout << "Sent." << endl;
 
 	// De-initialize autopilot connection
