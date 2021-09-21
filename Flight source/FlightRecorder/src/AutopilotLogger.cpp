@@ -103,12 +103,13 @@ void AutopilotLogger::startLogging() {
 	cout << "Sending data stream requests." << endl;
 	apIntf.requestDataStream(MAV_DATA_STREAM_EXTRA1, 1);
 	apIntf.requestDataStream(MAV_DATA_STREAM_POSITION, 1);
-	apIntf.requestDataStream(MAV_DATA_STREAM_RAW_SENSORS, 1); // For GPS status and raw GPS
+	// apIntf.requestDataStream(MAV_DATA_STREAM_RAW_SENSORS, 1); // This is supposed to get us GPS_RAW and GPS_STATUS messages.  It does not.
 	cout << "Sent." << endl;
 	
 	cout << "Sending individual message rate requests." << endl;
 	double messageRateHz = 1;
 	apIntf.requestMessage(MAVLINK_MSG_ID_ATTITUDE_QUATERNION, 1000000.0 / messageRateHz);
+	apIntf.requestMessage(MAVLINK_MSG_ID_GPS_RAW_INT, 1000000.0 / messageRateHz);
 	cout << "Sent." << endl;
 }
 void AutopilotLogger::stopLogging() {
