@@ -96,38 +96,6 @@ void AutopilotLogger::startLogging() {
 	apSerialPort.start();
 	apIntf.start();
 	
-	// mavlink_message_t message;
-	
-	// cout << "Sending heartbeat message" << endl;
-	// mavlink_heartbeat_t heartbeat;
-	// mavlink_msg_heartbeat_encode(/*uint8_t system_id*/ 1, /*uint8_t component_id*/0, &message, &heartbeat);
-	// apSerialPort.write_message(message);
-	// cout << "Sent." << endl;
-
-	
-	// cout << "Sending param read message" << endl;
-	// mavlink_param_request_read_t paramRead;
-	// memset(&paramRead, 0, sizeof(paramRead));
-	// paramRead.param_index = 1;
-	// paramRead.target_system = 1;
-	// paramRead.target_component = 1;
-	// mavlink_msg_param_request_read_encode(/*uint8_t system_id*/ 1, /*uint8_t component_id*/0, &message, &paramRead);
-	// apSerialPort.write_message(message);
-	// cout << "Sent." << endl;
-
-	
-	// mavlink_command_long_t testCmd;
-	// memset(&testCmd, 0, sizeof(testCmd));
-	// testCmd.command = MAV_CMD_REQUEST_AUTOPILOT_CAPABILITIES ;
-	// testCmd.target_system = 1;
-	// testCmd.target_component = 1;
-	// testCmd.confirmation = 0;
-	// testCmd.param1 = 1;
-	// cout << "Sending test command with ID " << testCmd.command << "." << endl;
-	// mavlink_msg_command_long_encode(/*uint8_t system_id*/ 1, /*uint8_t component_id*/42, &message, &testCmd);
-	// apSerialPort.write_message(message);
-	// cout << "Sent." << endl;
-	
 	cout << "Stopping data streams." << endl;
 	apIntf.stopDataStream(MAV_DATA_STREAM_ALL);
 	cout << "Sent." << endl;
