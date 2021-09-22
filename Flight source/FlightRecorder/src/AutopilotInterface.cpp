@@ -207,13 +207,6 @@ Autopilot_Interface(Serial_Port *serial_port_)
 
 	read_tid  = 0; // read thread id
 
-	system_id    = 0; // system id
-	autopilot_id = 0; // autopilot component id
-	companion_id = 0; // companion computer component id
-
-	current_messages.sysid  = system_id;
-	current_messages.compid = autopilot_id;
-
 	serial_port = serial_port_; // serial port management object
 
 }
@@ -223,16 +216,19 @@ Autopilot_Interface::
 {}
 
 
-// ------------------------------------------------------------------------------
-//   Update Setpoint
-// ------------------------------------------------------------------------------
-void
-Autopilot_Interface::
-update_setpoint(mavlink_set_position_target_local_ned_t setpoint)
-{
-	current_setpoint = setpoint;
+/**
+ * @brief Macro to generate a case for the switch statement below
+ * id: message id, eg MAVLINK_MSG_ID_HEARTBEAT
+ * name: eg for the message of type mavlink_heartbeat_t, this should be "heartbeat"
+ */
+#define HANDLE_MSG(id, name) \
+case id: \
+{ \
+	mavlink_##name##_t msg;\
+	mavlink_msg_##name##_decode(&message, &msg);\
+	cbv_##name##_t.fireCallbacks(msg);\
+	break;\
 }
-
 
 // ------------------------------------------------------------------------------
 //   Read Messages
@@ -259,161 +255,24 @@ read_messages()
 		if( success )
 		{
 
-			// Store message sysid and compid.
-			// Note this doesn't handle multiple message sources.
-			current_messages.sysid  = message.sysid;
-			current_messages.compid = message.compid;
-
 			// Handle Message ID
 			switch (message.msgid)
 			{
-
-				case MAVLINK_MSG_ID_HEARTBEAT:
-				{
-					mavlink_msg_heartbeat_decode(&message, &(current_messages.heartbeat));
-					current_messages.time_stamps.heartbeat = get_time_usec();
-					this_timestamps.heartbeat = current_messages.time_stamps.heartbeat;
-					
-					// Notify listeners
-					cbv_heartbeat_t.fireCallbacks(current_messages.heartbeat);
-					break;
-				}
-
-				case MAVLINK_MSG_ID_SYS_STATUS:
-				{
-					mavlink_msg_sys_status_decode(&message, &(current_messages.sys_status));
-					current_messages.time_stamps.sys_status = get_time_usec();
-					this_timestamps.sys_status = current_messages.time_stamps.sys_status;
-
-					// Notify listeners
-					cbv_sys_status_t.fireCallbacks(current_messages.sys_status);
-					break;
-				}
-				case MAVLINK_MSG_ID_BATTERY_STATUS:
-				{
-					mavlink_msg_battery_status_decode(&message, &(current_messages.battery_status));
-					current_messages.time_stamps.battery_status = get_time_usec();
-					this_timestamps.battery_status = current_messages.time_stamps.battery_status;
-					// Notify listeners
-					cbv_battery_status_t.fireCallbacks(current_messages.battery_status);
-					break;
-				}
-
-				case MAVLINK_MSG_ID_RADIO_STATUS:
-				{
-					mavlink_msg_radio_status_decode(&message, &(current_messages.radio_status));
-					current_messages.time_stamps.radio_status = get_time_usec();
-					this_timestamps.radio_status = current_messages.time_stamps.radio_status;
-					// Notify listeners
-					cbv_radio_status_t.fireCallbacks(current_messages.radio_status);
-					break;
-				}
-
-				case MAVLINK_MSG_ID_LOCAL_POSITION_NED:
-				{
-					mavlink_msg_local_position_ned_decode(&message, &(current_messages.local_position_ned));
-					current_messages.time_stamps.local_position_ned = get_time_usec();
-					this_timestamps.local_position_ned = current_messages.time_stamps.local_position_ned;
-					// Notify listeners
-					cbv_local_position_ned_t.fireCallbacks(current_messages.local_position_ned);
-					break;
-				}
-
-				case MAVLINK_MSG_ID_GLOBAL_POSITION_INT:
-				{
-					mavlink_msg_global_position_int_decode(&message, &(current_messages.global_position_int));
-					current_messages.time_stamps.global_position_int = get_time_usec();
-					this_timestamps.global_position_int = current_messages.time_stamps.global_position_int;
-					// Notify listeners
-					cbv_global_position_int_t.fireCallbacks(current_messages.global_position_int);
-					break;
-				}
-
-				case MAVLINK_MSG_ID_POSITION_TARGET_LOCAL_NED:
-				{
-					mavlink_msg_position_target_local_ned_decode(&message, &(current_messages.position_target_local_ned));
-					current_messages.time_stamps.position_target_local_ned = get_time_usec();
-					this_timestamps.position_target_local_ned = current_messages.time_stamps.position_target_local_ned;
-					// Notify listeners
-					cbv_position_target_local_ned_t.fireCallbacks(current_messages.position_target_local_ned);
-					break;
-				}
-
-				case MAVLINK_MSG_ID_POSITION_TARGET_GLOBAL_INT:
-				{
-					mavlink_msg_position_target_global_int_decode(&message, &(current_messages.position_target_global_int));
-					current_messages.time_stamps.position_target_global_int = get_time_usec();
-					this_timestamps.position_target_global_int = current_messages.time_stamps.position_target_global_int;
-					// Notify listeners
-					cbv_position_target_global_int_t.fireCallbacks(current_messages.position_target_global_int);
-					break;
-				}
-
-				case MAVLINK_MSG_ID_HIGHRES_IMU:
-				{
-					mavlink_msg_highres_imu_decode(&message, &(current_messages.highres_imu));
-					current_messages.time_stamps.highres_imu = get_time_usec();
-					this_timestamps.highres_imu = current_messages.time_stamps.highres_imu;
-					// Notify listeners
-					cbv_highres_imu_t.fireCallbacks(current_messages.highres_imu);
-					break;
-				}
-
-				case MAVLINK_MSG_ID_ATTITUDE:
-				{
-					mavlink_msg_attitude_decode(&message, &(current_messages.attitude));
-					current_messages.time_stamps.attitude = get_time_usec();
-					this_timestamps.attitude = current_messages.time_stamps.attitude;
-					// Notify listeners
-					cbv_attitude_t.fireCallbacks(current_messages.attitude);
-					break;
-				}
-
-				case MAVLINK_MSG_ID_AUTOPILOT_VERSION:
-				{
-					mavlink_autopilot_version_t ver;
-					mavlink_msg_autopilot_version_decode(&message, &ver);
-					
-					// Notify listeners
-					cbv_autopilot_version_t.fireCallbacks(ver);
-					break;
-				}
-
-				case MAVLINK_MSG_ID_COMMAND_ACK:
-				{
-					mavlink_command_ack_t ack;
-					mavlink_msg_command_ack_decode(&message, &ack);
-					// Notify listeners
-					cbv_command_ack_t.fireCallbacks(ack);
-					break;
-				}
-
-				case MAVLINK_MSG_ID_PARAM_VALUE:
-				{
-					mavlink_param_value_t paramValue;
-					mavlink_msg_param_value_decode(&message, &paramValue);
-					// Notify listeners
-					cbv_param_value_t.fireCallbacks(paramValue);
-					break;
-				}
-
-				case MAVLINK_MSG_ID_TIMESYNC:
-				{
-					mavlink_timesync_t timeSync;
-					mavlink_msg_timesync_decode(&message, &timeSync);
-					// Notify listeners
-					cbv_timesync_t.fireCallbacks(timeSync);
-					break;
-				}
-
-				case MAVLINK_MSG_ID_GPS_RAW_INT:
-				{
-					mavlink_gps_raw_int_t gpsRaw;
-					mavlink_msg_gps_raw_int_decode(&message, &gpsRaw);
-					// Notify listeners
-					cbv_gps_raw_int_t.fireCallbacks(gpsRaw);
-				}
-
+				HANDLE_MSG(MAVLINK_MSG_ID_HEARTBEAT,                  heartbeat)
+				HANDLE_MSG(MAVLINK_MSG_ID_SYS_STATUS,                 sys_status)
+				HANDLE_MSG(MAVLINK_MSG_ID_BATTERY_STATUS,             battery_status)
+				HANDLE_MSG(MAVLINK_MSG_ID_RADIO_STATUS,               radio_status)
+				HANDLE_MSG(MAVLINK_MSG_ID_LOCAL_POSITION_NED,         local_position_ned)
+				HANDLE_MSG(MAVLINK_MSG_ID_GLOBAL_POSITION_INT,        global_position_int)
+				HANDLE_MSG(MAVLINK_MSG_ID_POSITION_TARGET_LOCAL_NED,  position_target_local_ned)
+				HANDLE_MSG(MAVLINK_MSG_ID_POSITION_TARGET_GLOBAL_INT, position_target_global_int)
+				HANDLE_MSG(MAVLINK_MSG_ID_HIGHRES_IMU,                highres_imu)
+				HANDLE_MSG(MAVLINK_MSG_ID_ATTITUDE,                   attitude)
+				HANDLE_MSG(MAVLINK_MSG_ID_AUTOPILOT_VERSION,          autopilot_version)
+				HANDLE_MSG(MAVLINK_MSG_ID_COMMAND_ACK,                command_ack)
+				HANDLE_MSG(MAVLINK_MSG_ID_PARAM_VALUE,                param_value)
+				HANDLE_MSG(MAVLINK_MSG_ID_TIMESYNC,                   timesync)
+				HANDLE_MSG(MAVLINK_MSG_ID_GPS_RAW_INT,                gps_raw_int)
 				default:
 				{
 					printf("Warning, did not handle message id %i\n",message.msgid);
@@ -446,150 +305,6 @@ write_message(mavlink_message_t message)
 	// Done!
 	return len;
 }
-
-// ------------------------------------------------------------------------------
-//   Write Setpoint Message
-// ------------------------------------------------------------------------------
-void
-Autopilot_Interface::
-write_setpoint()
-{
-	// --------------------------------------------------------------------------
-	//   PACK PAYLOAD
-	// --------------------------------------------------------------------------
-
-	// pull from position target
-	mavlink_set_position_target_local_ned_t sp = current_setpoint;
-
-	// double check some system parameters
-	if ( not sp.time_boot_ms )
-		sp.time_boot_ms = (uint32_t) (get_time_usec()/1000);
-	sp.target_system    = system_id;
-	sp.target_component = autopilot_id;
-
-
-	// --------------------------------------------------------------------------
-	//   ENCODE
-	// --------------------------------------------------------------------------
-
-	mavlink_message_t message;
-	mavlink_msg_set_position_target_local_ned_encode(system_id, companion_id, &message, &sp);
-
-
-	// --------------------------------------------------------------------------
-	//   WRITE
-	// --------------------------------------------------------------------------
-
-	// do the write
-	int len = write_message(message);
-
-	// check the write
-	if ( len <= 0 )
-		fprintf(stderr,"WARNING: could not send POSITION_TARGET_LOCAL_NED \n");
-	//	else
-	//		printf("%lu POSITION_TARGET  = [ %f , %f , %f ] \n", write_count, position_target.x, position_target.y, position_target.z);
-
-	return;
-}
-
-
-// ------------------------------------------------------------------------------
-//   Start Off-Board Mode
-// ------------------------------------------------------------------------------
-void
-Autopilot_Interface::
-enable_offboard_control()
-{
-	// Should only send this command once
-	if ( control_status == false )
-	{
-		printf("ENABLE OFFBOARD MODE\n");
-
-		// ----------------------------------------------------------------------
-		//   TOGGLE OFF-BOARD MODE
-		// ----------------------------------------------------------------------
-
-		// Sends the command to go off-board
-		int success = toggle_offboard_control( true );
-
-		// Check the command was written
-		if ( success )
-			control_status = true;
-		else
-		{
-			fprintf(stderr,"Error: off-board mode not set, could not write message\n");
-			//throw EXIT_FAILURE;
-		}
-
-		printf("\n");
-
-	} // end: if not offboard_status
-
-}
-
-
-// ------------------------------------------------------------------------------
-//   Stop Off-Board Mode
-// ------------------------------------------------------------------------------
-void
-Autopilot_Interface::
-disable_offboard_control()
-{
-
-	// Should only send this command once
-	if ( control_status == true )
-	{
-		printf("DISABLE OFFBOARD MODE\n");
-
-		// ----------------------------------------------------------------------
-		//   TOGGLE OFF-BOARD MODE
-		// ----------------------------------------------------------------------
-
-		// Sends the command to stop off-board
-		int success = toggle_offboard_control( false );
-
-		// Check the command was written
-		if ( success )
-			control_status = false;
-		else
-		{
-			fprintf(stderr,"Error: off-board mode not set, could not write message\n");
-			//throw EXIT_FAILURE;
-		}
-
-		printf("\n");
-
-	} // end: if offboard_status
-
-}
-
-
-// ------------------------------------------------------------------------------
-//   Toggle Off-Board Mode
-// ------------------------------------------------------------------------------
-int
-Autopilot_Interface::
-toggle_offboard_control( bool flag )
-{
-	// Prepare command for off-board mode
-	mavlink_command_long_t com = { 0 };
-	com.target_system    = system_id;
-	com.target_component = autopilot_id;
-	com.command          = MAV_CMD_NAV_GUIDED_ENABLE;
-	com.confirmation     = true;
-	com.param1           = (float) flag; // flag >0.5 => start, <0.5 => stop
-
-	// Encode
-	mavlink_message_t message;
-	mavlink_msg_command_long_encode(system_id, companion_id, &message, &com);
-
-	// Send the message
-	int len = serial_port->write_message(message);
-
-	// Done!
-	return len;
-}
-
 
 // ------------------------------------------------------------------------------
 //   STARTUP
@@ -678,9 +393,6 @@ void
 Autopilot_Interface::
 handle_quit( int sig )
 {
-
-	disable_offboard_control();
-
 	try {
 		stop();
 

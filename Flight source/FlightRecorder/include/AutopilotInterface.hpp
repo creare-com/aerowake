@@ -263,19 +263,8 @@ public:
 	char control_status;
 	uint64_t write_count;
 
-	int system_id;
-	int autopilot_id;
-	int companion_id;
-
-	Mavlink_Messages current_messages;
-	mavlink_set_position_target_local_ned_t initial_position;
-
-	void update_setpoint(mavlink_set_position_target_local_ned_t setpoint);
 	void read_messages();
 	int  write_message(mavlink_message_t message);
-
-	void enable_offboard_control();
-	void disable_offboard_control();
 
 	void start();
 	void stop();
@@ -336,13 +325,7 @@ private:
 	pthread_t read_tid;
 	pthread_t write_tid;
 
-	mavlink_set_position_target_local_ned_t current_setpoint;
-
 	void read_thread();
-
-	int toggle_offboard_control( bool flag );
-	void write_setpoint();
-
 
 	// Callback vector for every supported message type
 	CallbackVector<mavlink_heartbeat_t                 > cbv_heartbeat_t                 ;

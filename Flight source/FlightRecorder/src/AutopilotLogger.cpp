@@ -236,7 +236,6 @@ void AutopilotLogger::stopLogging() {
 	cout << "Sent." << endl;
 
 	// De-initialize autopilot connection
-	apIntf.disable_offboard_control();
 	apIntf.stop();
 	apSerialPort.stop();
 }
