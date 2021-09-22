@@ -406,6 +406,14 @@ read_messages()
 					break;
 				}
 
+				case MAVLINK_MSG_ID_GPS_RAW_INT:
+				{
+					mavlink_gps_raw_int_t gpsRaw;
+					mavlink_msg_gps_raw_int_decode(&message, &gpsRaw);
+					// Notify listeners
+					cbv_gps_raw_int_t.fireCallbacks(gpsRaw);
+				}
+
 				default:
 				{
 					printf("Warning, did not handle message id %i\n",message.msgid);

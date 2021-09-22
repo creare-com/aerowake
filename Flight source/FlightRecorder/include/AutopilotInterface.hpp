@@ -304,6 +304,7 @@ public:
 	void cbReg_command_ack_t               (function<void(mavlink_command_ack_t               &)> callback) { cbv_command_ack_t               .registerCallback(callback); }
 	void cbReg_param_value_t               (function<void(mavlink_param_value_t               &)> callback) { cbv_param_value_t               .registerCallback(callback); }
 	void cbReg_timesync_t                  (function<void(mavlink_timesync_t                  &)> callback) { cbv_timesync_t                  .registerCallback(callback); }
+	void cbReg_gps_raw_int_t               (function<void(mavlink_gps_raw_int_t               &)> callback) { cbv_gps_raw_int_t               .registerCallback(callback); }
 	
 	/**
 	 * @brief Ask the autopilot to send us a specific stream of data
@@ -358,6 +359,7 @@ private:
 	CallbackVector<mavlink_command_ack_t               > cbv_command_ack_t               ;
 	CallbackVector<mavlink_param_value_t               > cbv_param_value_t               ;
 	CallbackVector<mavlink_timesync_t                  > cbv_timesync_t                  ;
+	CallbackVector<mavlink_gps_raw_int_t               > cbv_gps_raw_int_t               ;
 
 	static void announce_msg(string msg_name);
 	static void announce_autopilot_version_t          (mavlink_autopilot_version_t         & ver);
