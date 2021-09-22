@@ -598,7 +598,6 @@ void
 Autopilot_Interface::
 start()
 {
-	int result;
 
 	// --------------------------------------------------------------------------
 	//   CHECK SERIAL PORT
@@ -615,57 +614,10 @@ start()
 	//   READ THREAD
 	// --------------------------------------------------------------------------
 
-	printf("START READ THREAD \n");
 
-	result = pthread_create( &read_tid, NULL, &start_autopilot_interface_read_thread, this );
+	int result = pthread_create( &read_tid, NULL, &start_autopilot_interface_read_thread, this );
 	if ( result ) throw result;
 
-	// now we're reading messages
-	printf("\n");
-
-
-	// --------------------------------------------------------------------------
-	//   CHECK FOR MESSAGES
-	// --------------------------------------------------------------------------
-
-	printf("CHECK FOR MESSAGES\n");
-
-	while ( not current_messages.sysid )
-	{
-		if ( time_to_exit )
-			return;
-		usleep(500000); // check at 2Hz
-	}
-
-	printf("Found\n");
-
-	// now we know autopilot is sending messages
-	printf("\n");
-
-
-	// --------------------------------------------------------------------------
-	//   GET SYSTEM and COMPONENT IDs
-	// --------------------------------------------------------------------------
-
-	// This comes from the heartbeat, which in theory should only come from
-	// the autopilot we're directly connected to it.  If there is more than one
-	// vehicle then we can't expect to discover id's like this.
-	// In which case set the id's manually.
-
-	// System ID
-	if ( not system_id )
-	{
-		system_id = current_messages.sysid;
-		printf("GOT VEHICLE SYSTEM ID: %i\n", system_id );
-	}
-
-	// Component ID
-	if ( not autopilot_id )
-	{
-		autopilot_id = current_messages.compid;
-		printf("GOT AUTOPILOT COMPONENT ID: %i\n", autopilot_id);
-		printf("\n");
-	}
 
 	return;
 
