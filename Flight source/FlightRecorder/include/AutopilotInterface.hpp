@@ -72,7 +72,7 @@
 #include <sys/time.h>
 #include <atomic>
 #include <functional>
-
+#include <iostream>
 #include <common/mavlink.h>
 
 using namespace std;
@@ -263,19 +263,8 @@ public:
 	char control_status;
 	uint64_t write_count;
 
-	int system_id;
-	int autopilot_id;
-	int companion_id;
-
-	Mavlink_Messages current_messages;
-	mavlink_set_position_target_local_ned_t initial_position;
-
-	void update_setpoint(mavlink_set_position_target_local_ned_t setpoint);
 	void read_messages();
 	int  write_message(mavlink_message_t message);
-
-	void enable_offboard_control();
-	void disable_offboard_control();
 
 	void start();
 	void stop();
@@ -303,6 +292,8 @@ public:
 	void cbReg_autopilot_version_t         (function<void(mavlink_autopilot_version_t         &)> callback) { cbv_autopilot_version_t         .registerCallback(callback); }
 	void cbReg_command_ack_t               (function<void(mavlink_command_ack_t               &)> callback) { cbv_command_ack_t               .registerCallback(callback); }
 	void cbReg_param_value_t               (function<void(mavlink_param_value_t               &)> callback) { cbv_param_value_t               .registerCallback(callback); }
+	void cbReg_timesync_t                  (function<void(mavlink_timesync_t                  &)> callback) { cbv_timesync_t                  .registerCallback(callback); }
+	void cbReg_gps_raw_int_t               (function<void(mavlink_gps_raw_int_t               &)> callback) { cbv_gps_raw_int_t               .registerCallback(callback); }
 	
 	/**
 	 * @brief Ask the autopilot to send us a specific stream of data
@@ -334,13 +325,7 @@ private:
 	pthread_t read_tid;
 	pthread_t write_tid;
 
-	mavlink_set_position_target_local_ned_t current_setpoint;
-
 	void read_thread();
-
-	int toggle_offboard_control( bool flag );
-	void write_setpoint();
-
 
 	// Callback vector for every supported message type
 	CallbackVector<mavlink_heartbeat_t                 > cbv_heartbeat_t                 ;
@@ -356,20 +341,14 @@ private:
 	CallbackVector<mavlink_autopilot_version_t         > cbv_autopilot_version_t         ;
 	CallbackVector<mavlink_command_ack_t               > cbv_command_ack_t               ;
 	CallbackVector<mavlink_param_value_t               > cbv_param_value_t               ;
+	CallbackVector<mavlink_timesync_t                  > cbv_timesync_t                  ;
+	CallbackVector<mavlink_gps_raw_int_t               > cbv_gps_raw_int_t               ;
 
-	static void announce_heartbeat_t                  (mavlink_heartbeat_t                 &);
-	static void announce_sys_status_t                 (mavlink_sys_status_t                &);
-	static void announce_battery_status_t             (mavlink_battery_status_t            &);
-	static void announce_radio_status_t               (mavlink_radio_status_t              &);
-	static void announce_local_position_ned_t         (mavlink_local_position_ned_t        &);
-	static void announce_global_position_int_t        (mavlink_global_position_int_t       &);
-	static void announce_position_target_local_ned_t  (mavlink_position_target_local_ned_t &);
-	static void announce_position_target_global_int_t (mavlink_position_target_global_int_t&);
-	static void announce_highres_imu_t                (mavlink_highres_imu_t               &);
-	static void announce_attitude_t                   (mavlink_attitude_t                  &);
-	static void announce_autopilot_version_t          (mavlink_autopilot_version_t         &);
-	static void announce_command_ack_t                (mavlink_command_ack_t               &);
-	static void announce_param_value_t                (mavlink_param_value_t               &);
+	static void announce_msg(string msg_name);
+	static void announce_autopilot_version_t          (mavlink_autopilot_version_t         & ver);
+	static void announce_command_ack_t                (mavlink_command_ack_t               &ack);
+	static void announce_param_value_t                (mavlink_param_value_t               &paramValue);
+	static void announce_timesync_t                   (mavlink_timesync_t                  &timeSync);
 };
 
 
