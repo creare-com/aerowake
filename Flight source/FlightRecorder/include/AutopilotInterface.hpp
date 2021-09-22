@@ -348,6 +348,7 @@ private:
 	static void announce_autopilot_version_t          (mavlink_autopilot_version_t         & ver);
 	static void announce_command_ack_t                (mavlink_command_ack_t               &ack);
 	static void announce_param_value_t                (mavlink_param_value_t               &paramValue);
+	static void announce_timesync_t                   (mavlink_timesync_t                  &timeSync);
 };
 
 

@@ -469,7 +469,7 @@ void Autopilot_Interface::registerAnnouncementCallbacks() {
 	cbReg_position_target_global_int_t([](mavlink_position_target_global_int_t &msg) {announce_msg("MAVLINK_MSG_ID_POSITION_TARGET_GLOBAL_INT");});
 	cbReg_highres_imu_t               ([](mavlink_highres_imu_t                &msg) {announce_msg("MAVLINK_MSG_ID_HIGHRES_IMU");});
 	cbReg_attitude_t                  ([](mavlink_attitude_t                   &msg) {announce_msg("MAVLINK_MSG_ID_ATTITUDE");});
-	cbReg_timesync_t                  ([](mavlink_timesync_t                   &msg) {announce_msg("MAVLINK_MSG_ID_TIMESYNC");});
+	cbReg_timesync_t                  (announce_timesync_t);
 	cbReg_autopilot_version_t         (announce_autopilot_version_t);
 	cbReg_command_ack_t               (announce_command_ack_t);
 	cbReg_param_value_t               (announce_param_value_t);
@@ -523,6 +523,10 @@ void Autopilot_Interface::announce_param_value_t                (mavlink_param_v
 	nulltermParamId[16] = 0; // https://mavlink.io/en/messages/common.html#PARAM_VALUE
 	memcpy(nulltermParamId, paramValue.param_id, 16);
 	printf("Value of parameter %d (%s) is: %f\n", paramValue.param_index, nulltermParamId, paramValue.param_value);
+}
+
+void Autopilot_Interface::announce_timesync_t                   (mavlink_timesync_t                  &timeSync) {
+	printf("Received timesync: tc1=%d, ts1=%d\n", timeSync.tc1, timeSync.ts1);
 }
 
 
